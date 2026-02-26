@@ -1,0 +1,14 @@
+spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-name: Google
+            client-id: OAUTH2_GOOGLE_CLIENT_ID
+            client-secret: OAUTH2_GOOGLE_CLIENT_SECRET
+            authorization-grant-type: authorization_code
+            scope:
+              - email
+              - profile
+            redirect-uri: http://localhost:8080/login/oauth2/code/google

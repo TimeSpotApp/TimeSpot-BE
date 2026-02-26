@@ -1,0 +1,86 @@
+# ==================================================
+# GLOBAL DEFAULT & CORE CONFIGS
+# ==================================================
+* text=auto eol=lf
+
+# Git & IDE
+.gitignore     text eol=lf
+.gitattributes text eol=lf
+.editorconfig  text eol=lf
+
+# ==================================================
+# EXECUTABLE SCRIPTS
+# ==================================================
+# Unix/Linux
+gradlew text eol=lf
+mvnw    text eol=lf
+*.sh    text eol=lf
+*.bash  text eol=lf
+*.zsh   text eol=lf
+
+# Windows
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# ==================================================
+# BACKEND ECOSYSTEM
+# ==================================================
+*.java       text eol=lf
+*.kt         text eol=lf
+*.kts        text eol=lf
+*.groovy     text eol=lf
+*.properties text eol=lf
+*.gradle     text eol=lf
+*.gradle.kts text eol=lf
+pom.xml      text eol=lf
+
+# ==================================================
+# FRONTEND & WEB STACK
+# ==================================================
+*.js *.jsx *.ts *.tsx text eol=lf
+*.json *.json5        text eol=lf
+*.html *.htm          text eol=lf
+*.md                  text eol=lf
+*.map                 text eol=lf
+
+# CSS & Preprocessors
+*.css *.scss *.sass *.less *.styl text eol=lf
+
+# Lock Files
+package-lock.json text eol=lf
+yarn.lock         text eol=lf
+pnpm-lock.yaml    text eol=lf
+
+# ==================================================
+# DEVOPS & INFRASTRUCTURE
+# ==================================================
+# Docker
+Dockerfile*          text eol=lf
+docker-compose*.yml  text eol=lf
+docker-compose*.yaml text eol=lf
+compose*.yml         text eol=lf
+compose*.yaml        text eol=lf
+
+# Configs & Data
+*.yml *.yaml *.xml text eol=lf
+*.env*             text eol=lf
+*.sql              text eol=lf
+*.csv *.tsv        text eol=lf
+
+# ==================================================
+# BINARIES & ASSETS
+# ==================================================
+# Build Outputs
+*.jar *.war *.ear binary
+
+# Compressed Archives
+*.zip *.tar *.gz binary
+
+# Images & Vector
+*.jpg *.jpeg *.png *.gif *.ico *.webp binary
+*.svg                                 text eol=lf
+
+# Fonts & Documents
+*.ttf *.otf *.woff *.woff2 binary
+*.pdf                      binary

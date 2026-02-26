@@ -1,0 +1,51 @@
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: ${MYSQL_URL:jdbc:mysql://localhost:3306/backend?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Seoul&useSSL=false&allowPublicKeyRetrieval=true}
+    username: ${MYSQL_USER}
+    password: ${MYSQL_PASSWORD}
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 10
+  sql:
+    init:
+      #mode: embedded
+      mode: never
+      #continue-on-error: false
+      #platform: all
+      #separator: ;
+      #schema-locations:
+        #- classpath:/schema.sql
+  jpa:
+    hibernate:
+      ddl-auto: validate
+      naming:
+        implicit-strategy: org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy
+        physical-strategy: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+        default_batch_fetch_size: 100
+        jdbc:
+          batch_size: 100
+        order_inserts: true
+        order_updates: true
+        #show_sql: true
+        #format_sql: true
+        #highlight_sql: true
+        #use_sql_comments: true
+    open-in-view: false
+  data:
+    redis:
+      client-type: lettuce
+      database: 0
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_HOST_PORT:6379}
+      password: ${REDIS_PASSWORD}
+      lettuce:
+        pool:
+          enabled: true
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+          max-wait: -1ms

@@ -1,0 +1,56 @@
+[versions]
+# --- [PLUGINS & TOOLS] ---
+java = "17"
+springBoot = "3.5.11"
+springDependencyManagement = "1.1.7"
+lombok = "9.2.0"
+
+# --- [MAIN DEPENDENCIES] ---
+jacksonDatabind = "2.21.0"
+springDocOpenApi = "2.8.13"
+querydsl = "7.1"
+
+# --- [TEST DEPENDENCIES] ---
+
+[libraries]
+## --- [SPRING BOM] ---
+spring-boot-dependencies = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "springBoot" }
+
+## --- [SPRING ECOSYSTEM - CORE & DX] ---
+spring-boot-starter-actuator = { module = "org.springframework.boot:spring-boot-starter-actuator" }
+spring-boot-starter-validation = { module = "org.springframework.boot:spring-boot-starter-validation" }
+spring-boot-starter-web = { module = "org.springframework.boot:spring-boot-starter-web" }
+spring-boot-devtools = { module = "org.springframework.boot:spring-boot-devtools" }
+
+## --- [DATABASE & PERSISTENCE] ---
+spring-boot-starter-data-jpa = { module = "org.springframework.boot:spring-boot-starter-data-jpa" }
+spring-boot-starter-data-redis = { module = "org.springframework.boot:spring-boot-starter-data-redis" }
+querydsl-jpa = { module = "io.github.openfeign.querydsl:querydsl-jpa", version.ref = "querydsl" }
+querydsl-apt = { module = "io.github.openfeign.querydsl:querydsl-apt", version.ref = "querydsl" }
+h2 = { module = "com.h2database:h2" }
+mysql-connector-j = { module = "com.mysql:mysql-connector-j" }
+
+## --- [SECURITY & AUTHENTICATION] ---
+spring-boot-starter-oauth2-client = { module = "org.springframework.boot:spring-boot-starter-oauth2-client" }
+spring-boot-starter-security = { module = "org.springframework.boot:spring-boot-starter-security" }
+
+## --- [UTILITIES & API DOCS] ---
+jackson-datatype-jsr310 = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310" }
+jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jacksonDatabind" }
+springdoc-openapi-starter-webmvc-ui = { module = "org.springdoc:springdoc-openapi-starter-webmvc-ui", version.ref = "springDocOpenApi" }
+micrometer-registry-graphite = { module = "io.micrometer:micrometer-registry-graphite" }
+micrometer-registry-prometheus = { module = "io.micrometer:micrometer-registry-prometheus" }
+jakarta-annotation-api = { module = "jakarta.annotation:jakarta.annotation-api" }
+jakarta-persistence-api = { module = "jakarta.persistence:jakarta.persistence-api" }
+
+## --- [TESTING UTILS & FRAMEWORKS] ---
+spring-boot-starter-test = { module = "org.springframework.boot:spring-boot-starter-test" }
+spring-security-test = { module = "org.springframework.security:spring-security-test" }
+junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
+
+[bundles]
+
+[plugins]
+spring-boot = { id = "org.springframework.boot", version.ref = "springBoot" }
+spring-dependency-management = { id = "io.spring.dependency-management", version.ref = "springDependencyManagement" }
+lombok = { id = "io.freefair.lombok", version.ref = "lombok" }

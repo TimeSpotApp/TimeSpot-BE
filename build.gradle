@@ -1,0 +1,60 @@
+plugins {
+    id 'java'
+    alias libs.plugins.spring.boot
+    alias libs.plugins.spring.dependency.management
+    alias libs.plugins.lombok
+}
+
+group = 'com.nomadspot'
+version = '0.0.1-SNAPSHOT'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(libs.versions.java.get())
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // --- [SPRING BOM] ---
+    implementation platform(libs.spring.boot.dependencies)
+
+    // --- [SPRING ECOSYSTEM - CORE & DX] ---
+    implementation libs.spring.boot.starter.actuator
+    implementation libs.spring.boot.starter.validation
+    implementation libs.spring.boot.starter.web
+    developmentOnly libs.spring.boot.devtools
+
+    // --- [DATABASE & PERSISTENCE] ---
+    implementation libs.spring.boot.starter.data.jpa
+    implementation libs.spring.boot.starter.data.redis
+    implementation libs.querydsl.jpa
+    annotationProcessor libs.querydsl.apt, { artifact { classifier = 'jakarta' } }
+    runtimeOnly libs.mysql.connector.j
+    testRuntimeOnly libs.h2
+
+    // --- [SECURITY & AUTHENTICATION] ---
+    implementation libs.spring.boot.starter.oauth2.client
+    implementation libs.spring.boot.starter.security
+
+    // --- [UTILITIES & API DOCS] ---
+    implementation libs.jackson.datatype.jsr310
+    implementation libs.jackson.databind
+    implementation libs.springdoc.openapi.starter.webmvc.ui
+    runtimeOnly libs.micrometer.registry.graphite
+    runtimeOnly libs.micrometer.registry.prometheus
+    annotationProcessor libs.jakarta.annotation.api
+    annotationProcessor libs.jakarta.persistence.api
+
+    // --- [TESTING UTILS & FRAMEWORKS] ---
+    testImplementation libs.spring.boot.starter.test
+    testImplementation libs.spring.security.test
+    testRuntimeOnly libs.junit.platform.launcher
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
