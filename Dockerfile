@@ -1,17 +1,9 @@
 FROM gradle:8.14.4-jdk17-alpine AS builder
 WORKDIR /app
 
-COPY gradlew .
-COPY gradle gradle
-COPY build.gradle settings.gradle ./
-RUN chmod +x ./gradlew
+COPY build/libs/*.jar app.jar
 
-RUN ./gradlew dependencies --no-daemon
-
-COPY src src
-RUN ./gradlew build --no-daemon -x test
-
-RUN java -Djarmode=layertools -jar build/libs/*.jar extract
+RUN java -Djarmode=layertools -jar app.jar extract
 
 FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
@@ -27,6 +19,9 @@ COPY --from=builder --chown=appuser:appuser /app/dependencies/ ./
 COPY --from=builder --chown=appuser:appuser /app/spring-boot-loader/ ./
 COPY --from=builder --chown=appuser:appuser /app/snapshot-dependencies/ ./
 COPY --from=builder --chown=appuser:appuser /app/application/ ./
+
+ENV SPRING_PROFILES_ACTIVE=prod
+ENV TZ=Asia/Seoul
 
 USER appuser
 EXPOSE 8080
