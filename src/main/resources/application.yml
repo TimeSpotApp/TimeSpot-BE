@@ -6,9 +6,10 @@ spring:
       - optional:classpath:config/${spring.profiles.active}/application-${spring.profiles.active}_auth.yml
       - optional:classpath:config/${spring.profiles.active}/application-${spring.profiles.active}_db.yml
       - optional:classpath:config/${spring.profiles.active}/application-${spring.profiles.active}_docs.yml
+      - optional:classpath:config/${spring.profiles.active}/application-${spring.profiles.active}_monitoring.yml
       - optional:classpath:config/${spring.profiles.active}/application-${spring.profiles.active}_server.yml
   profiles:
     group:
-      dev: [ "dev_auth", "dev_db", "dev_docs", "dev_server" ]
-      prod: [ "prod_auth", "prod_db", "prod_docs", "prod_server" ]
+      dev: [ "dev_auth", "dev_db", "dev_docs", "dev_monitoring", "dev_server" ]
+      prod: [ "prod_auth", "prod_db", "prod_docs", "prod_monitoring", "prod_server" ]
     active: dev
