@@ -1,0 +1,68 @@
+name: backend-docker
+
+x-common-environments: &common-environments
+  TZ: Asia/Seoul
+
+x-logging: &default-logging
+  driver: "json-file"
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+
+  mysql:
+    container_name: "backend-mysql"
+    image: "mysql:8.0.45-oracle"
+    environment:
+      <<: *common-environments
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+    ports:
+      - "${MYSQL_HOST_PORT:-3306}:${MYSQL_CONTAINER_PORT:-3306}"
+    networks: [ "backend-network" ]
+    volumes:
+      - "mysql-data:/var/lib/mysql"
+      - "./docker/mysql/conf.d:/etc/mysql/conf.d:ro"
+      - "./docker/mysql/log:/var/log/mysql"
+    user: "${UID:-999}:${GID:-999}"
+    restart: "unless-stopped"
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}" ]
+      interval: "10s"
+      timeout: "5s"
+      retries: "5"
+      start_period: "30s"
+    logging: *default-logging
+
+  valkey:
+    container_name: "backend-valkey"
+    image: "valkey/valkey:7.2.12-alpine"
+    environment:
+      <<: *common-environments
+    command: [ "valkey-server", "/usr/local/etc/valkey/valkey.conf", "--requirepass", "${VALKEY_PASSWORD}" ]
+    ports:
+      - "${VALKEY_HOST_PORT:-6379}:${VALKEY_CONTAINER_PORT:-6379}"
+    networks: [ "backend-network" ]
+    volumes:
+      - "valkey-data:/data"
+      - "./docker/valkey/conf/valkey.conf:/usr/local/etc/valkey/valkey.conf:ro"
+    restart: "unless-stopped"
+    healthcheck:
+      test: [ "CMD-SHELL", "VALKEYCLI_AUTH=${VALKEY_PASSWORD} valkey-cli ping | grep -q PONG" ]
+      interval: "5s"
+      timeout: "3s"
+      retries: "3"
+    logging: *default-logging
+
+networks:
+  backend-network:
+    driver: "bridge"
+
+volumes:
+  mysql-data:
+    driver: "local"
+  valkey-data:
+    driver: "local"

@@ -23,7 +23,7 @@ spring:
         physical-strategy: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.MySQLDialect
+        #dialect: org.hibernate.dialect.MySQLDialect
         default_batch_fetch_size: 100
         jdbc:
           batch_size: 100
@@ -38,9 +38,9 @@ spring:
     redis:
       client-type: lettuce
       database: 0
-      host: ${REDIS_HOST}
-      port: ${REDIS_HOST_PORT:6379}
-      password: ${REDIS_PASSWORD}
+      host: ${VALKEY_HOST}
+      port: ${VALKEY_HOST_PORT:6379}
+      password: ${VALKEY_PASSWORD}
       lettuce:
         pool:
           enabled: true
