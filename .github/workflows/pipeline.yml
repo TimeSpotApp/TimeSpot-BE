@@ -2,21 +2,21 @@ name: Pipeline (Build & Docker & Release)
 
 on:
   workflow_dispatch:
-#  push:
-#    branches:
-#      - main
-#    tags:
-#      - 'v*'
-#  pull_request:
-#    paths:
-#      - '**/*.java'
-#      - '**/*.kt'
-#      - '**/*.gradle'
-#      - '**/*.gradle.kts'
-#      - '**/gradle-wrapper.properties'
-#      - '**/Dockerfile'
-#    branches:
-#      - main
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+  pull_request:
+    paths:
+      - '**/*.java'
+      - '**/*.kt'
+      - '**/*.gradle'
+      - '**/*.gradle.kts'
+      - '**/gradle-wrapper.properties'
+      - '**/Dockerfile'
+    branches:
+      - main
 
 permissions:
   contents: write
