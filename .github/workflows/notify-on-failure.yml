@@ -1,0 +1,74 @@
+name: Notify on Failure
+
+on:
+  workflow_run:
+    workflows: [ "Pipeline (Build & Docker & Release)" ]
+    types:
+      - completed
+
+permissions:
+  issues: write
+
+jobs:
+  notify:
+    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Create or Update Issue
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const run = context.payload.workflow_run;
+            const branchName = run.head_branch;
+            const workflowName = run.name;
+            const runUrl = run.html_url;
+            const headSha = run.head_sha.slice(0, 7);
+            
+            const issueTitle = `🚨 [${workflowName}] Failed: ${branchName}`;
+            
+            const issueBody = `
+            ## ❌ Build Failure Alert
+            
+            **워크플로우 실행 중 오류가 발생했습니다.**
+            
+            | 항목 | 내용 |
+            | --- | --- |
+            | **Workflow** | ${workflowName} |
+            | **Branch** | \`${branchName}\` |
+            | **Commit** | \`${headSha}\` |
+            | **Logs** | [👉 로그 확인하기](${runUrl}) |
+            
+            ---
+            _This issue was automatically created by GitHub Actions._
+            `;
+
+            const { owner, repo } = context.repo;
+            
+            const issues = await github.rest.issues.listForRepo({
+              owner,
+              repo,
+              state: 'open',
+              creator: 'github-actions[bot]'
+            });
+
+            const existingIssue = issues.data.find(issue => issue.title === issueTitle);
+
+            if (existingIssue) {
+              console.log(`Found open issue #${existingIssue.number}. Adding comment...`);
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number: existingIssue.number,
+                body: `🔄 **추가 실패 감지**\n\n- **Commit:** \`${headSha}\`\n- **Logs:** [로그 확인](${runUrl})`
+              });
+            } else {
+              console.log("No open issue found. Creating new one...");
+              await github.rest.issues.create({
+                owner,
+                repo,
+                title: issueTitle,
+                body: issueBody,
+                labels: ['build-failure', 'auto-generated']
+              });
+            }
