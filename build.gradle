@@ -44,8 +44,8 @@ dependencies {
     implementation libs.jackson.datatype.jsr310
     implementation libs.jackson.databind
     implementation libs.springdoc.openapi.starter.webmvc.ui
-    runtimeOnly libs.micrometer.registry.graphite
-    runtimeOnly libs.micrometer.registry.prometheus
+    //runtimeOnly libs.micrometer.registry.graphite
+    //runtimeOnly libs.micrometer.registry.prometheus
     annotationProcessor libs.jakarta.annotation.api
     annotationProcessor libs.jakarta.persistence.api
 

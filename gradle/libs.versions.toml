@@ -6,7 +6,6 @@ springDependencyManagement = "1.1.7"
 lombok = "9.2.0"
 
 # --- [MAIN DEPENDENCIES] ---
-jacksonDatabind = "2.21.0"
 springDocOpenApi = "2.8.13"
 querydsl = "7.1"
 
@@ -36,7 +35,7 @@ spring-boot-starter-security = { module = "org.springframework.boot:spring-boot-
 
 ## --- [UTILITIES & API DOCS] ---
 jackson-datatype-jsr310 = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310" }
-jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jacksonDatabind" }
+jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind" }
 springdoc-openapi-starter-webmvc-ui = { module = "org.springdoc:springdoc-openapi-starter-webmvc-ui", version.ref = "springDocOpenApi" }
 micrometer-registry-graphite = { module = "io.micrometer:micrometer-registry-graphite" }
 micrometer-registry-prometheus = { module = "io.micrometer:micrometer-registry-prometheus" }
