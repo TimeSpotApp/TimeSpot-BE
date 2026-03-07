@@ -6,7 +6,7 @@ springDependencyManagement = "1.1.7"
 lombok = "9.2.0"
 
 # --- [MAIN DEPENDENCIES] ---
-springDocOpenApi = "2.8.13"
+springDocOpenApi = "2.8.16"
 querydsl = "7.1"
 
 # --- [TEST DEPENDENCIES] ---
