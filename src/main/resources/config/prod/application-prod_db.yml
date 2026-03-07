@@ -48,3 +48,9 @@ spring:
           max-idle: 8
           min-idle: 0
           max-wait: -1ms
+decorator:
+  datasource:
+    p6spy:
+      logging: slf4j
+      enable-logging: false
+      multiline: true

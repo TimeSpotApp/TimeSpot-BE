@@ -49,3 +49,13 @@ spring:
           max-idle: 8
           min-idle: 0
           max-wait: -1ms
+#logging:
+  #level:
+    #org.hibernate.sql: debug
+    #org.hibernate.type.descriptor.sql.BasicBinder: trace
+decorator:
+  datasource:
+    p6spy:
+      logging: slf4j
+      enable-logging: true
+      multiline: true
