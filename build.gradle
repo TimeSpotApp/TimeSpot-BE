@@ -33,12 +33,14 @@ dependencies {
     implementation libs.spring.boot.starter.data.redis
     implementation libs.querydsl.jpa
     annotationProcessor libs.querydsl.apt, { artifact { classifier = 'jakarta' } }
+    implementation libs.p6spy.spring.boot.starter
     runtimeOnly libs.mysql.connector.j
     testRuntimeOnly libs.h2
 
     // --- [SECURITY & AUTHENTICATION] ---
     implementation libs.spring.boot.starter.oauth2.client
     implementation libs.spring.boot.starter.security
+    implementation libs.bundles.jjwt
 
     // --- [UTILITIES & API DOCS] ---
     implementation libs.jackson.datatype.jsr310
