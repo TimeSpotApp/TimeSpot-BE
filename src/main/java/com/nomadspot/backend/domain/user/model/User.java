@@ -59,8 +59,8 @@ public class User extends BaseAuditingEntity implements Persistable<UUID> {
     @Column(name = "role", nullable = false)
     private UserRole role;
 
-    @Builder
-    public User(final String email, final String nickname, final String profileImgUrl, final UserRole role) {
+    @Builder(access = AccessLevel.PRIVATE)
+    private User(final String email, final String nickname, final String profileImgUrl, final UserRole role) {
         validateEmail(email);
         validateNickname(nickname);
         this.id = UlidCreator.getUlid().toUuid();
@@ -68,6 +68,20 @@ public class User extends BaseAuditingEntity implements Persistable<UUID> {
         this.nickname = nickname;
         this.profileImgUrl = profileImgUrl;
         this.role = role != null ? role : UserRole.USER;
+    }
+
+    // ========================= 생성자 메서드 =========================
+
+    public static User of(final String email, final String nickname) {
+        return User.builder().email(email).nickname(nickname).role(UserRole.USER).build();
+    }
+
+    public static User of(final String email, final String nickname, final UserRole role) {
+        return User.builder().email(email).nickname(nickname).role(role).build();
+    }
+
+    public static User of(final String email, final String nickname, final String profileImgUrl, final UserRole role) {
+        return User.builder().email(email).nickname(nickname).profileImgUrl(profileImgUrl).role(role).build();
     }
 
     // ========================= JPA 엔티티 메서드 =========================

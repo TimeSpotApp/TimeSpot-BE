@@ -57,16 +57,34 @@ public class SocialConnection extends BaseAuditingEntity {
     @Column(name = "idp_refresh_token")
     private String idpRefreshToken;
 
-    @Builder
-    public SocialConnection(final User user,
-                            final ProviderType providerType,
-                            final String providerId,
-                            final String idpRefreshToken) {
+    @Builder(access = AccessLevel.PRIVATE)
+    private SocialConnection(final User user,
+                             final ProviderType providerType,
+                             final String providerId,
+                             final String idpRefreshToken) {
         validateProviderId(providerId);
         this.user = user;
         this.providerType = providerType != null ? providerType : ProviderType.APPLE;
         this.providerId = providerId;
         this.idpRefreshToken = idpRefreshToken;
+    }
+
+    // ========================= 생성자 메서드 =========================
+
+    public static SocialConnection of(final User user, final ProviderType providerType, final String providerId) {
+        return SocialConnection.builder().user(user).providerType(providerType).providerId(providerId).build();
+    }
+
+    public static SocialConnection of(final User user,
+                                      final ProviderType providerType,
+                                      final String providerId,
+                                      final String idpRefreshToken) {
+        return SocialConnection.builder()
+                               .user(user)
+                               .providerType(providerType)
+                               .providerId(providerId)
+                               .idpRefreshToken(idpRefreshToken)
+                               .build();
     }
 
     // ========================= 검증 메서드 =========================
