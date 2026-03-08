@@ -6,6 +6,7 @@ springDependencyManagement = "1.1.7"
 lombok = "9.2.0"
 
 # --- [MAIN DEPENDENCIES] ---
+ulidCreator = "5.2.4"
 springDocOpenApi = "2.8.16"
 querydsl = "7.1"
 p6spy = "1.12.1"
@@ -40,6 +41,7 @@ jjwt-impl = { module = "io.jsonwebtoken:jjwt-impl", version.ref = "jjwt" }
 jjwt-jackson = { module = "io.jsonwebtoken:jjwt-jackson", version.ref = "jjwt" }
 
 ## --- [UTILITIES & API DOCS] ---
+ulid-creator = { module = "com.github.f4b6a3:ulid-creator", version.ref = "ulidCreator" }
 jackson-datatype-jsr310 = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310" }
 jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind" }
 springdoc-openapi-starter-webmvc-ui = { module = "org.springdoc:springdoc-openapi-starter-webmvc-ui", version.ref = "springDocOpenApi" }

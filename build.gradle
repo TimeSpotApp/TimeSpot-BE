@@ -43,6 +43,7 @@ dependencies {
     implementation libs.bundles.jjwt
 
     // --- [UTILITIES & API DOCS] ---
+    implementation libs.ulid.creator
     implementation libs.jackson.datatype.jsr310
     implementation libs.jackson.databind
     implementation libs.springdoc.openapi.starter.webmvc.ui
