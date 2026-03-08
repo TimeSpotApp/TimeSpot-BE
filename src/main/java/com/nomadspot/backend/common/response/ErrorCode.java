@@ -34,7 +34,24 @@ public enum ErrorCode {
     REQUEST_TOO_LARGE(HttpStatus.PAYLOAD_TOO_LARGE, "CO011", "요청의 크기가 너무 큽니다."),
     TOO_MANY_REQUESTS(HttpStatus.TOO_MANY_REQUESTS, "CO012", "너무 많은 요청을 보냈습니다. 잠시 후 다시 시도해주세요."),
     RESOURCE_NOT_FOUND(HttpStatus.NOT_FOUND, "CO013", "요청하신 리소스를 찾을 수 없습니다."),
-    INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "CO999", "서버 내부 오류가 발생했습니다. 관리자에게 문의하세요.");
+    INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "CO999", "서버 내부 오류가 발생했습니다. 관리자에게 문의하세요."),
+
+    // User
+    USER_NOT_FOUND(HttpStatus.NOT_FOUND, "US001", "해당 회원을 찾을 수 없습니다."),
+    USER_EMAIL_DUPLICATED(HttpStatus.BAD_REQUEST, "US002", "이미 사용 중인 이메일 주소입니다."),
+    USER_ALREADY_WITHDRAWN(HttpStatus.CONFLICT, "US003", "이미 탈퇴한 회원입니다."),
+    USER_EMAIL_REQUIRED(HttpStatus.BAD_REQUEST, "US004", "이메일은 필수입니다."),
+    USER_INVALID_EMAIL_FORMAT(HttpStatus.BAD_REQUEST, "US005", "이메일 형식이 올바르지 않습니다."),
+    USER_NICKNAME_REQUIRED(HttpStatus.BAD_REQUEST, "US006", "닉네임은 필수입니다."),
+    USER_INVALID_NICKNAME_FORMAT(HttpStatus.BAD_REQUEST, "US007", "닉네임 형식이 올바르지 않습니다. 2~15자 영문, 한글, 숫자, '-', '_'만 사용 가능합니다."),
+
+    // Social Connection
+    SOCIAL_CONNECTION_NOT_FOUND(HttpStatus.NOT_FOUND, "SO001", "소셜 연동 정보를 찾을 수 없습니다."),
+    SOCIAL_CONNECTION_ALREADY_EXISTS(HttpStatus.CONFLICT, "SO002", "이미 사용 중인 소셜 연동 정보가 존재합니다."),
+    SOCIAL_CONNECTION_INVALID_PROVIDER_TYPE(HttpStatus.BAD_REQUEST, "SO003", "소셜 인증 제공자 유형이 올바르지 않습니다."),
+    SOCIAL_CONNECTION_INVALID_PROVIDER_ID(HttpStatus.BAD_REQUEST, "SO004", "소셜 인증 제공자 ID가 올바르지 않습니다."),
+    SOCIAL_CONNECTION_INVALID_IDP_REFRESH_TOKEN(HttpStatus.BAD_REQUEST, "SO005", "소셜 인증 제공자 Refresh Token가 올바르지 않습니다."),
+    SOCIAL_CONNECTION_PROVIDER_NOT_SUPPORTED(HttpStatus.INTERNAL_SERVER_ERROR, "SO006", "지원하지 않는 소셜 인증 제공자 유형입니다.");
 
     private final HttpStatus status;
     private final String     code;
