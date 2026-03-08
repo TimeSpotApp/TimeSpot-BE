@@ -13,6 +13,11 @@ p6spy = "1.12.1"
 jjwt = "0.13.0"
 
 # --- [TEST DEPENDENCIES] ---
+autoParams = "11.3.1"
+fixtureMonkey = "1.1.16"
+datafaker = "2.5.4"
+jqwik = "1.9.3"
+embeddedRedis = "1.4.3"
 
 [libraries]
 ## --- [SPRING BOM] ---
@@ -41,6 +46,7 @@ jjwt-impl = { module = "io.jsonwebtoken:jjwt-impl", version.ref = "jjwt" }
 jjwt-jackson = { module = "io.jsonwebtoken:jjwt-jackson", version.ref = "jjwt" }
 
 ## --- [UTILITIES & API DOCS] ---
+spring-boot-starter-batch = { module = "org.springframework.boot:spring-boot-starter-batch" }
 ulid-creator = { module = "com.github.f4b6a3:ulid-creator", version.ref = "ulidCreator" }
 jackson-datatype-jsr310 = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310" }
 jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind" }
@@ -52,11 +58,31 @@ jakarta-persistence-api = { module = "jakarta.persistence:jakarta.persistence-ap
 
 ## --- [TESTING UTILS & FRAMEWORKS] ---
 spring-boot-starter-test = { module = "org.springframework.boot:spring-boot-starter-test" }
+spring-batch-test = { module = "org.springframework.batch:spring-batch-test" }
 spring-security-test = { module = "org.springframework.security:spring-security-test" }
+autoparams = { module = "io.github.autoparams:autoparams", version.ref = "autoParams" }
+autoparams-lombok = { module = "io.github.autoparams:autoparams-lombok", version.ref = "autoParams" }
+autoparams-mockito = { module = "io.github.autoparams:autoparams-mockito", version.ref = "autoParams" }
+fixture-monkey-autoparams = { module = "com.navercorp.fixturemonkey:fixture-monkey-autoparams", version.ref = "fixtureMonkey" }
+fixture-monkey-datafaker = { module = "com.navercorp.fixturemonkey:fixture-monkey-datafaker", version.ref = "fixtureMonkey" }
+fixture-monkey-jackson = { module = "com.navercorp.fixturemonkey:fixture-monkey-jackson", version.ref = "fixtureMonkey" }
+fixture-monkey-javax-validation = { module = "com.navercorp.fixturemonkey:fixture-monkey-javax-validation", version.ref = "fixtureMonkey" }
+fixture-monkey-mockito = { module = "com.navercorp.fixturemonkey:fixture-monkey-mockito", version.ref = "fixtureMonkey" }
+fixture-monkey-starter = { module = "com.navercorp.fixturemonkey:fixture-monkey-starter", version.ref = "fixtureMonkey" }
+datafaker = { module = "net.datafaker:datafaker", version.ref = "datafaker" }
+jqwik = { module = "net.jqwik:jqwik", version.ref = "jqwik" }
+jqwik-api = { module = "net.jqwik:jqwik-api", version.ref = "jqwik" }
+jqwik-engine = { module = "net.jqwik:jqwik-engine", version.ref = "jqwik" }
+jqwik-time = { module = "net.jqwik:jqwik-time", version.ref = "jqwik" }
+jqwik-testing = { module = "net.jqwik:jqwik-testing", version.ref = "jqwik" }
+embedded-redis = { module = "com.github.codemonstur:embedded-redis", version.ref = "embeddedRedis" }
 junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
 
 [bundles]
 jjwt = ["jjwt-api", "jjwt-impl", "jjwt-jackson"]
+autoparams = ["autoparams", "autoparams-lombok", "autoparams-mockito"]
+fixture-monkey = ["fixture-monkey-autoparams", "fixture-monkey-datafaker", "fixture-monkey-jackson", "fixture-monkey-javax-validation", "fixture-monkey-mockito", "fixture-monkey-starter"]
+jqwik = ["jqwik", "jqwik-api", "jqwik-engine", "jqwik-time", "jqwik-testing"]
 
 [plugins]
 spring-boot = { id = "org.springframework.boot", version.ref = "springBoot" }

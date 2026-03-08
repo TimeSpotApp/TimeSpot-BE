@@ -43,6 +43,7 @@ dependencies {
     implementation libs.bundles.jjwt
 
     // --- [UTILITIES & API DOCS] ---
+    implementation libs.spring.boot.starter.batch
     implementation libs.ulid.creator
     implementation libs.jackson.datatype.jsr310
     implementation libs.jackson.databind
@@ -55,6 +56,12 @@ dependencies {
     // --- [TESTING UTILS & FRAMEWORKS] ---
     testImplementation libs.spring.boot.starter.test
     testImplementation libs.spring.security.test
+    testImplementation libs.spring.batch.test
+    testImplementation libs.bundles.autoparams
+    testImplementation libs.bundles.fixture.monkey
+    testImplementation libs.datafaker
+    testImplementation libs.bundles.jqwik
+    testImplementation libs.embedded.redis
     testRuntimeOnly libs.junit.platform.launcher
 }
 
