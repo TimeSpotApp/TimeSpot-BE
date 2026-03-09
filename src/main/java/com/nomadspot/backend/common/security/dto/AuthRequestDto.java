@@ -18,23 +18,29 @@ import lombok.NoArgsConstructor;
  * 26. 3. 9.     loadingKKamo21       Initial creation
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-@Schema(name = "인증 요청 DTO")
+@Schema(description = "OAuth2 소셜 로그인 요청 페이로드")
 public abstract class AuthRequestDto {
 
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
-    @Schema(name = "OAuth2 로그인 요청 DTO")
+    @Schema(description = "소셜 로그인 토큰 요청 페이로드")
     public static class OAuth2LoginRequest {
+
+        @Schema(description = "소셜 인증 토큰")
         private String providerToken;
+
     }
 
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
-    @Schema(name = "토큰 갱신 요청 DTO")
+    @Schema(description = "토큰 갱신 요청 페이로드")
     public static class TokenRefreshRequest {
+
+        @Schema(description = "JWT Refresh Token")
         private String refreshToken;
+
     }
 
 }

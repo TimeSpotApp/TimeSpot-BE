@@ -1,7 +1,7 @@
 package com.nomadspot.backend.common.security.jwt.filter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nomadspot.backend.common.response.ApiResponse;
+import com.nomadspot.backend.common.response.BaseResponse;
 import com.nomadspot.backend.common.response.ErrorCode;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
@@ -38,13 +38,13 @@ public class JwtExceptionFilter extends OncePerRequestFilter {
         try {
             filterChain.doFilter(request, response);
         } catch (JwtException e) {
-            ApiResponse<Void> apiResponse = ApiResponse.error(ErrorCode.UNAUTHORIZED, "인증 정보가 유효하지 않거나 만료되었습니다.");
+            BaseResponse<Void> baseResponse = BaseResponse.error(ErrorCode.UNAUTHORIZED, "인증 정보가 유효하지 않거나 만료되었습니다.");
 
-            response.setStatus(apiResponse.getCode());
+            response.setStatus(baseResponse.getCode());
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
             response.setCharacterEncoding(StandardCharsets.UTF_8.name());
 
-            objectMapper.writeValue(response.getWriter(), apiResponse);
+            objectMapper.writeValue(response.getWriter(), baseResponse);
         } catch (Exception e) {
             throw e;
         }

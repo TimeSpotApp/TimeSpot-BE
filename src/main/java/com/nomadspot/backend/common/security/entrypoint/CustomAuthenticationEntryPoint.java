@@ -1,7 +1,7 @@
 package com.nomadspot.backend.common.security.entrypoint;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nomadspot.backend.common.response.ApiResponse;
+import com.nomadspot.backend.common.response.BaseResponse;
 import com.nomadspot.backend.common.response.ErrorCode;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -43,13 +43,13 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
 
         if (errorCode == null) errorCode = ErrorCode.UNAUTHORIZED;
 
-        ApiResponse<Void> apiResponse = ApiResponse.error(errorCode);
+        BaseResponse<Void> baseResponse = BaseResponse.error(errorCode);
 
-        response.setStatus(apiResponse.getCode());
+        response.setStatus(baseResponse.getCode());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
 
-        objectMapper.writeValue(response.getWriter(), apiResponse);
+        objectMapper.writeValue(response.getWriter(), baseResponse);
     }
 
 }

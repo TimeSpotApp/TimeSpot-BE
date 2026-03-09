@@ -1,7 +1,7 @@
 package com.nomadspot.backend.common.security.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nomadspot.backend.common.response.ApiResponse;
+import com.nomadspot.backend.common.response.BaseResponse;
 import com.nomadspot.backend.common.response.ErrorCode;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -39,13 +39,13 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
                        AccessDeniedException accessDeniedException) throws IOException, ServletException {
         log.error("접근 거부: {}", accessDeniedException.getMessage());
 
-        ApiResponse<Void> apiResponse = ApiResponse.error(ErrorCode.USER_AUTH_ACCESS_DENIED);
+        BaseResponse<Void> baseResponse = BaseResponse.error(ErrorCode.USER_AUTH_ACCESS_DENIED);
 
-        response.setStatus(apiResponse.getCode());
+        response.setStatus(baseResponse.getCode());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
 
-        objectMapper.writeValue(response.getWriter(), apiResponse);
+        objectMapper.writeValue(response.getWriter(), baseResponse);
     }
 
 }
