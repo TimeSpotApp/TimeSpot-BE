@@ -30,6 +30,12 @@ public abstract class AuthRequestDto {
         @Schema(description = "소셜 인증 토큰")
         private String providerToken;
 
+        @Schema(description = "1회용 인가 코드")
+        private String authCode;
+
+        @Schema(description = "사용자 이름/닉네임 (APPLE 최초 로그인 시 필수)")
+        private String nickname;
+
     }
 
     @Data

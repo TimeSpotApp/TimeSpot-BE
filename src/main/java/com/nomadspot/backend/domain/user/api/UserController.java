@@ -3,7 +3,7 @@ package com.nomadspot.backend.domain.user.api;
 import com.nomadspot.backend.common.response.BaseResponse;
 import com.nomadspot.backend.common.response.SuccessCode;
 import com.nomadspot.backend.common.security.model.CustomUserDetails;
-import com.nomadspot.backend.domain.user.dto.UserResponseDto.UserInfoResponse;
+import com.nomadspot.backend.domain.user.dto.UserResponseDto;
 import com.nomadspot.backend.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -33,10 +33,10 @@ public class UserController implements UserApiDocs {
 
     @GetMapping
     @Override
-    public ResponseEntity<BaseResponse<UserInfoResponse>> getUserInfo(
+    public ResponseEntity<BaseResponse<UserResponseDto.UserInfoResponse>> getUserInfo(
             @AuthenticationPrincipal final CustomUserDetails userDetails
     ) {
-        UserInfoResponse responseData = userService.findUserInfoById(userDetails.getId());
+        UserResponseDto.UserInfoResponse responseData = userService.findUserInfoById(userDetails.getId());
         return ResponseEntity.ok(BaseResponse.success(SuccessCode.USER_GET_INFO_SUCCESS, responseData));
     }
 

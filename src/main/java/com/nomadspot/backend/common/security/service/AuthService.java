@@ -1,5 +1,6 @@
 package com.nomadspot.backend.common.security.service;
 
+import com.nomadspot.backend.common.security.dto.AuthRequestDto;
 import com.nomadspot.backend.common.security.dto.AuthResponseDto;
 
 /**
@@ -15,7 +16,7 @@ import com.nomadspot.backend.common.security.dto.AuthResponseDto;
  */
 public interface AuthService {
 
-    AuthResponseDto.TokenResponse login(String provider, String providerToken);
+    AuthResponseDto.TokenResponse login(String provider, AuthRequestDto.OAuth2LoginRequest dto);
 
     void logout(String accessToken);
 

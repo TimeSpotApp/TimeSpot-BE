@@ -2,6 +2,7 @@ package com.nomadspot.backend.common.security.service;
 
 import com.nomadspot.backend.common.error.GlobalException;
 import com.nomadspot.backend.common.response.ErrorCode;
+import com.nomadspot.backend.common.security.dto.AuthRequestDto;
 import com.nomadspot.backend.common.security.dto.AuthResponseDto;
 import com.nomadspot.backend.common.security.dto.AuthResponseDto.TokenResponse;
 import com.nomadspot.backend.common.security.jwt.provider.JwtProvider;
@@ -47,21 +48,24 @@ public class AuthServiceImpl implements AuthService {
     /**
      * 소셜 인증 제공자 정보를 활용한 로그인
      *
-     * @param provider      소셜 인증 제공자 유형
-     * @param providerToken 소셜 인증 토큰
+     * @param provider 소셜 인증 제공자 유형
+     * @param dto      소셜 인증 제공자 데이터
      * @return 신규 토큰 응답 DTO
      */
     @Override
-    public TokenResponse login(final String provider, final String providerToken) {
-        Claims claims = tokenValidator.verifyAndParse(provider, providerToken);
+    public AuthResponseDto.TokenResponse login(final String provider, final AuthRequestDto.OAuth2LoginRequest dto) {
+        Claims claims = tokenValidator.verifyAndParse(provider, dto.getProviderToken());
 
         OAuthProfile oAuthProfile = OAuthProfileFactory.getOAuthProfile(provider, claims);
+        String resolvedNickname = dto.getNickname() != null && !dto.getNickname().isBlank()
+                                  ? dto.getNickname()
+                                  : oAuthProfile.getNickname();
 
         User user = userService.findOrCreateUserForSocialConnection(
                 ProviderType.valueOf(oAuthProfile.getProvider().toUpperCase()),
                 oAuthProfile.getProviderUserId(),
                 oAuthProfile.getEmail(),
-                oAuthProfile.getNickname()
+                resolvedNickname
         );
 
         String accessToken  = jwtProvider.generateAccessToken(user.getId(), user.getEmail(), user.getRole());

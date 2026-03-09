@@ -4,6 +4,7 @@ import com.nomadspot.backend.common.response.BaseResponse;
 import com.nomadspot.backend.common.response.SuccessCode;
 import com.nomadspot.backend.common.security.constant.SecurityConst;
 import com.nomadspot.backend.common.security.dto.AuthRequestDto;
+import com.nomadspot.backend.common.security.dto.AuthResponseDto;
 import com.nomadspot.backend.common.security.dto.AuthResponseDto.TokenResponse;
 import com.nomadspot.backend.common.security.service.AuthService;
 import lombok.RequiredArgsConstructor;
@@ -39,7 +40,7 @@ public class AuthController implements AuthApiDocs {
             @PathVariable("provider") final String provider,
             @RequestBody final AuthRequestDto.OAuth2LoginRequest dto
     ) {
-        TokenResponse responseData = authService.login(provider, dto.getProviderToken());
+        AuthResponseDto.TokenResponse responseData = authService.login(provider, dto);
         return ResponseEntity.ok(BaseResponse.success(SuccessCode.USER_AUTH_LOGIN_SUCCESS, responseData));
     }
 
@@ -59,7 +60,7 @@ public class AuthController implements AuthApiDocs {
     public ResponseEntity<BaseResponse<TokenResponse>> refresh(
             @RequestBody final AuthRequestDto.TokenRefreshRequest dto
     ) {
-        TokenResponse responseData = authService.refresh(dto.getRefreshToken());
+        AuthResponseDto.TokenResponse responseData = authService.refresh(dto.getRefreshToken());
         return ResponseEntity.ok(BaseResponse.success(SuccessCode.USER_AUTH_TOKEN_REFRESH_SUCCESS, responseData));
     }
 
