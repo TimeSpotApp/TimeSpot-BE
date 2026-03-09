@@ -21,7 +21,6 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * PackageName : com.nomadspot.backend.common.security.service
@@ -35,7 +34,6 @@ import org.springframework.transaction.annotation.Transactional;
  * 26. 3. 9.     loadingKKamo21       Initial creation
  */
 @Service
-@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
 
@@ -54,7 +52,6 @@ public class AuthServiceImpl implements AuthService {
      * @return 신규 토큰 응답 DTO
      */
     @Override
-    @Transactional
     public TokenResponse login(final String provider, final String providerToken) {
         Claims claims = tokenValidator.verifyAndParse(provider, providerToken);
 
