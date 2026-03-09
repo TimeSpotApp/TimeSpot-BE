@@ -12,3 +12,24 @@ spring:
               - email
               - profile
             redirect-uri: ${OAUTH2_GOOGLE_REDIRECT_URI}
+app:
+  cors:
+    allowed-origins:
+      - ${CORS_ALLOWED_ORIGIN}
+    allowed-methods:
+      - GET
+      - POST
+      - PUT
+      - PATCH
+      - DELETE
+      - OPTIONS
+    allowed-headers:
+      - "*"
+    exposed-headers:
+      - Authorization
+  jwt:
+    issuer: ${JWT_ISSUER}
+    access-token-secret: ${JWT_ACCESS_TOKEN_SECRET}
+    refresh-token-secret: ${JWT_REFRESH_TOKEN_SECRET}
+    access-token-expiration-seconds: ${JWT_ACCESS_TOKEN_EXPIRATION_SECONDS}
+    refresh-token-expiration-seconds: ${JWT_REFRESH_TOKEN_EXPIRATION_SECONDS}
