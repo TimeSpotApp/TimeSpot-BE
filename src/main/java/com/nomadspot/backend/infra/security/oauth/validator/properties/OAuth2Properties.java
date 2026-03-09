@@ -1,13 +1,12 @@
-package com.nomadspot.backend.common.security.config.properties;
+package com.nomadspot.backend.infra.security.oauth.validator.properties;
 
-import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
- * PackageName : com.nomadspot.backend.common.security.config.properties
- * FileName    : CorsProperties
+ * PackageName : com.nomadspot.backend.infra.security.oauth.validator.properties
+ * FileName    : OAuth2Properties
  * Author      : loadingKKamo21
  * Date        : 26. 3. 9.
  * Description :
@@ -16,14 +15,24 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * ---------------------------------------------------------------------------------------------------------------------
  * 26. 3. 9.     loadingKKamo21       Initial creation
  */
-@ConfigurationProperties(prefix = "app.cors")
+@ConfigurationProperties(prefix = "app.oauth2")
 @Getter
 @Setter
-public final class CorsProperties {
+public final class OAuth2Properties {
 
-    private List<String> allowedOrigins;
-    private List<String> allowedMethods;
-    private List<String> allowedHeaders;
-    private List<String> exposedHeaders;
+    private Apple  apple;
+    private Google google;
+
+    @Getter
+    @Setter
+    public static class Apple {
+        private String clientId;
+    }
+
+    @Getter
+    @Setter
+    public static class Google {
+        private String clientId;
+    }
 
 }

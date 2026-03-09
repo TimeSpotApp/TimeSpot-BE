@@ -7,6 +7,7 @@ import com.nomadspot.backend.common.error.GlobalException;
 import com.nomadspot.backend.common.response.ErrorCode;
 import com.nomadspot.backend.domain.user.model.ProviderType;
 import com.nomadspot.backend.infra.security.oauth.constant.OAuthConst;
+import com.nomadspot.backend.infra.security.oauth.validator.properties.OAuth2Properties;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwsHeader;
 import io.jsonwebtoken.Jwts;
@@ -36,11 +37,16 @@ public class CustomOAuth2TokenValidator {
     private final JwkProvider appleJwkProvider;
     private final JwkProvider googleJwkProvider;
 
-    public CustomOAuth2TokenValidator() throws MalformedURLException {
+    private final String appleClientId;
+    private final String googleClientId;
+
+    public CustomOAuth2TokenValidator(final OAuth2Properties oAuth2Properties) throws MalformedURLException {
         appleJwkProvider = new JwkProviderBuilder(new URL(OAuthConst.APPLE_JWKS_URL))
                 .cached(10, 10, TimeUnit.HOURS).build();
         googleJwkProvider = new JwkProviderBuilder(new URL(OAuthConst.GOOGLE_JWKS_URL))
                 .cached(10, 10, TimeUnit.HOURS).build();
+        appleClientId = oAuth2Properties.getApple().getClientId();
+        googleClientId = oAuth2Properties.getGoogle().getClientId();
     }
 
     /**
@@ -67,9 +73,22 @@ public class CustomOAuth2TokenValidator {
             }
         };
 
+        String expectedIssuer = ProviderType.APPLE.name().equalsIgnoreCase(provider)
+                                ? OAuthConst.APPLE_ISSUER
+                                : ProviderType.GOOGLE.name().equalsIgnoreCase(provider)
+                                  ? OAuthConst.GOOGLE_ISSUER
+                                  : null;
+        String expectedAudience = ProviderType.APPLE.name().equalsIgnoreCase(provider)
+                                  ? appleClientId
+                                  : ProviderType.GOOGLE.name().equalsIgnoreCase(provider)
+                                    ? googleClientId
+                                    : null;
+
         try {
             return Jwts.parser()
                        .keyLocator(keyLocator)
+                       .requireIssuer(expectedIssuer)
+                       .requireAudience(expectedAudience)
                        .build()
                        .parseSignedClaims(token)
                        .getPayload();

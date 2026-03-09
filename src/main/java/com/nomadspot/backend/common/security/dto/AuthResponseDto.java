@@ -25,6 +25,7 @@ public abstract class AuthResponseDto {
     @RequiredArgsConstructor
     @Schema(name = "인증 토큰 응답 페이로드")
     public static class TokenResponse {
+
         @Schema(description = "Access Token")
         private final String accessToken;
         @Schema(description = "Access Token 만료 시간(초)")
@@ -33,6 +34,7 @@ public abstract class AuthResponseDto {
         private final String refreshToken;
         @Schema(description = "Refresh Token 만료 시간(초)")
         private final long   refreshTokenExpiresIn;
+
     }
 
 }

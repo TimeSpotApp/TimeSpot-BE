@@ -20,4 +20,7 @@ public abstract class OAuthConst {
     public static final String APPLE_JWKS_URL  = "https://appleid.apple.com/auth/keys";
     public static final String GOOGLE_JWKS_URL = "https://www.googleapis.com/oauth2/v3/certs";
 
+    public static final String APPLE_ISSUER  = "https://appleid.apple.com";
+    public static final String GOOGLE_ISSUER = "https://accounts.google.com";
+
 }

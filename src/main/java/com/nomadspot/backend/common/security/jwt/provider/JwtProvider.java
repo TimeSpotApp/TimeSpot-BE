@@ -1,7 +1,7 @@
 package com.nomadspot.backend.common.security.jwt.provider;
 
 import com.nomadspot.backend.common.security.constant.SecurityConst;
-import com.nomadspot.backend.common.security.jwt.properties.JwtProperties;
+import com.nomadspot.backend.common.security.jwt.provider.properties.JwtProperties;
 import com.nomadspot.backend.common.security.model.CustomUserDetails;
 import com.nomadspot.backend.domain.user.model.UserRole;
 import io.jsonwebtoken.Claims;
