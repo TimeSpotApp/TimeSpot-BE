@@ -1,25 +1,22 @@
 package com.nomadspot.backend.domain.user.dao;
 
-import com.nomadspot.backend.domain.user.model.User;
+import com.nomadspot.backend.domain.user.dto.UserResponseDto.UserInfoResponse;
 import java.util.Optional;
 import java.util.UUID;
-import org.springframework.data.jpa.repository.JpaRepository;
 
 /**
  * PackageName : com.nomadspot.backend.domain.user.dao
- * FileName    : UserRepository
+ * FileName    : UserRepositoryCustom
  * Author      : loadingKKamo21
- * Date        : 26. 3. 8.
+ * Date        : 26. 3. 9.
  * Description :
  * =====================================================================================================================
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------
- * 26. 3. 8.     loadingKKamo21       Initial creation
+ * 26. 3. 9.     loadingKKamo21       Initial creation
  */
-public interface UserRepository extends JpaRepository<User, UUID>, UserRepositoryCustom {
+public interface UserRepositoryCustom {
 
-    Optional<User> findByEmail(String email);
-
-    boolean existsByEmail(String email);
+    Optional<UserInfoResponse> findUserInfoById(UUID id);
 
 }

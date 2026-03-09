@@ -3,6 +3,7 @@ package com.nomadspot.backend.domain.user.dao;
 import com.nomadspot.backend.domain.user.model.ProviderType;
 import com.nomadspot.backend.domain.user.model.SocialConnection;
 import java.util.Optional;
+import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 /**
@@ -21,5 +22,7 @@ public interface SocialConnectionRepository extends JpaRepository<SocialConnecti
     Optional<SocialConnection> findByProviderTypeAndProviderId(ProviderType providerType, String providerId);
 
     boolean existsByProviderTypeAndProviderId(ProviderType providerType, String providerId);
+
+    Optional<SocialConnection> findByUserId(UUID userId);
 
 }
