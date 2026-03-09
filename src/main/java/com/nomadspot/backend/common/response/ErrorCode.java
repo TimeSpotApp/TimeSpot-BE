@@ -43,7 +43,8 @@ public enum ErrorCode {
     USER_EMAIL_REQUIRED(HttpStatus.BAD_REQUEST, "US004", "이메일은 필수입니다."),
     USER_INVALID_EMAIL_FORMAT(HttpStatus.BAD_REQUEST, "US005", "이메일 형식이 올바르지 않습니다."),
     USER_NICKNAME_REQUIRED(HttpStatus.BAD_REQUEST, "US006", "닉네임은 필수입니다."),
-    USER_INVALID_NICKNAME_FORMAT(HttpStatus.BAD_REQUEST, "US007", "닉네임 형식이 올바르지 않습니다. 2~15자 영문, 한글, 숫자, '-', '_'만 사용 가능합니다."),
+    USER_INVALID_NICKNAME_FORMAT(HttpStatus.BAD_REQUEST, "US007",
+                                 "닉네임 형식이 올바르지 않습니다. 2~15자 영문, 한글, 숫자, '-', '_'만 사용 가능합니다."),
     USER_AUTH_INVALID_ACCESS_TOKEN(HttpStatus.BAD_REQUEST, "US008", "잘못된 AccessToken입니다."),
     USER_AUTH_INVALID_REFRESH_TOKEN(HttpStatus.BAD_REQUEST, "US009", "잘못된 RefreshToken입니다."),
     USER_AUTH_ACCESS_TOKEN_EXPIRED(HttpStatus.BAD_REQUEST, "US010", "AccessToken이 만료되었습니다."),
@@ -58,7 +59,8 @@ public enum ErrorCode {
     SOCIAL_CONNECTION_INVALID_IDP_REFRESH_TOKEN(HttpStatus.BAD_REQUEST, "SO005", "소셜 인증 제공자 Refresh Token가 올바르지 않습니다."),
     SOCIAL_CONNECTION_PROVIDER_NOT_SUPPORTED(HttpStatus.INTERNAL_SERVER_ERROR, "SO006", "지원하지 않는 소셜 인증 제공자 유형입니다."),
     SOCIAL_CONNECTION_TOKEN_PARSE_FAILED(HttpStatus.BAD_REQUEST, "SO007", "소셜 인증 토큰 파싱에 실패했습니다."),
-    SOCIAL_CONNECTION_INVALID_TOKEN(HttpStatus.BAD_REQUEST, "SO008", "잘못되거나 만료된 소셜 인증 토큰입니다.");
+    SOCIAL_CONNECTION_INVALID_TOKEN(HttpStatus.BAD_REQUEST, "SO008", "잘못되거나 만료된 소셜 인증 토큰입니다."),
+    SOCIAL_CONNECTION_IDP_TOKEN_EXCHANGE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "SO009", "IDP 인증 토큰 교환에 실패했습니다.");
 
     private final HttpStatus status;
     private final String     code;

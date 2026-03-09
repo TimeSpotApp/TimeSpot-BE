@@ -1,14 +1,11 @@
 package com.nomadspot.backend.common.config;
 
-import com.nomadspot.backend.common.security.config.properties.CorsProperties;
-import com.nomadspot.backend.common.security.jwt.provider.properties.JwtProperties;
-import com.nomadspot.backend.infra.security.oauth.properties.OAuth2Properties;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.annotation.EnableAsync;
 
 /**
  * PackageName : com.nomadspot.backend.common.config
- * FileName    : EnableConfigurationPropertiesConfig
+ * FileName    : EnableAsyncConfig
  * Author      : loadingKKamo21
  * Date        : 26. 3. 9.
  * Description :
@@ -18,8 +15,6 @@ import org.springframework.context.annotation.Configuration;
  * 26. 3. 9.     loadingKKamo21       Initial creation
  */
 @Configuration
-@EnableConfigurationProperties({CorsProperties.class,
-                                JwtProperties.class,
-                                OAuth2Properties.class})
-public class EnableConfigurationPropertiesConfig {
+@EnableAsync
+public class EnableAsyncConfig {
 }

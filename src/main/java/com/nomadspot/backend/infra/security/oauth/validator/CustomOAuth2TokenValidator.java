@@ -7,7 +7,7 @@ import com.nomadspot.backend.common.error.GlobalException;
 import com.nomadspot.backend.common.response.ErrorCode;
 import com.nomadspot.backend.domain.user.model.ProviderType;
 import com.nomadspot.backend.infra.security.oauth.constant.OAuthConst;
-import com.nomadspot.backend.infra.security.oauth.validator.properties.OAuth2Properties;
+import com.nomadspot.backend.infra.security.oauth.properties.OAuth2Properties;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwsHeader;
 import io.jsonwebtoken.Jwts;

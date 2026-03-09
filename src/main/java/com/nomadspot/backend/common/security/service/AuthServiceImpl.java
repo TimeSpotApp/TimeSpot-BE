@@ -5,6 +5,7 @@ import com.nomadspot.backend.common.response.ErrorCode;
 import com.nomadspot.backend.common.security.dto.AuthRequestDto;
 import com.nomadspot.backend.common.security.dto.AuthResponseDto;
 import com.nomadspot.backend.common.security.dto.AuthResponseDto.TokenResponse;
+import com.nomadspot.backend.common.security.event.IdpTokenExchangeEvent;
 import com.nomadspot.backend.common.security.jwt.provider.JwtProvider;
 import com.nomadspot.backend.common.security.model.CustomUserDetails;
 import com.nomadspot.backend.domain.user.model.ProviderType;
@@ -20,8 +21,10 @@ import io.jsonwebtoken.ExpiredJwtException;
 import java.time.Duration;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * PackageName : com.nomadspot.backend.common.security.service
@@ -38,6 +41,8 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
 
+    private final ApplicationEventPublisher eventPublisher;
+
     private final RedisRepository redisRepository;
 
     private final JwtProvider                jwtProvider;
@@ -53,20 +58,28 @@ public class AuthServiceImpl implements AuthService {
      * @return 신규 토큰 응답 DTO
      */
     @Override
+    @Transactional
     public AuthResponseDto.TokenResponse login(final String provider, final AuthRequestDto.OAuth2LoginRequest dto) {
         Claims claims = tokenValidator.verifyAndParse(provider, dto.getProviderToken());
 
         OAuthProfile oAuthProfile = OAuthProfileFactory.getOAuthProfile(provider, claims);
+        ProviderType providerType = ProviderType.valueOf(oAuthProfile.getProvider().toUpperCase());
+
         String resolvedNickname = dto.getNickname() != null && !dto.getNickname().isBlank()
                                   ? dto.getNickname()
                                   : oAuthProfile.getNickname();
 
         User user = userService.findOrCreateUserForSocialConnection(
-                ProviderType.valueOf(oAuthProfile.getProvider().toUpperCase()),
+                providerType,
                 oAuthProfile.getProviderUserId(),
                 oAuthProfile.getEmail(),
                 resolvedNickname
         );
+
+        if (dto.getAuthCode() != null && !dto.getAuthCode().isBlank())
+            eventPublisher.publishEvent(
+                    new IdpTokenExchangeEvent(this, user.getId(), providerType, dto.getAuthCode())
+            );
 
         String accessToken  = jwtProvider.generateAccessToken(user.getId(), user.getEmail(), user.getRole());
         String refreshToken = jwtProvider.generateRefreshToken(user.getId(), user.getEmail(), user.getRole());

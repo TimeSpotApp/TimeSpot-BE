@@ -23,4 +23,9 @@ public abstract class OAuthConst {
     public static final String APPLE_ISSUER  = "https://appleid.apple.com";
     public static final String GOOGLE_ISSUER = "https://accounts.google.com";
 
+    public static final String APPLE_IDP_TOKEN_EXCHANGE_URL  = "https://appleid.apple.com/auth/token";
+    public static final String GOOGLE_IDP_TOKEN_EXCHANGE_URL = "https://oauth2.googleapis.com/token";
+
+    public static final String GOOGLE_IDP_TOKEN_REDIRECT_URL = "";  // TODO: 구글 IDP 토큰 교환 리다이렉트 URL 필수
+
 }
