@@ -11,6 +11,7 @@ springDocOpenApi = "2.8.16"
 querydsl = "7.1"
 p6spy = "1.12.1"
 jjwt = "0.13.0"
+jwks-rsa = "0.23.0"
 
 # --- [TEST DEPENDENCIES] ---
 autoParams = "11.3.1"
@@ -45,6 +46,7 @@ spring-boot-starter-security = { module = "org.springframework.boot:spring-boot-
 jjwt-api = { module = "io.jsonwebtoken:jjwt-api", version.ref = "jjwt" }
 jjwt-impl = { module = "io.jsonwebtoken:jjwt-impl", version.ref = "jjwt" }
 jjwt-jackson = { module = "io.jsonwebtoken:jjwt-jackson", version.ref = "jjwt" }
+jwks-rsa = { module = "com.auth0:jwks-rsa", version.ref = "jwks-rsa" }
 
 ## --- [UTILITIES & API DOCS] ---
 spring-boot-starter-batch = { module = "org.springframework.boot:spring-boot-starter-batch" }

@@ -42,6 +42,7 @@ dependencies {
     implementation libs.spring.boot.starter.oauth2.client
     implementation libs.spring.boot.starter.security
     implementation libs.bundles.jjwt
+    implementation libs.jwks.rsa
 
     // --- [UTILITIES & API DOCS] ---
     implementation libs.spring.boot.starter.batch
