@@ -13,6 +13,8 @@ import com.nomadspot.backend.common.config.EnableJpaAuditingConfig;
 import com.nomadspot.backend.common.config.P6SpyConfig;
 import com.nomadspot.backend.common.config.QuerydslConfig;
 import com.nomadspot.backend.common.util.TestUtils;
+import com.nomadspot.backend.domain.user.dto.UserResponseDto.UserInfoResponse;
+import com.nomadspot.backend.domain.user.model.SocialConnection;
 import com.nomadspot.backend.domain.user.model.User;
 import java.util.Optional;
 import java.util.UUID;
@@ -220,6 +222,47 @@ class UserRepositoryTest {
             User deletedUser = em.find(User.class, id);
 
             assertNull(deletedUser, "deletedUser는 존재하지 않아야 합니다.");
+        }
+
+    }
+
+    @Nested
+    @DisplayName("findByUserInfoById() 테스트")
+    class FindByUserInfoByIdTests {
+
+        @RepeatedTest(10)
+        @DisplayName("id로 User DTO 단 건 조회")
+        void findByUserInfoById() {
+            // given
+            User             user             = em.persistAndFlush(TestUtils.createUser());
+            SocialConnection socialConnection = em.persistAndFlush(TestUtils.createSocialConnection(user));
+            UUID             id               = user.getId();
+
+            // when
+            UserInfoResponse userInfoResponse = userRepository.findUserInfoById(id).get();
+
+            // then
+            assertNotNull(userInfoResponse, "userInfoResponse는 null이 아니어야 합니다.");
+            assertEquals(user.getEmail(), userInfoResponse.getEmail(), "email은 같아야 합니다.");
+            assertEquals(user.getNickname(), userInfoResponse.getNickname(), "nickname은 같아야 합니다.");
+            assertEquals(user.getProfileImgUrl(), userInfoResponse.getProfileImgUrl(), "profileImgUrl은 같아야 합니다.");
+            assertEquals(user.getRole().name(), userInfoResponse.getRole(), "role은 같아야 합니다.");
+            assertEquals(socialConnection.getProviderType().name(), userInfoResponse.getProviderType(),
+                         "providerType은 같아야 합니다.");
+            assertEquals(user.getCreatedAt().withNano(0), userInfoResponse.getCreatedAt().withNano(0),
+                         "createdAt은 같아야 합니다.");
+        }
+
+        @ParameterizedTest
+        @Repeat(10)
+        @AutoSource
+        @DisplayName("존재하지 않는 id로 User DTO 단 건 조회 시도")
+        void findByUserInfoById_unknownId(final UUID unknownId) {
+            // when
+            Optional<UserInfoResponse> opUserInfoResponse = userRepository.findUserInfoById(unknownId);
+
+            // then
+            assertFalse(opUserInfoResponse.isPresent(), "조회된 User DTO가 존재하지 않아야 합니다.");
         }
 
     }

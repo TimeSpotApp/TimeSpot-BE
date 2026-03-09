@@ -21,6 +21,7 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.util.Optional;
+import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.RepeatedTest;
@@ -105,7 +106,7 @@ class SocialConnectionRepositoryTest {
         @ParameterizedTest
         @Repeat(10)
         @AutoSource
-        @DisplayName("존재하지 않는는 id로 SocialConnection 엔티티 단 건 조회 시도")
+        @DisplayName("존재하지 않는 id로 SocialConnection 엔티티 단 건 조회 시도")
         void findById_unknownId(@Min(1) @Max(Long.MAX_VALUE) final long unknownId) {
             // when
             Optional<SocialConnection> opSocialConnection = socialConnectionRepository.findById(unknownId);
@@ -193,6 +194,44 @@ class SocialConnectionRepositoryTest {
 
             // then
             assertFalse(exists, "SocialConnection 엔티티가 존재하지 않아야 합니다.");
+        }
+
+    }
+
+    @Nested
+    @DisplayName("findByUserId() 테스트")
+    class FindByUserIdTests {
+
+        @RepeatedTest(10)
+        @DisplayName("userId로 SocialConnection 엔티티 단 건 조회")
+        void findByUserId() {
+            // given
+            User             user             = em.persistAndFlush(TestUtils.createUser());
+            SocialConnection socialConnection = em.persistAndFlush(TestUtils.createSocialConnection(user));
+            UUID             userId           = user.getId();
+
+            // when
+            SocialConnection findSocialConnection = socialConnectionRepository.findByUserId(userId).get();
+
+            // then
+            assertNotNull(findSocialConnection, "findSocialConnection는 null이 아니어야 합니다.");
+            assertEquals(socialConnection.getUser(), findSocialConnection.getUser(), "user는 같아야 합니다.");
+            assertEquals(socialConnection.getProviderType(), findSocialConnection.getProviderType(),
+                         "providerType는 같아야 합니다.");
+            assertEquals(socialConnection.getProviderId(), findSocialConnection.getProviderId(),
+                         "providerId는 같아야 합니다.");
+        }
+
+        @ParameterizedTest
+        @Repeat(10)
+        @AutoSource
+        @DisplayName("존재하지 않는 userId로 SocialConnection 엔티티 단 건 조회 시도")
+        void findByUserId_unknownUserId(final UUID unknownUserId) {
+            // when
+            Optional<SocialConnection> opSocialConnection = socialConnectionRepository.findByUserId(unknownUserId);
+
+            // then
+            assertFalse(opSocialConnection.isPresent(), "조회된 SocialConnection 엔티티가 존재하지 않아야 합니다.");
         }
 
     }
