@@ -4,6 +4,8 @@ import com.nomadspot.backend.common.security.config.properties.CorsProperties;
 import com.nomadspot.backend.common.security.constant.SecurityConst;
 import com.nomadspot.backend.common.security.entrypoint.CustomAuthenticationEntryPoint;
 import com.nomadspot.backend.common.security.handler.CustomAccessDeniedHandler;
+import com.nomadspot.backend.common.security.jwt.filter.JwtAuthenticationFilter;
+import com.nomadspot.backend.common.security.jwt.filter.JwtExceptionFilter;
 import com.nomadspot.backend.domain.user.model.UserRole;
 import com.nomadspot.backend.infra.security.oauth.handler.OAuth2AuthenticationFailureHandler;
 import com.nomadspot.backend.infra.security.oauth.service.CustomOAuth2UserService;
@@ -15,6 +17,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -39,6 +42,9 @@ public class SecurityConfig {
 
     private final CustomOAuth2UserService            oAuth2UserService;
     private final OAuth2AuthenticationFailureHandler oAuth2AuthenticationFailureHandler;
+
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final JwtExceptionFilter      jwtExceptionFilter;
 
     @Bean
     public SecurityFilterChain securityFilterChain(final HttpSecurity http,
@@ -86,7 +92,10 @@ public class SecurityConfig {
                                              .failureHandler(oAuth2AuthenticationFailureHandler))
 
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(authenticationEntryPoint)
-                                                         .accessDeniedHandler(accessDeniedHandler));
+                                                         .accessDeniedHandler(accessDeniedHandler))
+
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(jwtExceptionFilter, JwtAuthenticationFilter.class);
 
         return http.build();
     }

@@ -1,6 +1,7 @@
 package com.nomadspot.backend.common.config;
 
 import com.nomadspot.backend.common.security.config.properties.CorsProperties;
+import com.nomadspot.backend.common.security.jwt.properties.JwtProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
@@ -16,6 +17,7 @@ import org.springframework.context.annotation.Configuration;
  * 26. 3. 9.     loadingKKamo21       Initial creation
  */
 @Configuration
-@EnableConfigurationProperties({CorsProperties.class})
+@EnableConfigurationProperties({CorsProperties.class,
+                                JwtProperties.class})
 public class EnableConfigurationPropertiesConfig {
 }
