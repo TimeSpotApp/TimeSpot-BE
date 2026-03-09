@@ -44,7 +44,11 @@ public enum ErrorCode {
     USER_INVALID_EMAIL_FORMAT(HttpStatus.BAD_REQUEST, "US005", "이메일 형식이 올바르지 않습니다."),
     USER_NICKNAME_REQUIRED(HttpStatus.BAD_REQUEST, "US006", "닉네임은 필수입니다."),
     USER_INVALID_NICKNAME_FORMAT(HttpStatus.BAD_REQUEST, "US007", "닉네임 형식이 올바르지 않습니다. 2~15자 영문, 한글, 숫자, '-', '_'만 사용 가능합니다."),
-    USER_AUTH_INVALID_REFRESH_TOKEN(HttpStatus.BAD_REQUEST, "US008", "잘못된 RefreshToken입니다."),
+    USER_AUTH_INVALID_ACCESS_TOKEN(HttpStatus.BAD_REQUEST, "US008", "잘못된 AccessToken입니다."),
+    USER_AUTH_INVALID_REFRESH_TOKEN(HttpStatus.BAD_REQUEST, "US009", "잘못된 RefreshToken입니다."),
+    USER_AUTH_ACCESS_TOKEN_EXPIRED(HttpStatus.BAD_REQUEST, "US010", "AccessToken이 만료되었습니다."),
+    USER_AUTH_REFRESH_TOKEN_EXPIRED(HttpStatus.BAD_REQUEST, "US011", "RefreshToken이 만료되었습니다."),
+    USER_AUTH_ACCESS_DENIED(HttpStatus.FORBIDDEN, "US012", "해당 회원은 접근 권한이 없습니다."),
 
     // Social Connection
     SOCIAL_CONNECTION_NOT_FOUND(HttpStatus.NOT_FOUND, "SO001", "소셜 연동 정보를 찾을 수 없습니다."),

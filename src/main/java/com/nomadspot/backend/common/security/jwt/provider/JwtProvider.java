@@ -244,17 +244,19 @@ public class JwtProvider {
                 .build()
                 .parseSignedClaims(token);
             return true;
-            // HACK: 예외 처리
         } catch (SecurityException | MalformedJwtException e) {
             log.error("잘못된 JWT 서명", e);
+            throw e;
         } catch (ExpiredJwtException e) {
             log.error("만료된 JWT", e);
+            throw e;
         } catch (UnsupportedJwtException e) {
             log.error("지원하지 않는 JWT 형식", e);
+            throw e;
         } catch (IllegalArgumentException e) {
             log.error("올바르지 않은 JWT 형식", e);
+            throw e;
         }
-        return false;
     }
 
     /**

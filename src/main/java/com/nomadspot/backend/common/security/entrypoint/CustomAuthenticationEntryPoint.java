@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
@@ -27,6 +28,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
     private final ObjectMapper objectMapper;
@@ -35,7 +37,13 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
     public void commence(HttpServletRequest request,
                          HttpServletResponse response,
                          AuthenticationException authException) throws IOException, ServletException {
-        ApiResponse<Void> apiResponse = ApiResponse.error(ErrorCode.UNAUTHORIZED);
+        log.error("인증 실패: {}", authException.getMessage());
+
+        ErrorCode errorCode = (ErrorCode) request.getAttribute("exception");
+
+        if (errorCode == null) errorCode = ErrorCode.UNAUTHORIZED;
+
+        ApiResponse<Void> apiResponse = ApiResponse.error(errorCode);
 
         response.setStatus(apiResponse.getCode());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
