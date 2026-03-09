@@ -15,6 +15,7 @@ import com.nomadspot.backend.infra.security.oauth.model.OAuthProfile;
 import com.nomadspot.backend.infra.security.oauth.model.OAuthProfileFactory;
 import com.nomadspot.backend.infra.security.oauth.validator.CustomOAuth2TokenValidator;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import java.time.Duration;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -112,8 +113,13 @@ public class AuthServiceImpl implements AuthService {
      */
     @Override
     public TokenResponse refresh(final String refreshToken) {
-        if (!jwtProvider.validateRefreshToken(refreshToken))
+        try {
+            jwtProvider.validateRefreshToken(refreshToken);
+        } catch (ExpiredJwtException e) {
+            throw new GlobalException(ErrorCode.USER_AUTH_REFRESH_TOKEN_EXPIRED);
+        } catch (Exception e) {
             throw new GlobalException(ErrorCode.USER_AUTH_INVALID_REFRESH_TOKEN);
+        }
 
         UUID   userId               = jwtProvider.getUserIdFromRefreshToken(refreshToken);
         String refreshTokenRedisKey = "%s%s".formatted(RedisConst.JWT_REFRESH_TOKEN_PREFIX, userId.toString());

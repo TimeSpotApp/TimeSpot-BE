@@ -58,12 +58,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
-        } catch (SecurityException | MalformedJwtException e) {
+        } catch (SecurityException | MalformedJwtException | UnsupportedJwtException e) {
             request.setAttribute("exception", ErrorCode.USER_AUTH_INVALID_ACCESS_TOKEN);
         } catch (ExpiredJwtException e) {
             request.setAttribute("exception", ErrorCode.USER_AUTH_ACCESS_TOKEN_EXPIRED);
-        } catch (UnsupportedJwtException e) {
-            request.setAttribute("exception", ErrorCode.USER_AUTH_INVALID_ACCESS_TOKEN);
         } catch (Exception e) {
             request.setAttribute("exception", ErrorCode.UNAUTHORIZED);
         }
