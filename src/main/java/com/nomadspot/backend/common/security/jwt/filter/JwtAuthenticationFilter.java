@@ -39,12 +39,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
     throws ServletException, IOException {
-        final String token = resolveToken(request);
+        final String accessToken = resolveToken(request);
 
-        if (token != null
-            && !redisRepository.hasKey("%s%s".formatted(RedisConst.JWT_ACCESS_TOKEN_BLACKLIST_PREFIX, token))
-            && jwtProvider.validateToken(token, false)) {
-            Authentication authentication = jwtProvider.getAuthenticationFromToken(token, false);
+        if (accessToken != null
+            && !redisRepository.hasKey("%s%s".formatted(RedisConst.JWT_ACCESS_TOKEN_BLACKLIST_PREFIX, accessToken))
+            && jwtProvider.validateAccessToken(accessToken)) {
+            Authentication authentication = jwtProvider.getAuthenticationFromAccessToken(accessToken);
 
             if (authentication instanceof UsernamePasswordAuthenticationToken userPasswordAuthenticationToken)
                 userPasswordAuthenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));

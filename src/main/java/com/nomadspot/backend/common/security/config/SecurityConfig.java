@@ -7,8 +7,6 @@ import com.nomadspot.backend.common.security.handler.CustomAccessDeniedHandler;
 import com.nomadspot.backend.common.security.jwt.filter.JwtAuthenticationFilter;
 import com.nomadspot.backend.common.security.jwt.filter.JwtExceptionFilter;
 import com.nomadspot.backend.domain.user.model.UserRole;
-import com.nomadspot.backend.infra.security.oauth.handler.OAuth2AuthenticationFailureHandler;
-import com.nomadspot.backend.infra.security.oauth.service.CustomOAuth2UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -39,9 +37,6 @@ public class SecurityConfig {
 
     private final CustomAuthenticationEntryPoint authenticationEntryPoint;
     private final CustomAccessDeniedHandler      accessDeniedHandler;
-
-    private final CustomOAuth2UserService            oAuth2UserService;
-    private final OAuth2AuthenticationFailureHandler oAuth2AuthenticationFailureHandler;
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final JwtExceptionFilter      jwtExceptionFilter;
@@ -87,9 +82,6 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.DELETE, SecurityConst.DELETE_ROLE_ADMIN_URLS)
                         .hasAuthority(UserRole.ADMIN.getAuthority())
                 )
-
-                .oauth2Login(oauth2 -> oauth2.userInfoEndpoint(userInfo -> userInfo.userService(oAuth2UserService))
-                                             .failureHandler(oAuth2AuthenticationFailureHandler))
 
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(authenticationEntryPoint)
                                                          .accessDeniedHandler(accessDeniedHandler))

@@ -4,8 +4,6 @@ import com.nomadspot.backend.common.security.constant.SecurityConst;
 import com.nomadspot.backend.common.security.jwt.properties.JwtProperties;
 import com.nomadspot.backend.common.security.model.CustomUserDetails;
 import com.nomadspot.backend.domain.user.model.UserRole;
-import com.nomadspot.backend.infra.redis.constant.RedisConst;
-import com.nomadspot.backend.infra.redis.dao.RedisRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtBuilder;
@@ -16,7 +14,6 @@ import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SecurityException;
-import java.time.Duration;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -50,47 +47,163 @@ public class JwtProvider {
     private final long      accessTokenExpirationMillis;
     private final long      refreshTokenExpirationMillis;
 
-    private final RedisRepository redisRepository;
-
-    public JwtProvider(final JwtProperties jwtProperties, final RedisRepository redisRepository) {
+    public JwtProvider(final JwtProperties jwtProperties) {
         issuer = jwtProperties.getIssuer();
         accessTokenKey = Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtProperties.getAccessTokenSecret()));
         refreshTokenKey = Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtProperties.getRefreshTokenSecret()));
         accessTokenExpirationMillis = jwtProperties.getAccessTokenExpirationSeconds() * 1000L;
         refreshTokenExpirationMillis = jwtProperties.getRefreshTokenExpirationSeconds() * 1000L;
-        this.redisRepository = redisRepository;
     }
+
+    /**
+     * AccessToken 생성
+     *
+     * @param userId 회원 ID
+     * @param email  회원 이메일
+     * @param role   계정 유형
+     * @return JWT AccessToken
+     */
+    public String generateAccessToken(final UUID userId, final String email, final UserRole role) {
+        return generateToken(userId, email, role, false);
+    }
+
+    /**
+     * RefreshToken 생성
+     *
+     * @param userId 회원 ID
+     * @param email  회원 이메일
+     * @param role   계정 유형
+     * @return JWT RefreshToken
+     */
+    public String generateRefreshToken(final UUID userId, final String email, final UserRole role) {
+        return generateToken(userId, email, role, true);
+    }
+
+    /**
+     * AccessToken 인증 정보 조회
+     *
+     * @param accessToken AccessToken
+     * @return 인증 정보
+     */
+    public Authentication getAuthenticationFromAccessToken(final String accessToken) {
+        return getAuthenticationFromToken(accessToken, false);
+    }
+
+    /**
+     * RefreshToken 인증 정보 조회
+     *
+     * @param refreshToken RefreshToken
+     * @return 인증 정보
+     */
+    public Authentication getAuthenticationFromRefreshToken(final String refreshToken) {
+        return getAuthenticationFromToken(refreshToken, true);
+    }
+
+    /**
+     * AccessToken 유효성 검증
+     *
+     * @param accessToken AccessToken
+     * @return 유효성 검증 결과
+     */
+    public boolean validateAccessToken(final String accessToken) {
+        return validateToken(accessToken, false);
+    }
+
+    /**
+     * RefreshToken 유효성 검증
+     *
+     * @param refreshToken RefreshToken
+     * @return 유효성 검증 결과
+     */
+    public boolean validateRefreshToken(final String refreshToken) {
+        return validateToken(refreshToken, true);
+    }
+
+    /**
+     * AccessToken으로부터 회원 ID 조회
+     *
+     * @param accessToken AccessToken
+     * @return 회원 ID
+     */
+    public UUID getUserIdFromAccessToken(final String accessToken) {
+        return getUserIdFromToken(accessToken, false);
+    }
+
+    /**
+     * RefreshToken으로부터 회원 ID 조회
+     *
+     * @param refreshToken RefreshToken
+     * @return 회원 ID
+     */
+    public UUID getUserIdFromRefreshToken(final String refreshToken) {
+        return getUserIdFromToken(refreshToken, true);
+    }
+
+    /**
+     * AccessToken 만료 시간 조회
+     *
+     * @return 만료 시간(초)
+     */
+    public long getAccessTokenExpirationSeconds() {
+        return accessTokenExpirationMillis / 1000L;
+    }
+
+    /**
+     * RefreshToken 만료 시간 조회
+     *
+     * @return 만료 시간(초)
+     */
+    public long getRefreshTokenExpirationSeconds() {
+        return refreshTokenExpirationMillis / 1000L;
+    }
+
+    /**
+     * AccessToken으로부터 남은 유효 시간 조회
+     *
+     * @param accessToken AccessToken
+     * @return 남은 유효 시간(초)
+     */
+    public long getRemainingSecondsFromAccessToken(final String accessToken) {
+        return getRemainingSeconds(accessToken, false);
+    }
+
+    /**
+     * RefreshToken으로부터 남은 유효 시간 조회
+     *
+     * @param refreshToken RefreshToken
+     * @return 남은 유효 시간(초)
+     */
+    public long getRemainingSecondsFromRefreshToken(final String refreshToken) {
+        return getRemainingSeconds(refreshToken, true);
+    }
+
+    // ========================= 내부 메서드 =========================
 
     /**
      * AccessToken 또는 RefreshToken 생성
      *
-     * @param authentication 인증 정보
+     * @param userId         회원 ID
+     * @param email          회원 이메일
+     * @param role           계정 유형
      * @param isRefreshToken RefreshToken 인지 여부(false 시 AccessToken, true 시 RefreshToken)
      * @return JWT AccessToken 또는 RefreshToken
      */
-    public String generateToken(final Authentication authentication, final boolean isRefreshToken) {
-        CustomUserDetails userDetails = getCustomUserDetails(authentication);
+    private String generateToken(final UUID userId,
+                                 final String email,
+                                 final UserRole role,
+                                 final boolean isRefreshToken) {
+        Date now = new Date(System.currentTimeMillis());
+        Date expiresIn = new Date(
+                now.getTime() + (isRefreshToken ? refreshTokenExpirationMillis : accessTokenExpirationMillis)
+        );
 
-        String id    = userDetails.getId().toString();
-        String email = userDetails.getUsername();
-        String role  = userDetails.getRole().name();
-
-        Date now                   = new Date(System.currentTimeMillis());
-        Date accessTokenExpiresIn  = new Date(now.getTime() + accessTokenExpirationMillis);
-        Date refreshTokenExpiresIn = new Date(now.getTime() + refreshTokenExpirationMillis);
-
-        String token = getJwtBuilder().subject(id)
+        String token = getJwtBuilder().subject(userId.toString())
                                       .claim(SecurityConst.JWT_USERNAME_KEY, email)
-                                      .claim(SecurityConst.JWT_AUTHORITIES_KEY, role)
+                                      .claim(SecurityConst.JWT_AUTHORITIES_KEY, role.name())
                                       .issuedAt(now)
-                                      .expiration(isRefreshToken ? refreshTokenExpiresIn : accessTokenExpiresIn)
+                                      .expiration(expiresIn)
                                       .signWith(isRefreshToken ? refreshTokenKey : accessTokenKey, SIG.HS512)
                                       .compact();
-
-        if (isRefreshToken) {
-            String redisKey = "%s%s".formatted(RedisConst.JWT_REFRESH_TOKEN_PREFIX, token);
-            redisRepository.setValue(redisKey, token, Duration.ofMillis(refreshTokenExpirationMillis));
-        }
 
         return token;
     }
@@ -102,7 +215,7 @@ public class JwtProvider {
      * @param isRefreshToken RefreshToken 인지 여부(false 시 AccessToken, true 시 RefreshToken)
      * @return 인증 정보
      */
-    public Authentication getAuthenticationFromToken(final String token, final boolean isRefreshToken) {
+    private Authentication getAuthenticationFromToken(final String token, final boolean isRefreshToken) {
         Claims claims = getClaims(token, isRefreshToken ? refreshTokenKey : accessTokenKey);
 
         UUID     id    = UUID.fromString(claims.getSubject());
@@ -124,7 +237,7 @@ public class JwtProvider {
      * @param isRefreshToken RefreshToken 인지 여부(false 시 AccessToken, true 시 RefreshToken)
      * @return 유효성 검증 결과
      */
-    public boolean validateToken(final String token, final boolean isRefreshToken) {
+    private boolean validateToken(final String token, final boolean isRefreshToken) {
         try {
             Jwts.parser()
                 .verifyWith(isRefreshToken ? refreshTokenKey : accessTokenKey)
@@ -151,7 +264,7 @@ public class JwtProvider {
      * @param isRefreshToken RefreshToken 인지 여부(false 시 AccessToken, true 시 RefreshToken)
      * @return 회원 ID
      */
-    public UUID getUserIdFromToken(final String token, final boolean isRefreshToken) {
+    private UUID getUserIdFromToken(final String token, final boolean isRefreshToken) {
         if (!validateToken(token, isRefreshToken)) return null;
         return UUID.fromString(getClaims(token, isRefreshToken ? refreshTokenKey : accessTokenKey).getSubject());
     }
@@ -163,21 +276,9 @@ public class JwtProvider {
      * @param isRefreshToken RefreshToken 인지 여부(false 시 AccessToken, true 시 RefreshToken)
      * @return 남은 유효 시간(초)
      */
-    public long getRemainingSeconds(final String token, final boolean isRefreshToken) {
+    private long getRemainingSeconds(final String token, final boolean isRefreshToken) {
         Claims claims = getClaims(token, isRefreshToken ? refreshTokenKey : accessTokenKey);
         return (claims.getExpiration().getTime() - System.currentTimeMillis()) / 1000L;
-    }
-
-    // ========================= 내부 메서드 =========================
-
-    /**
-     * 인증 정보(CustomUserDetails) 조회
-     *
-     * @param authentication 인증 정보(Authentication)
-     * @return 인증 정보(CustomUserDetails)
-     */
-    private CustomUserDetails getCustomUserDetails(final Authentication authentication) {
-        return (CustomUserDetails) authentication.getPrincipal();
     }
 
     /**

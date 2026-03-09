@@ -22,6 +22,7 @@ import lombok.NoArgsConstructor;
 public final class OAuthProfileFactory {
 
     public static OAuthProfile getOAuthProfile(final String registrationId, final Map<String, Object> attributes) {
+        if (ProviderType.APPLE.name().equalsIgnoreCase(registrationId)) return new AppleProfile(attributes);
         if (ProviderType.GOOGLE.name().equalsIgnoreCase(registrationId)) return new GoogleProfile(attributes);
         throw new GlobalException(ErrorCode.SOCIAL_CONNECTION_PROVIDER_NOT_SUPPORTED);
     }

@@ -31,13 +31,20 @@ public final class SecurityConst {
             "/swagger-resources/**",
             "/v3/api-docs/**",
             };
-    public static final String[] POST_PERMIT_ALL_URLS   = {};
+    public static final String[] POST_PERMIT_ALL_URLS   = {
+            // Auth
+            "/api/v1/auth/login/**",
+            };
     public static final String[] PUT_PERMIT_ALL_URLS    = {};
     public static final String[] PATCH_PERMIT_ALL_URLS  = {};
     public static final String[] DELETE_PERMIT_ALL_URLS = {};
 
     public static final String[] GET_AUTHENTICATED_URLS    = {};
-    public static final String[] POST_AUTHENTICATED_URLS   = {};
+    public static final String[] POST_AUTHENTICATED_URLS   = {
+            // Auth
+            "/api/v1/auth/logout",
+            "/api/v1/auth/refresh",
+            };
     public static final String[] PUT_AUTHENTICATED_URLS    = {};
     public static final String[] PATCH_AUTHENTICATED_URLS  = {};
     public static final String[] DELETE_AUTHENTICATED_URLS = {};
