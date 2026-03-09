@@ -39,7 +39,10 @@ public final class SecurityConst {
     public static final String[] PATCH_PERMIT_ALL_URLS  = {};
     public static final String[] DELETE_PERMIT_ALL_URLS = {};
 
-    public static final String[] GET_AUTHENTICATED_URLS    = {};
+    public static final String[] GET_AUTHENTICATED_URLS    = {
+            // User
+            "/api/v1/users"
+    };
     public static final String[] POST_AUTHENTICATED_URLS   = {
             // Auth
             "/api/v1/auth/logout",
@@ -47,7 +50,10 @@ public final class SecurityConst {
             };
     public static final String[] PUT_AUTHENTICATED_URLS    = {};
     public static final String[] PATCH_AUTHENTICATED_URLS  = {};
-    public static final String[] DELETE_AUTHENTICATED_URLS = {};
+    public static final String[] DELETE_AUTHENTICATED_URLS = {
+            // User
+            "/api/v1/users"
+    };
 
     public static final String[] GET_ROLE_ADMIN_URLS    = {};
     public static final String[] POST_ROLE_ADMIN_URLS   = {};

@@ -62,12 +62,12 @@ public class SecurityConfig {
                                        //.requestMatchers(HttpMethod.PATCH, SecurityConst.PATCH_PERMIT_ALL_URLS).permitAll()
                                        //.requestMatchers(HttpMethod.DELETE, SecurityConst.DELETE_PERMIT_ALL_URLS).permitAll()
 
-                                       // Authenticated
-                                       //.requestMatchers(HttpMethod.GET, SecurityConst.GET_AUTHENTICATED_URLS).authenticated()
-                                       .requestMatchers(HttpMethod.POST, SecurityConst.POST_AUTHENTICATED_URLS).authenticated()
-                                       //.requestMatchers(HttpMethod.PUT, SecurityConst.PUT_AUTHENTICATED_URLS).authenticated()
-                                       //.requestMatchers(HttpMethod.PATCH, SecurityConst.PATCH_AUTHENTICATED_URLS).authenticated()
-                                       //.requestMatchers(HttpMethod.DELETE, SecurityConst.DELETE_AUTHENTICATED_URLS).authenticated()
+                                               // Authenticated
+                                               .requestMatchers(HttpMethod.GET, SecurityConst.GET_AUTHENTICATED_URLS).authenticated()
+                                               .requestMatchers(HttpMethod.POST, SecurityConst.POST_AUTHENTICATED_URLS).authenticated()
+                                               //.requestMatchers(HttpMethod.PUT, SecurityConst.PUT_AUTHENTICATED_URLS).authenticated()
+                                               //.requestMatchers(HttpMethod.PATCH, SecurityConst.PATCH_AUTHENTICATED_URLS).authenticated()
+                                               .requestMatchers(HttpMethod.DELETE, SecurityConst.DELETE_AUTHENTICATED_URLS).authenticated()
 
                                        // Role Admin Only
                                        //.requestMatchers(HttpMethod.GET, SecurityConst.GET_ROLE_ADMIN_URLS).hasAuthority(UserRole.ADMIN.getAuthority())

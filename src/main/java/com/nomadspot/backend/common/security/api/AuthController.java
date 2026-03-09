@@ -33,6 +33,7 @@ public class AuthController implements AuthApiDocs {
 
     private final AuthService authService;
 
+    @Override
     @PostMapping("/login/{provider}")
     public ResponseEntity<BaseResponse<TokenResponse>> login(
             @PathVariable("provider") final String provider,
@@ -42,6 +43,7 @@ public class AuthController implements AuthApiDocs {
         return ResponseEntity.ok(BaseResponse.success(SuccessCode.USER_AUTH_LOGIN_SUCCESS, responseData));
     }
 
+    @Override
     @PostMapping("/logout")
     public ResponseEntity<BaseResponse<Void>> logout(
             @RequestHeader(SecurityConst.JWT_ACCESS_TOKEN_HEADER) final String authorizationHeader
@@ -52,6 +54,7 @@ public class AuthController implements AuthApiDocs {
         return ResponseEntity.ok(BaseResponse.success(SuccessCode.USER_AUTH_LOGOUT_SUCCESS));
     }
 
+    @Override
     @PostMapping("/refresh")
     public ResponseEntity<BaseResponse<TokenResponse>> refresh(
             @RequestBody final AuthRequestDto.TokenRefreshRequest dto

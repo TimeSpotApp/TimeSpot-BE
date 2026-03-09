@@ -4,6 +4,7 @@ import com.nomadspot.backend.common.error.GlobalException;
 import com.nomadspot.backend.common.response.ErrorCode;
 import com.nomadspot.backend.domain.user.dao.SocialConnectionRepository;
 import com.nomadspot.backend.domain.user.dao.UserRepository;
+import com.nomadspot.backend.domain.user.dto.UserResponseDto.UserInfoResponse;
 import com.nomadspot.backend.domain.user.model.ProviderType;
 import com.nomadspot.backend.domain.user.model.SocialConnection;
 import com.nomadspot.backend.domain.user.model.User;
@@ -67,6 +68,35 @@ public class UserServiceImpl implements UserService {
     @Override
     public User findById(final UUID id) {
         return userRepository.findById(id).orElseThrow(() -> new GlobalException(ErrorCode.USER_NOT_FOUND));
+    }
+
+    /**
+     * ID로 회원 정보 조회
+     *
+     * @param id 회원 ID
+     * @return 회원 정보 응답 DTO
+     */
+    @Override
+    public UserInfoResponse findUserInfoById(final UUID id) {
+        return userRepository.findUserInfoById(id).orElseThrow(() -> new GlobalException(ErrorCode.USER_NOT_FOUND));
+    }
+
+    /**
+     * ID로 회원 탈퇴
+     *
+     * @param id 회원 ID
+     */
+    @Override
+    @Transactional
+    public void withdraw(final UUID id) {
+        User user = userRepository.findById(id).orElseThrow(() -> new GlobalException(ErrorCode.USER_NOT_FOUND));
+        SocialConnection socialConnection = socialConnectionRepository.findByUserId(id)
+                                                                      .orElseThrow(() -> new GlobalException(
+                                                                              ErrorCode.SOCIAL_CONNECTION_NOT_FOUND
+                                                                      ));
+        socialConnectionRepository.delete(socialConnection);
+        userRepository.delete(user);
+        // TODO: 탈퇴한 회원 정보 보관 정책 및 엔티티/DB 구조 결정 시 정보 보관 로직 추가
     }
 
 }

@@ -1,5 +1,6 @@
 package com.nomadspot.backend.domain.user.service;
 
+import com.nomadspot.backend.domain.user.dto.UserResponseDto.UserInfoResponse;
 import com.nomadspot.backend.domain.user.model.ProviderType;
 import com.nomadspot.backend.domain.user.model.User;
 import java.util.UUID;
@@ -23,5 +24,9 @@ public interface UserService {
                                              String nickname);
 
     User findById(UUID id);
+
+    UserInfoResponse findUserInfoById(UUID id);
+
+    void withdraw(UUID id);
 
 }

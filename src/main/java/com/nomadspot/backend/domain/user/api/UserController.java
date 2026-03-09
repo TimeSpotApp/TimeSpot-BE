@@ -1,0 +1,52 @@
+package com.nomadspot.backend.domain.user.api;
+
+import com.nomadspot.backend.common.response.BaseResponse;
+import com.nomadspot.backend.common.response.SuccessCode;
+import com.nomadspot.backend.common.security.model.CustomUserDetails;
+import com.nomadspot.backend.domain.user.dto.UserResponseDto.UserInfoResponse;
+import com.nomadspot.backend.domain.user.service.UserService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+/**
+ * PackageName : com.nomadspot.backend.domain.user.api
+ * FileName    : UserController
+ * Author      : loadingKKamo21
+ * Date        : 26. 3. 8.
+ * Description :
+ * =====================================================================================================================
+ * DATE          AUTHOR               DESCRIPTION
+ * ---------------------------------------------------------------------------------------------------------------------
+ * 26. 3. 8.     loadingKKamo21       Initial creation
+ */
+@RestController
+@RequestMapping("/api/v1/users")
+@RequiredArgsConstructor
+public class UserController implements UserApiDocs {
+
+    private final UserService userService;
+
+    @GetMapping
+    @Override
+    public ResponseEntity<BaseResponse<UserInfoResponse>> getUserInfo(
+            @AuthenticationPrincipal final CustomUserDetails userDetails
+    ) {
+        UserInfoResponse responseData = userService.findUserInfoById(userDetails.getId());
+        return ResponseEntity.ok(BaseResponse.success(SuccessCode.USER_GET_INFO_SUCCESS, responseData));
+    }
+
+    @DeleteMapping
+    @Override
+    public ResponseEntity<BaseResponse<Void>> withdraw(
+            @AuthenticationPrincipal final CustomUserDetails userDetails
+    ) {
+        userService.withdraw(userDetails.getId());
+        return ResponseEntity.ok(BaseResponse.success(SuccessCode.USER_WITHDRAW_SUCCESS));
+    }
+
+}
