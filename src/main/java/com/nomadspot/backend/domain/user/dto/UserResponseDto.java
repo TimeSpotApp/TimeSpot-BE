@@ -1,6 +1,7 @@
 package com.nomadspot.backend.domain.user.dto;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.nomadspot.backend.domain.user.model.ProviderType;
 import com.nomadspot.backend.domain.user.model.UserRole;
 import com.querydsl.core.annotations.QueryProjection;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -51,14 +52,14 @@ public abstract class UserResponseDto {
                                 final String nickname,
                                 final String profileImgUrl,
                                 final UserRole role,
-                                final String providerType,
+                                final ProviderType providerType,
                                 final LocalDateTime createdAt) {
             this.userId = userId != null ? userId.toString() : null;
             this.email = email;
             this.nickname = nickname;
             this.profileImgUrl = profileImgUrl;
             this.role = role != null ? role.name() : null;
-            this.providerType = providerType;
+            this.providerType = providerType != null ? providerType.name() : null;
             this.createdAt = createdAt;
         }
 

@@ -44,7 +44,7 @@ public class UserRepositoryImpl implements UserRepositoryCustom {
                                                        USER.nickname,
                                                        USER.profileImgUrl,
                                                        USER.role,
-                                                       SOCIAL_CONNECTION.providerId,
+                                                       SOCIAL_CONNECTION.providerType,
                                                        USER.createdAt
                                                ))
                                                .from(USER)
