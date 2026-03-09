@@ -2,6 +2,7 @@ package com.nomadspot.backend.common.security.constant;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import org.springframework.http.HttpHeaders;
 
 /**
  * PackageName : com.nomadspot.backend.common.security.constant
@@ -18,7 +19,7 @@ import lombok.NoArgsConstructor;
 public final class SecurityConst {
 
     public static final String JWT_ACCESS_TOKEN_PREFIX = "Bearer ";
-    public static final String JWT_ACCESS_TOKEN_HEADER = "Authorization";
+    public static final String JWT_ACCESS_TOKEN_HEADER = HttpHeaders.AUTHORIZATION;
 
     public static final String JWT_USERNAME_KEY    = "username";
     public static final String JWT_AUTHORITIES_KEY = "authorities";
@@ -34,6 +35,7 @@ public final class SecurityConst {
     public static final String[] POST_PERMIT_ALL_URLS   = {
             // Auth
             "/api/v1/auth/login/**",
+            "/api/v1/auth/refresh",
             };
     public static final String[] PUT_PERMIT_ALL_URLS    = {};
     public static final String[] PATCH_PERMIT_ALL_URLS  = {};
@@ -45,9 +47,8 @@ public final class SecurityConst {
     };
     public static final String[] POST_AUTHENTICATED_URLS   = {
             // Auth
-            "/api/v1/auth/logout",
-            "/api/v1/auth/refresh",
-            };
+            "/api/v1/auth/logout"
+    };
     public static final String[] PUT_AUTHENTICATED_URLS    = {};
     public static final String[] PATCH_AUTHENTICATED_URLS  = {};
     public static final String[] DELETE_AUTHENTICATED_URLS = {

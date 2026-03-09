@@ -54,34 +54,38 @@ public class SecurityConfig {
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .formLogin(AbstractHttpConfigurer::disable)
 
+                .logout(AbstractHttpConfigurer::disable)
+
                 .authorizeHttpRequests(auth -> auth
-                                       // Permit All
-                                       .requestMatchers(HttpMethod.GET, SecurityConst.GET_PERMIT_ALL_URLS).permitAll()
-                                       .requestMatchers(HttpMethod.POST, SecurityConst.POST_PERMIT_ALL_URLS).permitAll()
-                                       //.requestMatchers(HttpMethod.PUT, SecurityConst.PUT_PERMIT_ALL_URLS).permitAll()
-                                       //.requestMatchers(HttpMethod.PATCH, SecurityConst.PATCH_PERMIT_ALL_URLS).permitAll()
-                                       //.requestMatchers(HttpMethod.DELETE, SecurityConst.DELETE_PERMIT_ALL_URLS).permitAll()
+                        // Permit All
+                        .requestMatchers(HttpMethod.GET, SecurityConst.GET_PERMIT_ALL_URLS).permitAll()
+                        .requestMatchers(HttpMethod.POST, SecurityConst.POST_PERMIT_ALL_URLS).permitAll()
+                        //.requestMatchers(HttpMethod.PUT, SecurityConst.PUT_PERMIT_ALL_URLS).permitAll()
+                        //.requestMatchers(HttpMethod.PATCH, SecurityConst.PATCH_PERMIT_ALL_URLS).permitAll()
+                        //.requestMatchers(HttpMethod.DELETE, SecurityConst.DELETE_PERMIT_ALL_URLS).permitAll()
 
-                                               // Authenticated
-                                               .requestMatchers(HttpMethod.GET, SecurityConst.GET_AUTHENTICATED_URLS).authenticated()
-                                               .requestMatchers(HttpMethod.POST, SecurityConst.POST_AUTHENTICATED_URLS).authenticated()
-                                               //.requestMatchers(HttpMethod.PUT, SecurityConst.PUT_AUTHENTICATED_URLS).authenticated()
-                                               //.requestMatchers(HttpMethod.PATCH, SecurityConst.PATCH_AUTHENTICATED_URLS).authenticated()
-                                               .requestMatchers(HttpMethod.DELETE, SecurityConst.DELETE_AUTHENTICATED_URLS).authenticated()
+                        // Authenticated
+                        .requestMatchers(HttpMethod.GET, SecurityConst.GET_AUTHENTICATED_URLS).authenticated()
+                        .requestMatchers(HttpMethod.POST, SecurityConst.POST_AUTHENTICATED_URLS).authenticated()
+                        //.requestMatchers(HttpMethod.PUT, SecurityConst.PUT_AUTHENTICATED_URLS).authenticated()
+                        //.requestMatchers(HttpMethod.PATCH, SecurityConst.PATCH_AUTHENTICATED_URLS).authenticated()
+                        .requestMatchers(HttpMethod.DELETE, SecurityConst.DELETE_AUTHENTICATED_URLS).authenticated()
 
-                                       // Role Admin Only
-                                       //.requestMatchers(HttpMethod.GET, SecurityConst.GET_ROLE_ADMIN_URLS).hasAuthority(UserRole.ADMIN.getAuthority())
-                                       //.requestMatchers(HttpMethod.POST, SecurityConst.POST_ROLE_ADMIN_URLS).hasAuthority(UserRole.ADMIN.getAuthority())
-                                       //.requestMatchers(HttpMethod.PUT, SecurityConst.PUT_ROLE_ADMIN_URLS).hasAuthority(UserRole.ADMIN.getAuthority())
-                                       //.requestMatchers(HttpMethod.PATCH, SecurityConst.PATCH_ROLE_ADMIN_URLS).hasAuthority(UserRole.ADMIN.getAuthority())
-                                       //.requestMatchers(HttpMethod.DELETE, SecurityConst.DELETE_ROLE_ADMIN_URLS).hasAuthority(UserRole.ADMIN.getAuthority())
+                        // Role Admin Only
+                        //.requestMatchers(HttpMethod.GET, SecurityConst.GET_ROLE_ADMIN_URLS).hasAuthority(UserRole.ADMIN.getAuthority())
+                        //.requestMatchers(HttpMethod.POST, SecurityConst.POST_ROLE_ADMIN_URLS).hasAuthority(UserRole.ADMIN.getAuthority())
+                        //.requestMatchers(HttpMethod.PUT, SecurityConst.PUT_ROLE_ADMIN_URLS).hasAuthority(UserRole.ADMIN.getAuthority())
+                        //.requestMatchers(HttpMethod.PATCH, SecurityConst.PATCH_ROLE_ADMIN_URLS).hasAuthority(UserRole.ADMIN.getAuthority())
+                        //.requestMatchers(HttpMethod.DELETE, SecurityConst.DELETE_ROLE_ADMIN_URLS).hasAuthority(UserRole.ADMIN.getAuthority())
+
+                        .anyRequest().authenticated()
                 )
 
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(authenticationEntryPoint)
                                                          .accessDeniedHandler(accessDeniedHandler))
 
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(jwtExceptionFilter, JwtAuthenticationFilter.class);
+                .addFilterBefore(jwtExceptionFilter, jwtAuthenticationFilter.getClass());
 
         return http.build();
     }

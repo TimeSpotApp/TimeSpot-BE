@@ -1,14 +1,10 @@
 package com.nomadspot.backend.common.security.jwt.filter;
 
-import com.nomadspot.backend.common.response.ErrorCode;
 import com.nomadspot.backend.common.security.constant.SecurityConst;
 import com.nomadspot.backend.common.security.jwt.provider.JwtProvider;
 import com.nomadspot.backend.infra.redis.constant.RedisConst;
 import com.nomadspot.backend.infra.redis.dao.RedisRepository;
-import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.MalformedJwtException;
-import io.jsonwebtoken.UnsupportedJwtException;
-import io.jsonwebtoken.security.SecurityException;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -44,26 +40,25 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
     throws ServletException, IOException {
-        try {
-            final String accessToken = resolveToken(request);
+        final String accessToken = resolveToken(request);
 
-            if (accessToken != null
-                && !redisRepository.hasKey("%s%s".formatted(RedisConst.JWT_ACCESS_TOKEN_BLACKLIST_PREFIX, accessToken))
-                && jwtProvider.validateAccessToken(accessToken)) {
-                Authentication authentication = jwtProvider.getAuthenticationFromAccessToken(accessToken);
+        if (accessToken == null) {
+            filterChain.doFilter(request, response);
+            return;
+        }
 
-                if (authentication instanceof UsernamePasswordAuthenticationToken userPasswordAuthenticationToken)
-                    userPasswordAuthenticationToken.setDetails(
-                            new WebAuthenticationDetailsSource().buildDetails(request));
+        if (redisRepository.hasKey("%s%s".formatted(RedisConst.JWT_ACCESS_TOKEN_BLACKLIST_PREFIX, accessToken)))
+            throw new JwtException("블랙리스트에 이미 등록된 토큰입니다.");
 
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-            }
-        } catch (SecurityException | MalformedJwtException | UnsupportedJwtException e) {
-            request.setAttribute("exception", ErrorCode.USER_AUTH_INVALID_ACCESS_TOKEN);
-        } catch (ExpiredJwtException e) {
-            request.setAttribute("exception", ErrorCode.USER_AUTH_ACCESS_TOKEN_EXPIRED);
-        } catch (Exception e) {
-            request.setAttribute("exception", ErrorCode.UNAUTHORIZED);
+        if (jwtProvider.validateAccessToken(accessToken)) {
+            Authentication authentication = jwtProvider.getAuthenticationFromAccessToken(accessToken);
+
+            if (authentication instanceof UsernamePasswordAuthenticationToken userPasswordAuthenticationToken)
+                userPasswordAuthenticationToken.setDetails(
+                        new WebAuthenticationDetailsSource().buildDetails(request)
+                );
+
+            SecurityContextHolder.getContext().setAuthentication(authentication);
         }
 
         filterChain.doFilter(request, response);

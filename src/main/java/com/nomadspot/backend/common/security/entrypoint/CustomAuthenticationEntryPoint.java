@@ -39,11 +39,7 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
                          AuthenticationException authException) throws IOException, ServletException {
         log.error("인증 실패: {}", authException.getMessage());
 
-        ErrorCode errorCode = (ErrorCode) request.getAttribute("exception");
-
-        if (errorCode == null) errorCode = ErrorCode.UNAUTHORIZED;
-
-        BaseResponse<Void> baseResponse = BaseResponse.error(errorCode);
+        BaseResponse<Void> baseResponse = BaseResponse.error(ErrorCode.UNAUTHORIZED);
 
         response.setStatus(baseResponse.getCode());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
