@@ -34,6 +34,12 @@ spring:
         #highlight_sql: true
         #use_sql_comments: true
     open-in-view: false
+  batch:
+    jdbc:
+      initialize-schema: embedded
+      schema: classpath:org/springframework/batch/core/schema.sql
+    job:
+      enabled: false
   data:
     redis:
       client-type: lettuce
