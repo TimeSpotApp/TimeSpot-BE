@@ -2,7 +2,11 @@ package com.nomadspot.backend.common.security.config;
 
 import com.nomadspot.backend.common.security.config.properties.CorsProperties;
 import com.nomadspot.backend.common.security.constant.SecurityConst;
+import com.nomadspot.backend.common.security.entrypoint.CustomAuthenticationEntryPoint;
+import com.nomadspot.backend.common.security.handler.CustomAccessDeniedHandler;
 import com.nomadspot.backend.domain.user.model.UserRole;
+import com.nomadspot.backend.infra.security.oauth.handler.OAuth2AuthenticationFailureHandler;
+import com.nomadspot.backend.infra.security.oauth.service.CustomOAuth2UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -29,6 +33,12 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @Configuration
 @RequiredArgsConstructor
 public class SecurityConfig {
+
+    private final CustomAuthenticationEntryPoint authenticationEntryPoint;
+    private final CustomAccessDeniedHandler      accessDeniedHandler;
+
+    private final CustomOAuth2UserService            oAuth2UserService;
+    private final OAuth2AuthenticationFailureHandler oAuth2AuthenticationFailureHandler;
 
     @Bean
     public SecurityFilterChain securityFilterChain(final HttpSecurity http,
@@ -70,7 +80,13 @@ public class SecurityConfig {
                         .hasAuthority(UserRole.ADMIN.getAuthority())
                         .requestMatchers(HttpMethod.DELETE, SecurityConst.DELETE_ROLE_ADMIN_URLS)
                         .hasAuthority(UserRole.ADMIN.getAuthority())
-                );
+                )
+
+                .oauth2Login(oauth2 -> oauth2.userInfoEndpoint(userInfo -> userInfo.userService(oAuth2UserService))
+                                             .failureHandler(oAuth2AuthenticationFailureHandler))
+
+                .exceptionHandling(exception -> exception.authenticationEntryPoint(authenticationEntryPoint)
+                                                         .accessDeniedHandler(accessDeniedHandler));
 
         return http.build();
     }
