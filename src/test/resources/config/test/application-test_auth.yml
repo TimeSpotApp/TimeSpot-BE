@@ -16,8 +16,13 @@ app:
   oauth2:
     apple:
       client-id: APPLE_CLIENT_ID
+      client-secret: APPLE_CLIENT_SECRET
+      team-id: APPLE_TEAM_ID
+      key-id: APPLE_KEY_ID
+      private-key: APPLE_PRIVATE_KEY
     google:
       client-id: GOOGLE_CLIENT_ID
+      client-secret: GOOGLE_CLIENT_SECRET
   jwt:
     issuer: NomadSpot
     access-token-secret: e6b0746914514b4ab074691451bb4ab4ddee6414637b41b7ae6414637b81b79d23ea3748e479431faa3748e479431f6c6e25926ca2644d20a5926ca264ad20da27ffd36ebef54257bfd36ebef572576f0524394e85d2497ca4394e85d2597cfa7ad4f6cba246490194f6cba246f90164a8623956a89d4df3a23956a89dadf305b15765bc46f346809765bc46f3f68014459f2409099d4a829f2409099d5a82bb

@@ -1,11 +1,11 @@
-package com.nomadspot.backend.infra.security.oauth.validator.properties;
+package com.nomadspot.backend.infra.security.oauth.properties;
 
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
- * PackageName : com.nomadspot.backend.infra.security.oauth.validator.properties
+ * PackageName : com.nomadspot.backend.infra.security.oauth.properties
  * FileName    : OAuth2Properties
  * Author      : loadingKKamo21
  * Date        : 26. 3. 9.
@@ -27,12 +27,17 @@ public final class OAuth2Properties {
     @Setter
     public static class Apple {
         private String clientId;
+        private String clientSecret;
+        private String teamId;
+        private String keyId;
+        private String privateKey;
     }
 
     @Getter
     @Setter
     public static class Google {
         private String clientId;
+        private String clientSecret;
     }
 
 }
