@@ -52,13 +52,15 @@ public class IdpTokenExchangeEventListener {
     public void handleIdpTokenExchangeEvent(final IdpTokenExchangeEvent event) {
         log.info("비동기 IDP 토큰 교환 시작 - userId: {}, provider: {}", event.getUserId(), event.getProviderType());
 
-        try {
-            String idpRefreshToken = null;
+        final ProviderType providerType = event.getProviderType();
 
-            if (ProviderType.APPLE == event.getProviderType())
-                idpRefreshToken = idpTokenExchangeClient.exchangeAppleAuthCode(event.getAuthCode());
-            else if (ProviderType.GOOGLE == event.getProviderType())
-                idpRefreshToken = idpTokenExchangeClient.exchangeGoogleAuthCode(event.getAuthCode());
+        String idpRefreshToken = null;
+
+        try {
+            switch (providerType) {
+                case APPLE -> idpRefreshToken = idpTokenExchangeClient.exchangeAppleAuthCode(event.getAuthCode());
+                case GOOGLE -> idpRefreshToken = idpTokenExchangeClient.exchangeGoogleAuthCode(event.getAuthCode());
+            }
 
             if (idpRefreshToken != null) {
                 SocialConnection socialConnection = socialConnectionRepository.findByUserId(event.getUserId())
