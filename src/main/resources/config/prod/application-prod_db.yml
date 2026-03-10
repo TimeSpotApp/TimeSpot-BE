@@ -37,7 +37,7 @@ spring:
   batch:
     jdbc:
       initialize-schema: never
-      #schema: classpath:org/springframework/batch/core/schema.sql
+      #schema: classpath:org/springframework/batch/core/schema-mysql.sql
     job:
       enabled: false
   data:

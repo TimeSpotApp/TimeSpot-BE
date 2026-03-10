@@ -37,7 +37,7 @@ spring:
   batch:
     jdbc:
       initialize-schema: embedded
-      schema: classpath:org/springframework/batch/core/schema.sql
+      schema: classpath:org/springframework/batch/core/schema-h2.sql
     job:
       enabled: false
   data:
