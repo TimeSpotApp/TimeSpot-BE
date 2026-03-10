@@ -1,6 +1,6 @@
 package com.nomadspot.backend.common.response.advice;
 
-import com.nomadspot.backend.common.response.ApiResponse;
+import com.nomadspot.backend.common.response.BaseResponse;
 import com.nomadspot.backend.common.response.annotation.CustomPageResponse;
 import com.nomadspot.backend.common.response.util.PageResponseConverter;
 import java.util.Map;
@@ -43,13 +43,13 @@ public class PageResponseAdvice implements ResponseBodyAdvice<Object> {
         CustomPageResponse annotation = returnType.getMethodAnnotation(CustomPageResponse.class);
         if (annotation == null) return body;
 
-        Page<?>        page        = null;
-        ApiResponse<?> apiResponse = null;
+        Page<?>         page         = null;
+        BaseResponse<?> baseResponse = null;
 
         if (body instanceof Page) page = (Page<?>) body;
-        else if (body instanceof ApiResponse) {
-            apiResponse = (ApiResponse<?>) body;
-            if (apiResponse.getData() instanceof Page) page = (Page<?>) apiResponse.getData();
+        else if (body instanceof BaseResponse) {
+            baseResponse = (BaseResponse<?>) body;
+            if (baseResponse.getData() instanceof Page) page = (Page<?>) baseResponse.getData();
         }
 
         if (page == null) return body;
@@ -57,9 +57,9 @@ public class PageResponseAdvice implements ResponseBodyAdvice<Object> {
         Map<String, Object> customPageResponse = PageResponseConverter.convertPageToCustomMap(page, annotation);
 
         if (body instanceof Page) return customPageResponse;
-        else return ApiResponse.of(HttpStatus.valueOf(apiResponse.getCode()),
-                                   apiResponse.getMessage(),
-                                   customPageResponse);
+        else return BaseResponse.of(HttpStatus.valueOf(baseResponse.getCode()),
+                                    baseResponse.getMessage(),
+                                    customPageResponse);
     }
 
 }

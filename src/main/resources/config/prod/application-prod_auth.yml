@@ -1,14 +1,31 @@
-spring:
-  security:
-    oauth2:
-      client:
-        registration:
-          google:
-            client-name: Google
-            client-id: ${OAUTH2_GOOGLE_CLIENT_ID}
-            client-secret: ${OAUTH2_GOOGLE_CLIENT_SECRET}
-            authorization-grant-type: authorization_code
-            scope:
-              - email
-              - profile
-            redirect-uri: ${OAUTH2_GOOGLE_REDIRECT_URI}
+app:
+  cors:
+    allowed-origins:
+      - ${CORS_ALLOWED_ORIGIN}
+    allowed-methods:
+      - GET
+      - POST
+      - PUT
+      - PATCH
+      - DELETE
+      - OPTIONS
+    allowed-headers:
+      - "*"
+    exposed-headers:
+      - Authorization
+  oauth2:
+    apple:
+      client-id: ${APPLE_CLIENT_ID}
+      client-secret: ${APPLE_CLIENT_SECRET}
+      team-id: ${APPLE_TEAM_ID}
+      key-id: ${APPLE_KEY_ID}
+      private-key: ${APPLE_PRIVATE_KEY}
+    google:
+      client-id: ${GOOGLE_CLIENT_ID}
+      client-secret: ${GOOGLE_CLIENT_SECRET}
+  jwt:
+    issuer: ${JWT_ISSUER}
+    access-token-secret: ${JWT_ACCESS_TOKEN_SECRET}
+    refresh-token-secret: ${JWT_REFRESH_TOKEN_SECRET}
+    access-token-expiration-seconds: ${JWT_ACCESS_TOKEN_EXPIRATION_SECONDS}
+    refresh-token-expiration-seconds: ${JWT_REFRESH_TOKEN_EXPIRATION_SECONDS}
