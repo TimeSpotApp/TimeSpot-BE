@@ -57,32 +57,39 @@ public class CustomOAuth2TokenValidator {
      * @return Payload
      */
     public Claims verifyAndParse(final String provider, final String token) {
+        final ProviderType providerType = ProviderType.from(provider);
+
+        final String      expectedIssuer;
+        final String      expectedAudience;
+        final JwkProvider jwkProvider;
+
+        switch (providerType) {
+            case APPLE -> {
+                expectedIssuer = OAuthConst.APPLE_ISSUER;
+                expectedAudience = appleClientId;
+                jwkProvider = appleJwkProvider;
+            }
+            case GOOGLE -> {
+                expectedIssuer = OAuthConst.GOOGLE_ISSUER;
+                expectedAudience = googleClientId;
+                jwkProvider = googleJwkProvider;
+            }
+            default -> throw new GlobalException(ErrorCode.SOCIAL_CONNECTION_PROVIDER_NOT_SUPPORTED);
+        }
+
         Locator<Key> keyLocator = locator -> {
             JwsHeader header = (JwsHeader) locator;
             String    keyId  = header.getKeyId();
 
+            if (keyId == null) throw new GlobalException(ErrorCode.SOCIAL_CONNECTION_TOKEN_PARSE_FAILED);
+
             try {
-                if (ProviderType.APPLE.name().equalsIgnoreCase(provider))
-                    return appleJwkProvider.get(keyId).getPublicKey();
-                else if (ProviderType.GOOGLE.name().equalsIgnoreCase(provider))
-                    return googleJwkProvider.get(keyId).getPublicKey();
-                throw new GlobalException(ErrorCode.SOCIAL_CONNECTION_PROVIDER_NOT_SUPPORTED);
+                return jwkProvider.get(keyId).getPublicKey();
             } catch (JwkException e) {
                 log.error("{} 공개 키 조회 실패 - keyId: {}", provider, keyId, e);
                 throw new GlobalException(ErrorCode.SOCIAL_CONNECTION_TOKEN_PARSE_FAILED);
             }
         };
-
-        String expectedIssuer = ProviderType.APPLE.name().equalsIgnoreCase(provider)
-                                ? OAuthConst.APPLE_ISSUER
-                                : ProviderType.GOOGLE.name().equalsIgnoreCase(provider)
-                                  ? OAuthConst.GOOGLE_ISSUER
-                                  : null;
-        String expectedAudience = ProviderType.APPLE.name().equalsIgnoreCase(provider)
-                                  ? appleClientId
-                                  : ProviderType.GOOGLE.name().equalsIgnoreCase(provider)
-                                    ? googleClientId
-                                    : null;
 
         try {
             return Jwts.parser()

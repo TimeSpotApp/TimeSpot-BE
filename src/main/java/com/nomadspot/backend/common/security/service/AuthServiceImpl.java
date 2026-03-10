@@ -63,7 +63,7 @@ public class AuthServiceImpl implements AuthService {
         Claims claims = tokenValidator.verifyAndParse(provider, dto.getProviderToken());
 
         OAuthProfile oAuthProfile = OAuthProfileFactory.getOAuthProfile(provider, claims);
-        ProviderType providerType = ProviderType.valueOf(oAuthProfile.getProvider().toUpperCase());
+        ProviderType providerType = ProviderType.from(provider);
 
         String resolvedNickname = dto.getNickname() != null && !dto.getNickname().isBlank()
                                   ? dto.getNickname()

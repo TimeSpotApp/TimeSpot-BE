@@ -64,7 +64,7 @@ public class SocialConnection extends BaseAuditingEntity {
                              final String idpRefreshToken) {
         validateProviderId(providerId);
         this.user = user;
-        this.providerType = providerType != null ? providerType : ProviderType.APPLE;
+        this.providerType = providerType;
         this.providerId = providerId;
         this.idpRefreshToken = idpRefreshToken;
     }
@@ -88,6 +88,16 @@ public class SocialConnection extends BaseAuditingEntity {
     }
 
     // ========================= 검증 메서드 =========================
+
+    /**
+     * 소셜 인증 제공자 유형 검증
+     *
+     * @param providerType 소셜 인증 제공자 유형
+     */
+    private void validateProviderType(final ProviderType providerType) {
+        if (providerType == null)
+            throw new GlobalException(ErrorCode.SOCIAL_CONNECTION_PROVIDER_NOT_SUPPORTED);
+    }
 
     /**
      * 소셜 인증 고유 식별자 검증
