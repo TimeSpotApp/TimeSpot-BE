@@ -35,7 +35,6 @@ public class BaseResponse<T> {
     @NotBlank
     @Schema(description = "응답 메시지")
     private final String  message;
-    @JsonInclude(Include.NON_NULL)
     @Schema(description = "응답 데이터", nullable = true)
     private final T       data;
 
