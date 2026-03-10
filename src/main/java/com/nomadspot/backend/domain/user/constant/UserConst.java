@@ -16,7 +16,7 @@ import lombok.NoArgsConstructor;
  * 26. 3. 8.     loadingKKamo21       Initial creation
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public final class UserConst {
+public abstract class UserConst {
 
     public static final String EMAIL_REGEX    = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$";
     public static final String NICKNAME_REGEX = "^[a-zA-Z0-9가-힣_-]{2,15}$";

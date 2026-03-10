@@ -16,7 +16,7 @@ import org.springframework.http.HttpHeaders;
  * 26. 3. 9.     loadingKKamo21       Initial creation
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public final class SecurityConst {
+public abstract class SecurityConst {
 
     public static final String JWT_ACCESS_TOKEN_PREFIX = "Bearer ";
     public static final String JWT_ACCESS_TOKEN_HEADER = HttpHeaders.AUTHORIZATION;
