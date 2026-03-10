@@ -35,7 +35,9 @@ public enum ProviderType {
      * @return 소셜 인증 제공자 유형 enum
      */
     public static ProviderType from(final String provider) {
-        return Optional.ofNullable(PROVIDER_TYPE_MAP.get(provider.toUpperCase()))
+        return Optional.ofNullable(provider)
+                       .map(String::toUpperCase)
+                       .map(PROVIDER_TYPE_MAP::get)
                        .orElseThrow(() -> new GlobalException(ErrorCode.SOCIAL_CONNECTION_PROVIDER_NOT_SUPPORTED));
     }
 
