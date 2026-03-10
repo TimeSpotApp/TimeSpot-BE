@@ -36,6 +36,10 @@ public class UserServiceImpl implements UserService {
     /**
      * 소셜 인증 제공자로부터 회원 정보를 저장하거나, 이미 존재하는 경우 기존 회원 정보를 반환
      *
+     * @param providerType   소셜 인증 제공자 유형
+     * @param providerUserId 소셜 인증 제공자 식별자
+     * @param email          이메일
+     * @param nickname       닉네임
      * @return 회원 엔티티
      */
     @Override
