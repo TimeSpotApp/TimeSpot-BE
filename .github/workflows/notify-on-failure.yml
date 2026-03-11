@@ -2,7 +2,7 @@ name: Notify on Failure
 
 on:
   workflow_run:
-    workflows: [ "Pipeline (Build & Docker & Release)" ]
+    workflows: [ "CI/CD Pipeline" ]
     types:
       - completed
 

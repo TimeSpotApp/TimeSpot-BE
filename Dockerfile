@@ -1,7 +1,15 @@
 FROM gradle:8.14.4-jdk17-alpine AS builder
 WORKDIR /app
 
-COPY build/libs/*.jar app.jar
+COPY build.gradle settings.gradle gradlew ./
+COPY gradle gradle
+
+COPY src src
+
+RUN chmod +x ./gradlew
+RUN ./gradlew clean bootJar -x test
+
+RUN find build/libs -name "*.jar" -not -name "*plain.jar" -exec cp {} app.jar \;
 
 RUN java -Djarmode=layertools -jar app.jar extract
 

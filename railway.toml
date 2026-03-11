@@ -1,0 +1,16 @@
+[build]
+builder = "Dockerfile"
+dockerfilePath = "./Dockerfile"
+watchPatterns = [
+    "src/**",
+    "build.gradle",
+    "settings.gradle",
+    "Dockerfile"
+]
+
+[deploy]
+startTimeout = 180
+healthCheckPath = "/management/health"
+healthCheckTimeout = 10
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10
