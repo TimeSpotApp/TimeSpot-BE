@@ -17,7 +17,6 @@ import java.nio.charset.StandardCharsets;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
-import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 /**
@@ -31,7 +30,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
  * ---------------------------------------------------------------------------------------------------------------------
  * 26. 3. 9.     loadingKKamo21       Initial creation
  */
-@Component
 @RequiredArgsConstructor
 @Slf4j
 public class JwtExceptionFilter extends OncePerRequestFilter {

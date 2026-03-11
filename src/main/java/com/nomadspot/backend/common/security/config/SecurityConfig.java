@@ -1,14 +1,20 @@
 package com.nomadspot.backend.common.security.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nomadspot.backend.common.security.config.properties.CorsProperties;
 import com.nomadspot.backend.common.security.constant.SecurityConst;
 import com.nomadspot.backend.common.security.entrypoint.CustomAuthenticationEntryPoint;
 import com.nomadspot.backend.common.security.handler.CustomAccessDeniedHandler;
 import com.nomadspot.backend.common.security.jwt.filter.JwtAuthenticationFilter;
 import com.nomadspot.backend.common.security.jwt.filter.JwtExceptionFilter;
+import com.nomadspot.backend.common.security.jwt.provider.JwtProvider;
+import com.nomadspot.backend.domain.user.model.UserRole;
+import com.nomadspot.backend.infra.redis.dao.RedisRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -34,16 +40,45 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
+    private final ObjectMapper    objectMapper;
+    private final JwtProvider     jwtProvider;
+    private final RedisRepository redisRepository;
+
     private final CustomAuthenticationEntryPoint authenticationEntryPoint;
     private final CustomAccessDeniedHandler      accessDeniedHandler;
 
-    private final JwtAuthenticationFilter jwtAuthenticationFilter;
-    private final JwtExceptionFilter      jwtExceptionFilter;
+    @Value("${management.endpoints.web.base-path}")
+    private String actuatorBasePath;
 
     @Bean
+    @Order(1)
+    public SecurityFilterChain actuatorSecurityFilterChain(final HttpSecurity http) throws Exception {
+        final String actuatorPathPattern = actuatorBasePath + "/**";
+        final String healthPath          = actuatorBasePath + "/health";
+
+        http
+                .csrf(AbstractHttpConfigurer::disable)
+
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+
+                .securityMatcher(actuatorPathPattern)
+
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(healthPath).permitAll()
+                        .requestMatchers(actuatorPathPattern).hasAuthority(UserRole.ADMIN.getAuthority())
+                );
+
+        return http.build();
+    }
+
+    @Bean
+    @Order(2)
     public SecurityFilterChain securityFilterChain(final HttpSecurity http,
                                                    final CorsConfigurationSource corsConfigurationSource)
     throws Exception {
+        final JwtAuthenticationFilter jwtAuthenticationFilter = new JwtAuthenticationFilter(jwtProvider, redisRepository);
+        final JwtExceptionFilter jwtExceptionFilter = new JwtExceptionFilter(objectMapper);
+
         http
                 .csrf(AbstractHttpConfigurer::disable)
 
