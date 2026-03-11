@@ -3,13 +3,43 @@ name: CI/CD Pipeline
 on:
   workflow_dispatch:
   push:
-    branches:
-      - main
+    branches: [ main ]
 #    tags:
 #      - 'v*'
+    paths:
+      - '.github/workflows/**'
+      - 'src/**'
+      - '*.gradle*'
+      - 'gradle/**'
+      - 'gradlew'
+      - 'Dockerfile'
+      - 'docker-compose.yml'
+      - 'scripts/**'
+    paths-ignore:
+      - '.gitignore'
+      - '**.md'
+      - 'LICENSE'
+      - 'docs/**'
+      - '.idea/**'
+      - '.vscode/**'
   pull_request:
-    branches:
-      - main
+    branches: [ main ]
+    paths:
+      - '.github/workflows/**'
+      - 'src/**'
+      - '*.gradle*'
+      - 'gradle/**'
+      - 'gradlew'
+      - 'Dockerfile'
+      - 'docker-compose.yml'
+      - 'scripts/**'
+    paths-ignore:
+      - '.gitignore'
+      - '**.md'
+      - 'LICENSE'
+      - 'docs/**'
+      - '.idea/**'
+      - '.vscode/**'
 
 permissions:
   contents: write
