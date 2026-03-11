@@ -5,7 +5,7 @@ plugins {
     alias libs.plugins.lombok
 }
 
-group = 'com.nomadspot'
+group = 'com.timespot'
 version = '0.0.1-SNAPSHOT'
 
 java {
