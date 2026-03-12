@@ -36,7 +36,7 @@ public interface AuthApiDocs {
     })
     ResponseEntity<BaseResponse<TokenResponse>> login(
             @Parameter(description = "OAuth2 제공자 (예: apple, google)", example = "apple") String provider,
-            @Parameter(description = "소셜 인증 제공자로부터 발급받은 액세스 토큰 페이로드") AuthRequestDto.OAuth2LoginRequest dto
+            @Parameter(description = "소셜 인증 제공자로부터 발급받은 ID 토큰 페이로드") AuthRequestDto.OAuth2LoginRequest dto
     );
 
     @Operation(summary = "로그아웃", description = "현재 사용자의 액세스 토큰을 만료 처리하고 로그아웃합니다.")

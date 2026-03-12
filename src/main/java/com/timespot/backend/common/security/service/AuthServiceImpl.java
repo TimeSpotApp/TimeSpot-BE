@@ -60,7 +60,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public AuthResponseDto.TokenResponse login(final String provider, final AuthRequestDto.OAuth2LoginRequest dto) {
-        Claims claims = tokenValidator.verifyAndParse(provider, dto.getProviderToken());
+        Claims claims = tokenValidator.verifyAndParse(provider, dto.getIdToken());
 
         OAuthProfile oAuthProfile = OAuthProfileFactory.getOAuthProfile(provider, claims);
         ProviderType providerType = ProviderType.from(provider);

@@ -27,13 +27,13 @@ public abstract class AuthRequestDto {
     @Schema(description = "소셜 로그인 토큰 요청 페이로드")
     public static class OAuth2LoginRequest {
 
-        @Schema(description = "소셜 인증 토큰")
-        private String providerToken;
+        @Schema(description = "[필수] 소셜 인증 ID 토큰")
+        private String idToken;
 
-        @Schema(description = "1회용 인가 코드")
+        @Schema(description = "[선택/최초 로그인(회원가입) 시 필수] 1회용 인가 코드")
         private String authCode;
 
-        @Schema(description = "사용자 이름/닉네임 (APPLE 최초 로그인 시 필수)")
+        @Schema(description = "[선택] 사용자 이름/닉네임 (APPLE 최초 로그인 시 필수)")
         private String nickname;
 
     }
@@ -44,7 +44,7 @@ public abstract class AuthRequestDto {
     @Schema(description = "토큰 갱신 요청 페이로드")
     public static class TokenRefreshRequest {
 
-        @Schema(description = "JWT Refresh Token")
+        @Schema(description = "[필수] JWT Refresh Token")
         private String refreshToken;
 
     }
