@@ -21,7 +21,8 @@ public interface UserService {
     User findOrCreateUserForSocialConnection(ProviderType providerType,
                                              String providerUserId,
                                              String email,
-                                             String nickname);
+                                             String nickname,
+                                             String authorizationCode);
 
     User findById(UUID id);
 

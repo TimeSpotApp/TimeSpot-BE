@@ -3,6 +3,12 @@ package com.timespot.backend.infra.security.oauth.client;
 import com.timespot.backend.common.error.GlobalException;
 import com.timespot.backend.common.response.ErrorCode;
 import com.timespot.backend.infra.security.oauth.constant.OAuthConst;
+import com.timespot.backend.infra.security.oauth.dto.OAuthRequestFactory;
+import com.timespot.backend.infra.security.oauth.dto.OAuthResponseDto;
+import com.timespot.backend.infra.security.oauth.dto.OAuthResponseDto.AppleTokenRefreshResponse;
+import com.timespot.backend.infra.security.oauth.dto.OAuthResponseDto.AppleTokenValidationResponse;
+import com.timespot.backend.infra.security.oauth.dto.OAuthResponseDto.GoogleTokenRefreshResponse;
+import com.timespot.backend.infra.security.oauth.dto.OAuthResponseDto.GoogleTokenValidationResponse;
 import com.timespot.backend.infra.security.oauth.properties.OAuth2Properties;
 import io.jsonwebtoken.Jwts;
 import java.security.KeyFactory;
@@ -11,13 +17,10 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.time.Duration;
 import java.util.Base64;
 import java.util.Date;
-import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
-import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClient;
 
@@ -63,72 +66,69 @@ public class IdpTokenExchangeClient {
     }
 
     /**
-     * Google 인증 코드 교환
+     * Apple 계정 최초 인증 요청 API 호출
      *
-     * @param authCode Google 인증 코드
-     * @return Google 인증 토큰
+     * @param authCode Apple 인증 코드
+     * @return Apple 인증 요청 결과
      */
-    public String exchangeGoogleAuthCode(final String authCode) {
-        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-        params.add("grant_type", "authorization_code");
-        params.add("client_id", googleClientId);
-        params.add("client_secret", googleClientSecret);
-        params.add("code", authCode);
-        params.add("redirect_uri", OAuthConst.GOOGLE_IDP_TOKEN_REDIRECT_URL);
+    public OAuthResponseDto.AppleTokenValidationResponse validationAppleAuthCode(final String authCode) {
+        MultiValueMap<String, String> params = OAuthRequestFactory.createAppleTokenValidationRequest(appleClientId,
+                                                                                                     createAppleClientSecret(),
+                                                                                                     authCode,
+                                                                                                     OAuthConst.APPLE_IDP_TOKEN_REDIRECT_URL);
 
-        return executeExchange(OAuthConst.GOOGLE_IDP_TOKEN_EXCHANGE_URL, params);
+        return executeAppleTokenValidation(params);
     }
 
     /**
-     * Apple 인증 코드 교환
+     * Google 계정 최초 인증 요청 API 호출
      *
-     * @param authCode Apple 인증 코드
-     * @return Apple 인증 토큰
+     * @param authCode Google 인증 코드
+     * @return Google 인증 요청 결과
      */
-    public String exchangeAppleAuthCode(final String authCode) {
-        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-        params.add("grant_type", "authorization_code");
-        params.add("client_id", appleClientId);
-        params.add("client_secret", createAppleClientSecret());
-        params.add("code", authCode);
+    public OAuthResponseDto.GoogleTokenValidationResponse validationGoogleAuthCode(final String authCode) {
+        MultiValueMap<String, String> params = OAuthRequestFactory.createGoogleTokenValidationRequest(googleClientId,
+                                                                                                      googleClientSecret,
+                                                                                                      authCode,
+                                                                                                      OAuthConst.GOOGLE_IDP_TOKEN_REDIRECT_URL);
 
-        return executeExchange(OAuthConst.APPLE_IDP_TOKEN_EXCHANGE_URL, params);
+        return executeGoogleTokenValidation(params);
+    }
+
+    /**
+     * Apple 계정 IDP 토큰 갱신
+     *
+     * @param idpRefreshToken Apple IDP 리프레시 토큰
+     * @return Apple 인증 토큰 갱신 결과
+     */
+    public OAuthResponseDto.AppleTokenRefreshResponse refreshAppleToken(final String idpRefreshToken) {
+        MultiValueMap<String, String> params = OAuthRequestFactory.createAppleTokenRefreshRequest(appleClientId,
+                                                                                                  createAppleClientSecret(),
+                                                                                                  idpRefreshToken);
+
+        return executeAppleTokenRefresh(params);
+    }
+
+    /**
+     * Google 계정 IDP 토큰 갱신
+     *
+     * @param idpRefreshToken Google IDP 리프레시 토큰
+     * @return Google 인증 토큰 갱신 결과
+     */
+    public OAuthResponseDto.GoogleTokenRefreshResponse refreshGoogleToken(final String idpRefreshToken) {
+        MultiValueMap<String, String> params = OAuthRequestFactory.createGoogleTokenRefreshRequest(googleClientId,
+                                                                                                   googleClientSecret,
+                                                                                                   idpRefreshToken);
+
+        return executeGoogleTokenRefresh(params);
     }
 
     // ========================= 내부 메서드 =========================
 
     /**
-     * IDP 인증 토큰 교환
-     *
-     * @param url    IDP 인증 토큰 교환 URL
-     * @param params IDP 인증 토큰 교환 파라미터
-     * @return IDP 인증 토큰
-     */
-    private String executeExchange(final String url, final MultiValueMap<String, String> params) {
-        try {
-            Map<String, Object> response = restClient.post()
-                                                     .uri(url)
-                                                     .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                                                     .body(params)
-                                                     .retrieve()
-                                                     .body(new ParameterizedTypeReference<Map<String, Object>>() {});
-
-            if (response != null && response.containsKey("refresh_token"))
-                return (String) response.get("refresh_token");
-            else {
-                log.warn("IDP 응답에 refresh_token이 포함되어 있지 않습니다.");
-                return null;
-            }
-        } catch (Exception e) {
-            log.error("IDP Token 교환 실패 URL: {}, 원인: {}", url, e.getMessage());
-            throw new GlobalException(ErrorCode.SOCIAL_CONNECTION_IDP_TOKEN_EXCHANGE_FAILED);
-        }
-    }
-
-    /**
      * Apple Client Secret 생성
      *
-     * @return Apple Client Secret
+     * @return Apple 클라이언트 시크릿
      */
     private String createAppleClientSecret() {
         try {
@@ -144,12 +144,107 @@ public class IdpTokenExchangeClient {
                        .issuer(appleTeamId)
                        .audience().add(OAuthConst.APPLE_ISSUER).and()
                        .subject(appleClientId)
-                       .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 5))
+                       .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 5))    // Apple 인증 코드 만료 시간 5분
                        .signWith(privateKey)
                        .compact();
         } catch (Exception e) {
-            log.error("Apple Client Secret 생성 실패: {}", e.getMessage());
-            throw new GlobalException(ErrorCode.SOCIAL_CONNECTION_IDP_TOKEN_EXCHANGE_FAILED);
+            log.error("Apple 클라이언트 시크릿 생성 실패: {}", e.getMessage());
+            throw new GlobalException(ErrorCode.SOCIAL_CONNECTION_IDP_TOKEN_VALIDATION_FAILED);
+        }
+    }
+
+    /**
+     * Apple 계정 인증 API 호출
+     *
+     * @param params Apple 인증 요청 파라미터
+     * @return Apple 인증 요청 결과
+     */
+    private OAuthResponseDto.AppleTokenValidationResponse executeAppleTokenValidation(
+            final MultiValueMap<String, String> params) {
+        try {
+            return restClient.post()
+                             .uri(OAuthConst.APPLE_IDP_TOKEN_URL)
+                             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                             .body(params)
+                             .retrieve()
+                             .body(AppleTokenValidationResponse.class);
+        } catch (Exception e) {
+            log.error("Apple 계정 인증 실패 URL: {}, 원인: {}", OAuthConst.APPLE_IDP_TOKEN_URL, e.getMessage());
+            final ErrorCode errorCode    = ErrorCode.SOCIAL_CONNECTION_IDP_TOKEN_VALIDATION_FAILED;
+            final String    errorMessage = "ProviderType: APPLE, " + errorCode.getMessage();
+            throw new GlobalException(errorCode, errorMessage);
+        }
+    }
+
+    /**
+     * Google 계정 인증 API 호출
+     *
+     * @param params Google 인증 요청 파라미터
+     * @return Google 인증 요청 결과
+     */
+    private OAuthResponseDto.GoogleTokenValidationResponse executeGoogleTokenValidation(
+            final MultiValueMap<String, String> params
+    ) {
+        try {
+            return restClient.post()
+                             .uri(OAuthConst.GOOGLE_IDP_TOKEN_URL)
+                             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                             .body(params)
+                             .retrieve()
+                             .body(GoogleTokenValidationResponse.class);
+        } catch (Exception e) {
+            log.error("Google 계정 인증 실패 URL: {}, 원인: {}", OAuthConst.GOOGLE_IDP_TOKEN_URL, e.getMessage());
+            final ErrorCode errorCode    = ErrorCode.SOCIAL_CONNECTION_IDP_TOKEN_VALIDATION_FAILED;
+            final String    errorMessage = "ProviderType: GOOGLE, " + errorCode.getMessage();
+            throw new GlobalException(errorCode, errorMessage);
+        }
+    }
+
+    /**
+     * Apple 계정 토큰 갱신 API 호출
+     *
+     * @param params Apple 인증 토큰 갱신 요청 파라미터
+     * @return Apple 인증 토큰 갱신 요청 결과
+     */
+    private OAuthResponseDto.AppleTokenRefreshResponse executeAppleTokenRefresh(
+            final MultiValueMap<String, String> params
+    ) {
+        try {
+            return restClient.post()
+                             .uri(OAuthConst.APPLE_IDP_TOKEN_URL)
+                             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                             .body(params)
+                             .retrieve()
+                             .body(AppleTokenRefreshResponse.class);
+        } catch (Exception e) {
+            log.error("Apple 계정 토큰 갱신 실패 URL: {}, 원인: {}", OAuthConst.APPLE_IDP_TOKEN_URL, e.getMessage());
+            final ErrorCode errorCode    = ErrorCode.SOCIAL_CONNECTION_IDP_TOKEN_REFRESH_FAILED;
+            final String    errorMessage = "ProviderType: APPLE, " + errorCode.getMessage();
+            throw new GlobalException(errorCode, errorMessage);
+        }
+    }
+
+    /**
+     * Google 계정 토큰 갱신 API 호출
+     *
+     * @param params Google 인증 토큰 갱신 요청 파라미터
+     * @return Google 인증 토큰 갱신 결과
+     */
+    private OAuthResponseDto.GoogleTokenRefreshResponse executeGoogleTokenRefresh(
+            final MultiValueMap<String, String> params
+    ) {
+        try {
+            return restClient.post()
+                             .uri(OAuthConst.GOOGLE_IDP_TOKEN_URL)
+                             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                             .body(params)
+                             .retrieve()
+                             .body(GoogleTokenRefreshResponse.class);
+        } catch (Exception e) {
+            log.error("Google 계정 토큰 갱신 실패 URL: {}, 원인: {}", OAuthConst.GOOGLE_IDP_TOKEN_URL, e.getMessage());
+            final ErrorCode errorCode    = ErrorCode.SOCIAL_CONNECTION_IDP_TOKEN_REFRESH_FAILED;
+            final String    errorMessage = "ProviderType: GOOGLE, " + errorCode.getMessage();
+            throw new GlobalException(errorCode, errorMessage);
         }
     }
 

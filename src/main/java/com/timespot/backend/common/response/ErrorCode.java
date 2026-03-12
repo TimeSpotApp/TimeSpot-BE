@@ -60,7 +60,8 @@ public enum ErrorCode {
     SOCIAL_CONNECTION_PROVIDER_NOT_SUPPORTED(HttpStatus.INTERNAL_SERVER_ERROR, "SO006", "지원하지 않는 소셜 인증 제공자 유형입니다."),
     SOCIAL_CONNECTION_TOKEN_PARSE_FAILED(HttpStatus.BAD_REQUEST, "SO007", "소셜 인증 토큰 파싱에 실패했습니다."),
     SOCIAL_CONNECTION_INVALID_TOKEN(HttpStatus.BAD_REQUEST, "SO008", "잘못되거나 만료된 소셜 인증 토큰입니다."),
-    SOCIAL_CONNECTION_IDP_TOKEN_EXCHANGE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "SO009", "IDP 인증 토큰 교환에 실패했습니다.");
+    SOCIAL_CONNECTION_IDP_TOKEN_VALIDATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "SO009", "IDP 인증에 실패했습니다."),
+    SOCIAL_CONNECTION_IDP_TOKEN_REFRESH_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "SO010", "IDP 인증 토큰 갱신에 실패했습니다.");
 
     private final HttpStatus status;
     private final String     code;
