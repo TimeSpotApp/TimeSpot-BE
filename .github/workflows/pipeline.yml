@@ -15,13 +15,6 @@ on:
       - 'Dockerfile'
       - 'docker-compose.yml'
       - 'scripts/**'
-    paths-ignore:
-      - '.gitignore'
-      - '**.md'
-      - 'LICENSE'
-      - 'docs/**'
-      - '.idea/**'
-      - '.vscode/**'
   pull_request:
     branches: [ main ]
     paths:
@@ -33,13 +26,6 @@ on:
       - 'Dockerfile'
       - 'docker-compose.yml'
       - 'scripts/**'
-    paths-ignore:
-      - '.gitignore'
-      - '**.md'
-      - 'LICENSE'
-      - 'docs/**'
-      - '.idea/**'
-      - '.vscode/**'
 
 permissions:
   contents: write
