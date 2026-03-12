@@ -51,16 +51,15 @@ public class AuthServiceImpl implements AuthService {
     /**
      * 소셜 인증 제공자 정보를 활용한 로그인
      *
-     * @param provider 소셜 인증 제공자 유형
-     * @param dto      소셜 인증 제공자 데이터
+     * @param dto 소셜 인증 제공자 데이터
      * @return 신규 토큰 응답 DTO
      */
     @Override
-    public AuthResponseDto.TokenResponse login(final String provider, final AuthRequestDto.OAuth2LoginRequest dto) {
-        Claims claims = tokenValidator.verifyAndParse(provider, dto.getIdToken());
+    public AuthResponseDto.TokenResponse login(final AuthRequestDto.OAuth2LoginRequest dto) {
+        Claims claims = tokenValidator.verifyAndParse(dto.getProvider(), dto.getIdToken());
 
-        OAuthProfile oAuthProfile = OAuthProfileFactory.getOAuthProfile(provider, claims);
-        ProviderType providerType = ProviderType.from(provider);
+        OAuthProfile oAuthProfile = OAuthProfileFactory.getOAuthProfile(dto.getProvider(), claims);
+        ProviderType providerType = ProviderType.from(dto.getProvider());
 
         String resolvedNickname = dto.getNickname() != null && !dto.getNickname().isBlank()
                                   ? dto.getNickname()

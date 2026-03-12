@@ -27,6 +27,9 @@ public abstract class AuthRequestDto {
     @Schema(description = "소셜 로그인 토큰 요청 페이로드")
     public static class OAuth2LoginRequest {
 
+        @Schema(description = "[필수] 소셜 인증 제공자 (예: apple, google)", example = "apple")
+        private String provider;
+
         @Schema(description = "[필수] 소셜 인증 ID 토큰")
         private String idToken;
 

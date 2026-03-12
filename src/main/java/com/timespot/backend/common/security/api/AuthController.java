@@ -9,7 +9,6 @@ import com.timespot.backend.common.security.dto.AuthResponseDto.TokenResponse;
 import com.timespot.backend.common.security.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -35,12 +34,11 @@ public class AuthController implements AuthApiDocs {
     private final AuthService authService;
 
     @Override
-    @PostMapping("/login/{provider}")
+    @PostMapping("/login")
     public ResponseEntity<BaseResponse<TokenResponse>> login(
-            @PathVariable("provider") final String provider,
             @RequestBody final AuthRequestDto.OAuth2LoginRequest dto
     ) {
-        AuthResponseDto.TokenResponse responseData = authService.login(provider, dto);
+        AuthResponseDto.TokenResponse responseData = authService.login(dto);
         return ResponseEntity.ok(BaseResponse.success(SuccessCode.USER_AUTH_LOGIN_SUCCESS, responseData));
     }
 
