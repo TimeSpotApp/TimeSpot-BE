@@ -18,7 +18,7 @@ import org.springframework.context.annotation.Configuration;
  * 26. 3. 9.     loadingKKamo21       Initial creation
  */
 @Configuration
-@OpenAPIDefinition(info = @Info(title = "NomadSpot API", description = "NomadSpot 서비스 API 문서", version = "1.0.0"))
+@OpenAPIDefinition(info = @Info(title = "TimeSpot API", description = "TimeSpot 서비스 API 문서", version = "1.0.0"))
 @SecurityScheme(type = SecuritySchemeType.HTTP, name = "BearerAuth", scheme = "bearer", bearerFormat = "JWT")
 public class SwaggerConfig {
 }
