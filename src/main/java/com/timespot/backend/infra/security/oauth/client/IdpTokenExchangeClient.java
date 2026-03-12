@@ -3,6 +3,7 @@ package com.timespot.backend.infra.security.oauth.client;
 import com.timespot.backend.common.error.GlobalException;
 import com.timespot.backend.common.response.ErrorCode;
 import com.timespot.backend.infra.security.oauth.constant.OAuthConst;
+import com.timespot.backend.infra.security.oauth.constant.TokenType;
 import com.timespot.backend.infra.security.oauth.dto.OAuthRequestFactory;
 import com.timespot.backend.infra.security.oauth.dto.OAuthResponseDto;
 import com.timespot.backend.infra.security.oauth.dto.OAuthResponseDto.AppleTokenRefreshResponse;
@@ -19,6 +20,7 @@ import java.util.Base64;
 import java.util.Date;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.util.MultiValueMap;
@@ -96,12 +98,12 @@ public class IdpTokenExchangeClient {
     }
 
     /**
-     * Apple 계정 IDP 토큰 갱신
+     * Apple 계정 IDP 액세스 토큰 갱신
      *
      * @param idpRefreshToken Apple IDP 리프레시 토큰
      * @return Apple 인증 토큰 갱신 결과
      */
-    public OAuthResponseDto.AppleTokenRefreshResponse refreshAppleToken(final String idpRefreshToken) {
+    public OAuthResponseDto.AppleTokenRefreshResponse refreshAppleAccessToken(final String idpRefreshToken) {
         MultiValueMap<String, String> params = OAuthRequestFactory.createAppleTokenRefreshRequest(appleClientId,
                                                                                                   createAppleClientSecret(),
                                                                                                   idpRefreshToken);
@@ -110,17 +112,81 @@ public class IdpTokenExchangeClient {
     }
 
     /**
-     * Google 계정 IDP 토큰 갱신
+     * Google 계정 IDP 액세스 토큰 갱신
      *
      * @param idpRefreshToken Google IDP 리프레시 토큰
      * @return Google 인증 토큰 갱신 결과
      */
-    public OAuthResponseDto.GoogleTokenRefreshResponse refreshGoogleToken(final String idpRefreshToken) {
+    public OAuthResponseDto.GoogleTokenRefreshResponse refreshGoogleAccessToken(final String idpRefreshToken) {
         MultiValueMap<String, String> params = OAuthRequestFactory.createGoogleTokenRefreshRequest(googleClientId,
                                                                                                    googleClientSecret,
                                                                                                    idpRefreshToken);
 
         return executeGoogleTokenRefresh(params);
+    }
+
+    /**
+     * Apple 계정 연동 해제
+     * 액세스 토큰 or 리프레시 토큰 관계 없이 사용자의 계정에 대한 서비스 액세스 권한이 취소됨
+     *
+     * @param tokenType 토큰 유형: access_token, refresh_token
+     * @param token     토큰
+     */
+    public void revokeAppleToken(final TokenType tokenType, final String token) {
+        MultiValueMap<String, String> params = OAuthRequestFactory.createAppleTokenRevokeRequest(appleClientId,
+                                                                                                 createAppleClientSecret(),
+                                                                                                 tokenType,
+                                                                                                 token);
+
+        try {
+            ResponseEntity<String> response = restClient.post()
+                                                        .uri(OAuthConst.APPLE_IDP_TOKEN_REVOKE_URL)
+                                                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                                                        .body(params)
+                                                        .retrieve()
+                                                        .toEntity(String.class);
+
+            if (!response.getStatusCode().is2xxSuccessful()) {
+                log.error("Apple 계정 토큰 폐기 실패: status={}, body={}", response.getStatusCode(), response.getBody());
+                throw new GlobalException(ErrorCode.SOCIAL_CONNECTION_IDP_TOKEN_REVOKE_FAILED,
+                                          "Apple revoke failed: " + response.getBody());
+            }
+        } catch (GlobalException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Apple 계정 연동 해지 실패: {}", e.getMessage());
+            throw new GlobalException(ErrorCode.SOCIAL_CONNECTION_IDP_TOKEN_REVOKE_FAILED, e);
+        }
+    }
+
+    /**
+     * Google 계정 연동 해제
+     * 액세스 토큰 or 리프레시 토큰 관계 없이 사용자의 계정에 대한 서비스 액세스 권한이 취소됨
+     *
+     * @param token 토큰
+     */
+    public void revokeGoogleToken(final String token) {
+        try {
+            ResponseEntity<String> response = restClient.post()
+                                                        .uri(builder -> builder
+                                                                .path(OAuthConst.GOOGLE_IDP_TOKEN_REVOKE_URL)
+                                                                .queryParam("token", token)
+                                                                .build())
+                                                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                                                        .retrieve()
+                                                        .toEntity(String.class);
+
+            if (!response.getStatusCode().is2xxSuccessful()) {
+                log.error("Google 계정 토큰 폐기 실패: status={}, body={}", response.getStatusCode(), response.getBody());
+                throw new GlobalException(ErrorCode.SOCIAL_CONNECTION_IDP_TOKEN_REVOKE_FAILED,
+                                          "Google revoke failed: " + response.getBody());
+            }
+        } catch (GlobalException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Google 계정 연동 해지 실패: {}", e.getMessage());
+            throw new GlobalException(ErrorCode.SOCIAL_CONNECTION_IDP_TOKEN_REVOKE_FAILED, e);
+        }
     }
 
     // ========================= 내부 메서드 =========================
@@ -160,7 +226,8 @@ public class IdpTokenExchangeClient {
      * @return Apple 인증 요청 결과
      */
     private OAuthResponseDto.AppleTokenValidationResponse executeAppleTokenValidation(
-            final MultiValueMap<String, String> params) {
+            final MultiValueMap<String, String> params
+    ) {
         try {
             return restClient.post()
                              .uri(OAuthConst.APPLE_IDP_TOKEN_URL)
@@ -171,7 +238,7 @@ public class IdpTokenExchangeClient {
         } catch (Exception e) {
             log.error("Apple 계정 인증 실패 URL: {}, 원인: {}", OAuthConst.APPLE_IDP_TOKEN_URL, e.getMessage());
             final ErrorCode errorCode    = ErrorCode.SOCIAL_CONNECTION_IDP_TOKEN_VALIDATION_FAILED;
-            final String    errorMessage = "ProviderType: APPLE, " + errorCode.getMessage();
+            final String    errorMessage = "Apple 계정 인증 실패\n" + errorCode.getMessage();
             throw new GlobalException(errorCode, errorMessage);
         }
     }
@@ -195,7 +262,7 @@ public class IdpTokenExchangeClient {
         } catch (Exception e) {
             log.error("Google 계정 인증 실패 URL: {}, 원인: {}", OAuthConst.GOOGLE_IDP_TOKEN_URL, e.getMessage());
             final ErrorCode errorCode    = ErrorCode.SOCIAL_CONNECTION_IDP_TOKEN_VALIDATION_FAILED;
-            final String    errorMessage = "ProviderType: GOOGLE, " + errorCode.getMessage();
+            final String    errorMessage = "Google 계정 인증 실패\n" + errorCode.getMessage();
             throw new GlobalException(errorCode, errorMessage);
         }
     }
@@ -219,7 +286,7 @@ public class IdpTokenExchangeClient {
         } catch (Exception e) {
             log.error("Apple 계정 토큰 갱신 실패 URL: {}, 원인: {}", OAuthConst.APPLE_IDP_TOKEN_URL, e.getMessage());
             final ErrorCode errorCode    = ErrorCode.SOCIAL_CONNECTION_IDP_TOKEN_REFRESH_FAILED;
-            final String    errorMessage = "ProviderType: APPLE, " + errorCode.getMessage();
+            final String    errorMessage = "Apple 계정 토큰 갱신 실패\n" + errorCode.getMessage();
             throw new GlobalException(errorCode, errorMessage);
         }
     }
@@ -243,7 +310,7 @@ public class IdpTokenExchangeClient {
         } catch (Exception e) {
             log.error("Google 계정 토큰 갱신 실패 URL: {}, 원인: {}", OAuthConst.GOOGLE_IDP_TOKEN_URL, e.getMessage());
             final ErrorCode errorCode    = ErrorCode.SOCIAL_CONNECTION_IDP_TOKEN_REFRESH_FAILED;
-            final String    errorMessage = "ProviderType: GOOGLE, " + errorCode.getMessage();
+            final String    errorMessage = "Google 계정 토큰 갱신 실패\n" + errorCode.getMessage();
             throw new GlobalException(errorCode, errorMessage);
         }
     }

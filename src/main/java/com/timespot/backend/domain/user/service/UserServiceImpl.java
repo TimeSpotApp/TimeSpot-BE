@@ -9,6 +9,7 @@ import com.timespot.backend.domain.user.model.ProviderType;
 import com.timespot.backend.domain.user.model.SocialConnection;
 import com.timespot.backend.domain.user.model.User;
 import com.timespot.backend.infra.security.oauth.client.IdpTokenExchangeClient;
+import com.timespot.backend.infra.security.oauth.constant.TokenType;
 import com.timespot.backend.infra.security.oauth.dto.OAuthResponseDto.AppleTokenValidationResponse;
 import com.timespot.backend.infra.security.oauth.dto.OAuthResponseDto.GoogleTokenValidationResponse;
 import java.util.Optional;
@@ -122,9 +123,16 @@ public class UserServiceImpl implements UserService {
                                                                       .orElseThrow(() -> new GlobalException(
                                                                               ErrorCode.SOCIAL_CONNECTION_NOT_FOUND
                                                                       ));
+
+        switch (socialConnection.getProviderType()) {
+            case APPLE -> idpTokenExchangeClient.revokeAppleToken(TokenType.REFRESH_TOKEN,
+                                                                  socialConnection.getIdpRefreshToken());
+            case GOOGLE -> idpTokenExchangeClient.revokeGoogleToken(socialConnection.getIdpRefreshToken());
+            default -> throw new GlobalException(ErrorCode.SOCIAL_CONNECTION_PROVIDER_NOT_SUPPORTED);
+        }
+
         socialConnectionRepository.delete(socialConnection);
         userRepository.delete(user);
-        // TODO: 탈퇴한 회원 정보 보관 정책 및 엔티티/DB 구조 결정 시 정보 보관 로직 추가
     }
 
 }
