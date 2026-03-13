@@ -2,7 +2,6 @@ package com.timespot.backend.domain.user.dao;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -232,39 +231,6 @@ class SocialConnectionRepositoryTest {
 
             // then
             assertFalse(opSocialConnection.isPresent(), "조회된 SocialConnection 엔티티가 존재하지 않아야 합니다.");
-        }
-
-    }
-
-    @Nested
-    @DisplayName("SocialConnection 엔티티 필드 업데이트 테스트")
-    class DirtyCheckingTests {
-
-        @RepeatedTest(10)
-        @DisplayName("SocialConnection 엔티티 필드 업데이트")
-        void update() {
-            // given
-            User             user                  = em.persistAndFlush(TestUtils.createUser());
-            String           beforeIdpRefreshToken = TestUtils.FAKER.internet().uuidv4();
-            SocialConnection socialConnection      = TestUtils.createSocialConnection(user);
-            socialConnection.updateIdpRefreshToken(beforeIdpRefreshToken);
-            em.persistAndFlush(socialConnection);
-            Long id = socialConnection.getId();
-
-            // when
-            SocialConnection findSocialConnection = socialConnectionRepository.findById(id).get();
-            findSocialConnection.updateIdpRefreshToken(
-                    String.format("updated%s", findSocialConnection.getIdpRefreshToken()));
-            em.flush();
-
-            // then
-            SocialConnection updatedSocialConnection = em.find(SocialConnection.class, id);
-
-            assertNotNull(updatedSocialConnection, "updatedSocialConnection는 존재하지 않아야 합니다.");
-            assertEquals(findSocialConnection.getIdpRefreshToken(), updatedSocialConnection.getIdpRefreshToken(),
-                         "idpRefreshToken은 업데이트된 값과 같아야 합니다.");
-            assertNotEquals(beforeIdpRefreshToken, updatedSocialConnection.getIdpRefreshToken(),
-                            "idpRefreshToken은 업데이트 이전 값과 달라야 합니다.");
         }
 
     }

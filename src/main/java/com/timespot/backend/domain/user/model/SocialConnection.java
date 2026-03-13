@@ -14,6 +14,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -57,37 +58,47 @@ public class SocialConnection extends BaseAuditingEntity {
     @Column(name = "idp_refresh_token")
     private String idpRefreshToken;
 
+    @Column(name = "idp_refresh_token_received_at")
+    private LocalDateTime idpRefreshTokenReceivedAt;
+
     @Builder(access = AccessLevel.PRIVATE)
     private SocialConnection(final User user,
                              final ProviderType providerType,
-                             final String providerId,
-                             final String idpRefreshToken) {
+                             final String providerId) {
+        validateUser(user);
+        validateProviderType(providerType);
         validateProviderId(providerId);
         this.user = user;
         this.providerType = providerType;
         this.providerId = providerId;
-        this.idpRefreshToken = idpRefreshToken;
     }
 
     // ========================= 생성자 메서드 =========================
-
-    public static SocialConnection of(final User user, final ProviderType providerType, final String providerId) {
-        return SocialConnection.builder().user(user).providerType(providerType).providerId(providerId).build();
-    }
 
     public static SocialConnection of(final User user,
                                       final ProviderType providerType,
                                       final String providerId,
                                       final String idpRefreshToken) {
-        return SocialConnection.builder()
-                               .user(user)
-                               .providerType(providerType)
-                               .providerId(providerId)
-                               .idpRefreshToken(idpRefreshToken)
-                               .build();
+        SocialConnection socialConnection = SocialConnection.builder()
+                                                            .user(user)
+                                                            .providerType(providerType)
+                                                            .providerId(providerId)
+                                                            .build();
+        socialConnection.setIdpRefreshToken(idpRefreshToken);
+        return socialConnection;
     }
 
     // ========================= 검증 메서드 =========================
+
+    /**
+     * 회원 정보 검증
+     *
+     * @param user 회원 정보
+     */
+    private void validateUser(final User user) {
+        if (user == null || user.getId() == null || user.getCreatedAt() == null)
+            throw new GlobalException(ErrorCode.SOCIAL_CONNECTION_USER_MUST_NOT_BE_NULL);
+    }
 
     /**
      * 소셜 인증 제공자 유형 검증
@@ -109,15 +120,16 @@ public class SocialConnection extends BaseAuditingEntity {
             throw new GlobalException(ErrorCode.SOCIAL_CONNECTION_INVALID_PROVIDER_ID);
     }
 
-    // ========================= 비즈니스 메서드 =========================
+    // ========================= 내부 메서드 =========================
 
     /**
-     * 소셜 인증 제공자 Refresh Token 업데이트
+     * 소셜 인증 제공자 IDP Refresh Token 설정
      *
-     * @param newIdpRefreshToken 새로운 소셜 인증 제공자 Refresh Token
+     * @param idpRefreshToken IDP Refresh Token
      */
-    public void updateIdpRefreshToken(final String newIdpRefreshToken) {
-        this.idpRefreshToken = newIdpRefreshToken;
+    private void setIdpRefreshToken(final String idpRefreshToken) {
+        this.idpRefreshToken = idpRefreshToken;
+        this.idpRefreshTokenReceivedAt = LocalDateTime.now();
     }
 
 }

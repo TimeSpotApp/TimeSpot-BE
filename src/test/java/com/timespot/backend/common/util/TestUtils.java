@@ -69,7 +69,10 @@ public final class TestUtils {
 
     public static List<SocialConnection> createSocialConnections(final List<User> users) {
         return users.stream()
-                    .map(user -> SocialConnection.of(user, ProviderType.APPLE, FAKER.internet().uuidv4()))
+                    .map(user -> SocialConnection.of(user,
+                                                     ProviderType.APPLE,
+                                                     FAKER.internet().uuidv4(),
+                                                     FAKER.internet().uuidv4()))
                     .toList();
     }
 

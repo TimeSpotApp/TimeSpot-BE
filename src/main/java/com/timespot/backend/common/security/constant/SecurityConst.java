@@ -34,7 +34,7 @@ public abstract class SecurityConst {
             };
     public static final String[] POST_PERMIT_ALL_URLS   = {
             // Auth
-            "/api/v1/auth/login/**",
+            "/api/v1/auth/login",
             "/api/v1/auth/refresh",
             };
     public static final String[] PUT_PERMIT_ALL_URLS    = {};

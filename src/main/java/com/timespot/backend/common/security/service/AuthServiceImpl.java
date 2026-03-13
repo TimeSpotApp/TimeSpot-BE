@@ -5,7 +5,6 @@ import com.timespot.backend.common.response.ErrorCode;
 import com.timespot.backend.common.security.dto.AuthRequestDto;
 import com.timespot.backend.common.security.dto.AuthResponseDto;
 import com.timespot.backend.common.security.dto.AuthResponseDto.TokenResponse;
-import com.timespot.backend.common.security.event.IdpTokenExchangeEvent;
 import com.timespot.backend.common.security.jwt.provider.JwtProvider;
 import com.timespot.backend.common.security.model.CustomUserDetails;
 import com.timespot.backend.domain.user.model.ProviderType;
@@ -24,7 +23,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * PackageName : com.timespot.backend.common.security.service
@@ -53,17 +51,15 @@ public class AuthServiceImpl implements AuthService {
     /**
      * 소셜 인증 제공자 정보를 활용한 로그인
      *
-     * @param provider 소셜 인증 제공자 유형
-     * @param dto      소셜 인증 제공자 데이터
+     * @param dto 소셜 인증 제공자 데이터
      * @return 신규 토큰 응답 DTO
      */
     @Override
-    @Transactional
-    public AuthResponseDto.TokenResponse login(final String provider, final AuthRequestDto.OAuth2LoginRequest dto) {
-        Claims claims = tokenValidator.verifyAndParse(provider, dto.getProviderToken());
+    public AuthResponseDto.TokenResponse login(final AuthRequestDto.OAuth2LoginRequest dto) {
+        Claims claims = tokenValidator.verifyAndParse(dto.getProvider(), dto.getIdToken());
 
-        OAuthProfile oAuthProfile = OAuthProfileFactory.getOAuthProfile(provider, claims);
-        ProviderType providerType = ProviderType.from(provider);
+        OAuthProfile oAuthProfile = OAuthProfileFactory.getOAuthProfile(dto.getProvider(), claims);
+        ProviderType providerType = ProviderType.from(dto.getProvider());
 
         String resolvedNickname = dto.getNickname() != null && !dto.getNickname().isBlank()
                                   ? dto.getNickname()
@@ -73,13 +69,9 @@ public class AuthServiceImpl implements AuthService {
                 providerType,
                 oAuthProfile.getProviderUserId(),
                 oAuthProfile.getEmail(),
-                resolvedNickname
+                resolvedNickname,
+                dto.getAuthCode()
         );
-
-        if (dto.getAuthCode() != null && !dto.getAuthCode().isBlank())
-            eventPublisher.publishEvent(
-                    new IdpTokenExchangeEvent(this, user.getId(), providerType, dto.getAuthCode())
-            );
 
         String accessToken  = jwtProvider.generateAccessToken(user.getId(), user.getEmail(), user.getRole());
         String refreshToken = jwtProvider.generateRefreshToken(user.getId(), user.getEmail(), user.getRole());
