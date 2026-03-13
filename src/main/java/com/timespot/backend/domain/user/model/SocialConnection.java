@@ -65,6 +65,8 @@ public class SocialConnection extends BaseAuditingEntity {
     private SocialConnection(final User user,
                              final ProviderType providerType,
                              final String providerId) {
+        validateUser(user);
+        validateProviderType(providerType);
         validateProviderId(providerId);
         this.user = user;
         this.providerType = providerType;
@@ -87,6 +89,16 @@ public class SocialConnection extends BaseAuditingEntity {
     }
 
     // ========================= 검증 메서드 =========================
+
+    /**
+     * 회원 정보 검증
+     *
+     * @param user 회원 정보
+     */
+    private void validateUser(final User user) {
+        if (user == null || user.getId() == null || user.getCreatedAt() == null)
+            throw new GlobalException(ErrorCode.SOCIAL_CONNECTION_USER_MUST_NOT_BE_NULL);
+    }
 
     /**
      * 소셜 인증 제공자 유형 검증
