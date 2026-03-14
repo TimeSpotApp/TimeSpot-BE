@@ -56,3 +56,15 @@ spring:
       shutdown:
         await-termination: false
         #await-termination-period:
+app:
+  rate-limit:
+    custom-configs:
+      - path-pattern: "/api/v1/auth/login"
+        capacity: ${RATE_LIMIT_CAPACITY_AUTH_LOGIN:10}
+        duration-minutes: ${RATE_LIMIT_DURATION_MINUTES_AUTH_LOGIN:1}
+      - path-pattern: "/api/v1/auth/refresh-token"
+        capacity: ${RATE_LIMIT_CAPACITY_AUTH_REFRESH_TOKEN:10}
+        duration-minutes: ${RATE_LIMIT_DURATION_MINUTES_AUTH_REFRESH_TOKEN:1}
+      - path-pattern: "/api/v1/users"
+        capacity: ${RATE_LIMIT_CAPACITY_USERS:60}
+        duration-minutes: ${RATE_LIMIT_DURATION_MINUTES_USERS:1}

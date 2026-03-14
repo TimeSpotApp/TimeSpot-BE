@@ -1,6 +1,8 @@
 package com.timespot.backend.common.security.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.timespot.backend.common.ratelimit.builder.RateLimitBucketBuilder;
+import com.timespot.backend.common.ratelimit.filter.RateLimitFilter;
 import com.timespot.backend.common.security.config.properties.CorsProperties;
 import com.timespot.backend.common.security.constant.SecurityConst;
 import com.timespot.backend.common.security.entrypoint.CustomAuthenticationEntryPoint;
@@ -10,6 +12,7 @@ import com.timespot.backend.common.security.jwt.filter.JwtExceptionFilter;
 import com.timespot.backend.common.security.jwt.provider.JwtProvider;
 import com.timespot.backend.domain.user.model.UserRole;
 import com.timespot.backend.infra.redis.dao.RedisRepository;
+import io.github.bucket4j.distributed.proxy.ProxyManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -40,9 +43,13 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final ObjectMapper    objectMapper;
+    private final ObjectMapper objectMapper;
+
     private final JwtProvider     jwtProvider;
     private final RedisRepository redisRepository;
+
+    private final ProxyManager<String>   proxyManager;
+    private final RateLimitBucketBuilder rateLimitBucketBuilder;
 
     private final CustomAuthenticationEntryPoint authenticationEntryPoint;
     private final CustomAccessDeniedHandler      accessDeniedHandler;
@@ -77,7 +84,9 @@ public class SecurityConfig {
                                                    final CorsConfigurationSource corsConfigurationSource)
     throws Exception {
         final JwtAuthenticationFilter jwtAuthenticationFilter = new JwtAuthenticationFilter(jwtProvider, redisRepository);
-        final JwtExceptionFilter jwtExceptionFilter = new JwtExceptionFilter(objectMapper);
+        final JwtExceptionFilter      jwtExceptionFilter      = new JwtExceptionFilter(objectMapper);
+
+        final RateLimitFilter rateLimitFilter = new RateLimitFilter(objectMapper, proxyManager, rateLimitBucketBuilder);
 
         http
                 .csrf(AbstractHttpConfigurer::disable)
@@ -107,11 +116,16 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.DELETE, SecurityConst.DELETE_AUTHENTICATED_URLS).authenticated()
 
                         // Role Admin Only
-                        //.requestMatchers(HttpMethod.GET, SecurityConst.GET_ROLE_ADMIN_URLS).hasAuthority(UserRole.ADMIN.getAuthority())
-                        //.requestMatchers(HttpMethod.POST, SecurityConst.POST_ROLE_ADMIN_URLS).hasAuthority(UserRole.ADMIN.getAuthority())
-                        //.requestMatchers(HttpMethod.PUT, SecurityConst.PUT_ROLE_ADMIN_URLS).hasAuthority(UserRole.ADMIN.getAuthority())
-                        //.requestMatchers(HttpMethod.PATCH, SecurityConst.PATCH_ROLE_ADMIN_URLS).hasAuthority(UserRole.ADMIN.getAuthority())
-                        //.requestMatchers(HttpMethod.DELETE, SecurityConst.DELETE_ROLE_ADMIN_URLS).hasAuthority(UserRole.ADMIN.getAuthority())
+                        //.requestMatchers(HttpMethod.GET, SecurityConst.GET_ROLE_ADMIN_URLS).hasAuthority(UserRole
+                        // .ADMIN.getAuthority())
+                        //.requestMatchers(HttpMethod.POST, SecurityConst.POST_ROLE_ADMIN_URLS).hasAuthority(UserRole
+                        // .ADMIN.getAuthority())
+                        //.requestMatchers(HttpMethod.PUT, SecurityConst.PUT_ROLE_ADMIN_URLS).hasAuthority(UserRole
+                        // .ADMIN.getAuthority())
+                        //.requestMatchers(HttpMethod.PATCH, SecurityConst.PATCH_ROLE_ADMIN_URLS).hasAuthority
+                        // (UserRole.ADMIN.getAuthority())
+                        //.requestMatchers(HttpMethod.DELETE, SecurityConst.DELETE_ROLE_ADMIN_URLS).hasAuthority
+                        // (UserRole.ADMIN.getAuthority())
 
                         .anyRequest().authenticated()
                 )
@@ -120,7 +134,8 @@ public class SecurityConfig {
                                                          .accessDeniedHandler(accessDeniedHandler))
 
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(jwtExceptionFilter, jwtAuthenticationFilter.getClass());
+                .addFilterBefore(jwtExceptionFilter, jwtAuthenticationFilter.getClass())
+                .addFilterBefore(rateLimitFilter, jwtExceptionFilter.getClass());
 
         return http.build();
     }
