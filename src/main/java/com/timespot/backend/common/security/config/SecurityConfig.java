@@ -1,8 +1,6 @@
 package com.timespot.backend.common.security.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.timespot.backend.common.ratelimit.builder.RateLimitBucketBuilder;
-import com.timespot.backend.common.ratelimit.filter.RateLimitFilter;
 import com.timespot.backend.common.security.config.properties.CorsProperties;
 import com.timespot.backend.common.security.constant.SecurityConst;
 import com.timespot.backend.common.security.entrypoint.CustomAuthenticationEntryPoint;
@@ -12,11 +10,11 @@ import com.timespot.backend.common.security.jwt.filter.JwtExceptionFilter;
 import com.timespot.backend.common.security.jwt.provider.JwtProvider;
 import com.timespot.backend.domain.user.model.UserRole;
 import com.timespot.backend.infra.redis.dao.RedisRepository;
-import io.github.bucket4j.distributed.proxy.ProxyManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -39,6 +37,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
  * ---------------------------------------------------------------------------------------------------------------------
  * 26. 2. 28.    loadingKKamo21       Initial creation
  */
+@Profile("!test")
 @Configuration
 @RequiredArgsConstructor
 public class SecurityConfig {
@@ -47,9 +46,6 @@ public class SecurityConfig {
 
     private final JwtProvider     jwtProvider;
     private final RedisRepository redisRepository;
-
-    private final ProxyManager<String>   proxyManager;
-    private final RateLimitBucketBuilder rateLimitBucketBuilder;
 
     private final CustomAuthenticationEntryPoint authenticationEntryPoint;
     private final CustomAccessDeniedHandler      accessDeniedHandler;
@@ -85,8 +81,6 @@ public class SecurityConfig {
     throws Exception {
         final JwtAuthenticationFilter jwtAuthenticationFilter = new JwtAuthenticationFilter(jwtProvider, redisRepository);
         final JwtExceptionFilter      jwtExceptionFilter      = new JwtExceptionFilter(objectMapper);
-
-        final RateLimitFilter rateLimitFilter = new RateLimitFilter(objectMapper, proxyManager, rateLimitBucketBuilder);
 
         http
                 .csrf(AbstractHttpConfigurer::disable)
@@ -134,8 +128,7 @@ public class SecurityConfig {
                                                          .accessDeniedHandler(accessDeniedHandler))
 
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(jwtExceptionFilter, jwtAuthenticationFilter.getClass())
-                .addFilterBefore(rateLimitFilter, jwtExceptionFilter.getClass());
+                .addFilterBefore(jwtExceptionFilter, jwtAuthenticationFilter.getClass());
 
         return http.build();
     }
