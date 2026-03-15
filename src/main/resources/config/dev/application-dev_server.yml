@@ -58,9 +58,21 @@ spring:
         #await-termination-period:
 app:
   rate-limit:
-    custom-configs:
+    default:
+      capacity: ${RATE_LIMIT_CAPACITY_DEFAULT:100}
+      duration-minutes: ${RATE_LIMIT_DURATION_MINUTES_DEFAULT:1}
+      refill-strategy: greedy
+    anonymous:
+      capacity: ${RATE_LIMIT_CAPACITY_ANONYMOUS:20}
+      duration-minutes: ${RATE_LIMIT_DURATION_MINUTES_ANONYMOUS:1}
+      refill-strategy: greedy
+    authenticated:
+      capacity: ${RATE_LIMIT_CAPACITY_AUTHENTICATED:300}
+      duration-minutes: ${RATE_LIMIT_DURATION_MINUTES_AUTHENTICATED:1}
+      refill-strategy: greedy
+    endpoints:
       - path-pattern: "/api/v1/auth/login"
-        capacity: ${RATE_LIMIT_CAPACITY_AUTH_LOGIN:10}
+        capacity: ${RATE_LIMIT_CAPACITY_AUTH_LOGIN:5}
         duration-minutes: ${RATE_LIMIT_DURATION_MINUTES_AUTH_LOGIN:1}
       - path-pattern: "/api/v1/auth/refresh-token"
         capacity: ${RATE_LIMIT_CAPACITY_AUTH_REFRESH_TOKEN:10}

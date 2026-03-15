@@ -1,6 +1,8 @@
 package com.timespot.backend.common.ratelimit.properties;
 
+import com.timespot.backend.common.ratelimit.constant.RateLimitConst;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
@@ -22,16 +24,38 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @Setter
 public final class RateLimitProperties {
 
-    private List<CustomConfig> customConfigs = new ArrayList<>();
+    private BucketConfig         defaultConfig = new BucketConfig();
+    private BucketConfig         anonymous     = new BucketConfig();
+    private BucketConfig         authenticated = new BucketConfig();
+    private List<EndpointConfig> endpoints     = new ArrayList<>();
+
+    public EndpointConfig findEndpointConfig(final String requestURI) {
+        return endpoints.stream()
+                        .filter(config -> requestURI.startsWith(config.getPathPattern()))
+                        .max(Comparator.comparingInt(o -> o.getPathPattern().length()))
+                        .orElse(null);
+    }
 
     @Getter
     @Setter
-    public static class CustomConfig {
+    public static class BucketConfig {
 
-        private String  pathPattern;
-        private long    capacity;
-        private long    durationMinutes;
-        private boolean fixedRefill = false;
+        private long   capacity        = 100L;
+        private long   durationMinutes = 1L;
+        private String refillStrategy  = RateLimitConst.REFILL_STRATEGY_GREEDY;
+        private String description     = "";
+
+    }
+
+    @Getter
+    @Setter
+    public static class EndpointConfig {
+
+        private String pathPattern;
+        private long   capacity        = 100L;
+        private long   durationMinutes = 1L;
+        private String refillStrategy  = RateLimitConst.REFILL_STRATEGY_GREEDY;
+        private String description     = "";
 
     }
 

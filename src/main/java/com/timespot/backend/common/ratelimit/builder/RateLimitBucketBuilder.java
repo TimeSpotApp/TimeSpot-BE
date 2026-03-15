@@ -1,13 +1,17 @@
 package com.timespot.backend.common.ratelimit.builder;
 
+import com.timespot.backend.common.ratelimit.constant.RateLimitConst;
+import com.timespot.backend.common.ratelimit.properties.RateLimitProperties;
+import com.timespot.backend.common.ratelimit.properties.RateLimitProperties.BucketConfig;
+import com.timespot.backend.common.ratelimit.properties.RateLimitProperties.EndpointConfig;
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.BucketConfiguration;
 import java.time.Duration;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import lombok.extern.slf4j.Slf4j;
+import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 
 /**
  * PackageName : com.timespot.backend.common.ratelimit.builder
@@ -20,160 +24,101 @@ import lombok.extern.slf4j.Slf4j;
  * ---------------------------------------------------------------------------------------------------------------------
  * 26. 3. 14.    loadingKKamo21       Initial creation
  */
-@Slf4j
+@Component
+@RequiredArgsConstructor
 public class RateLimitBucketBuilder {
 
-    private final Map<String, BucketConfiguration> configurations = new HashMap<>();
+    private final RateLimitProperties rateLimitProperties;
 
     /**
-     * API 경로별 버킷 설정 추가
+     * Bandwidth 생성
      *
-     * @param pathPattern API 경로 패턴 (prefix 매칭)
-     * @param capacity    토큰 수
-     * @param duration    리필 기간
+     * @param capacity        토큰 수
+     * @param durationMinutes 리필 주기(분)
+     * @param refillStrategy  리필 전략
+     * @return Bandwidth
      */
-    public void addConfig(final String pathPattern, final long capacity, final Duration duration) {
-        BucketConfiguration config = createBucketConfiguration(capacity, duration, false);
-        configurations.put(pathPattern, config);
-        log.info("Rate limit config added: {} -> {} requests per {}", pathPattern, capacity, duration);
+    private static Bandwidth createBandwidth(long capacity, long durationMinutes, final String refillStrategy) {
+        return switch (refillStrategy) {
+            case RateLimitConst.REFILL_STRATEGY_GREEDY -> Bandwidth.builder()
+                                                                   .capacity(capacity)
+                                                                   .refillGreedy(capacity,
+                                                                                 Duration.ofMinutes(durationMinutes))
+                                                                   .build();
+            case RateLimitConst.REFILL_STRATEGY_FIXED -> Bandwidth.builder()
+                                                                  .capacity(capacity)
+                                                                  .refillIntervally(capacity,
+                                                                                    Duration.ofMinutes(durationMinutes))
+                                                                  .build();
+            default -> throw new IllegalArgumentException("Invalid refill strategy: " + refillStrategy);
+        };
     }
 
     /**
-     * 여러 API 경로에 동일한 설정 일괄 추가
+     * 기본 버킷 설정
      *
-     * @param pathPatterns API 경로 패턴 목록
-     * @param capacity     토큰 수
-     * @param duration     리필 기간
-     */
-    public void addConfigs(final List<String> pathPatterns, final long capacity, final Duration duration) {
-        BucketConfiguration config = createBucketConfiguration(capacity, duration, false);
-        for (String pathPattern : pathPatterns) {
-            configurations.put(pathPattern, config);
-            log.info("Rate limit config added: {} -> {} requests per {}", pathPattern, capacity, duration);
-        }
-    }
-
-    /**
-     * 여러 API 경로에 동일한 설정 일괄 추가
-     *
-     * @param capacity     토큰 수
-     * @param duration     리필 기간
-     * @param pathPatterns API 경로 패턴 목록
-     */
-    public void addConfigs(final long capacity, final Duration duration, final String... pathPatterns) {
-        BucketConfiguration config = createBucketConfiguration(capacity, duration, false);
-        for (String pathPattern : pathPatterns) {
-            configurations.put(pathPattern, config);
-            log.info("Rate limit config added: {} -> {} requests per {}", pathPattern, capacity, duration);
-        }
-    }
-
-    /**
-     * API 경로별 버킷 설정 추가 (고정 인터벌 리필)
-     *
-     * @param pathPattern API 경로 패턴 (prefix 매칭)
-     * @param capacity    토큰 수
-     * @param duration    리필 기간
-     */
-    public void addConfigWithFixedRefill(final String pathPattern, final long capacity, final Duration duration) {
-        BucketConfiguration config = createBucketConfiguration(capacity, duration, true);
-        configurations.put(pathPattern, config);
-        log.info("Rate limit config added: {} -> {} requests per {}", pathPattern, capacity, duration);
-    }
-
-    /**
-     * 여러 API 경로에 동일한 설정 일괄 추가 (고정 인터벌 리필)
-     *
-     * @param pathPatterns API 경로 패턴 목록
-     * @param capacity     토큰 수
-     * @param duration     리필 기간
-     */
-    public void addConfigsWithFixedRefill(final List<String> pathPatterns,
-                                          final long capacity,
-                                          final Duration duration) {
-        BucketConfiguration config = createBucketConfiguration(capacity, duration, true);
-        for (String pathPattern : pathPatterns) {
-            configurations.put(pathPattern, config);
-            log.info("Rate limit config added: {} -> {} requests per {}", pathPattern, capacity, duration);
-        }
-    }
-
-    /**
-     * 여러 API 경로에 동일한 설정 일괄 추가 (고정 인터벌 리필)
-     *
-     * @param capacity     토큰 수
-     * @param duration     리필 기간
-     * @param pathPatterns API 경로 패턴 목록
-     */
-    public void addConfigsWithFixedRefill(final long capacity, final Duration duration, final String... pathPatterns) {
-        BucketConfiguration config = createBucketConfiguration(capacity, duration, true);
-        for (String pathPattern : pathPatterns) {
-            configurations.put(pathPattern, config);
-            log.info("Rate limit config added: {} -> {} requests per {}", pathPattern, capacity, duration);
-        }
-    }
-
-    /**
-     * 모든 설정 반환
-     *
-     * @return API 경로별 버킷 설정 맵
-     */
-    public Map<String, BucketConfiguration> getConfigurations() {
-        return Collections.unmodifiableMap(configurations);
-    }
-
-    /**
-     * 기본 버킷 설정 반환
-     *
-     * @return 1분 당 100 요청 (greedy 리필)
+     * @return BucketConfiguration
      */
     public BucketConfiguration getDefaultConfig() {
-        return BucketConfiguration.builder()
-                                  .addLimit(Bandwidth.builder()
-                                                     .capacity(100)
-                                                     .refillGreedy(100, Duration.ofMinutes(1))
-                                                     .build())
-                                  .build();
+        BucketConfig config = rateLimitProperties.getDefaultConfig();
+        return buildBucketConfiguration(config.getCapacity(), config.getDurationMinutes(), config.getRefillStrategy());
     }
 
     /**
-     * 특정 경로 설정 찾기 (prefix 매칭)
+     * 익명 요청 버킷 설정 (IP 기반)
      *
-     * @param requestURI 요청 URI
-     * @return 매칭된 버킷 설정, 없으면 null
+     * @return BucketConfiguration
      */
-    public BucketConfiguration findMatchingConfig(final String requestURI) {
-        return configurations.entrySet()
-                             .stream()
-                             .filter(entry -> requestURI.startsWith(entry.getKey()))
-                             .max(Map.Entry.comparingByKey())
-                             .map(Map.Entry::getValue)
-                             .orElse(null);
+    public BucketConfiguration getAnonymousConfig() {
+        BucketConfig config = rateLimitProperties.getAnonymous();
+        return buildBucketConfiguration(config.getCapacity(), config.getDurationMinutes(), config.getRefillStrategy());
+    }
+
+    /**
+     * 인증된 클라이언트 요청 버킷 설정 (UserId 기반)
+     *
+     * @return BucketConfiguration
+     */
+    public BucketConfiguration getAuthenticatedConfig() {
+        BucketConfig config = rateLimitProperties.getAuthenticated();
+        return buildBucketConfiguration(config.getCapacity(), config.getDurationMinutes(), config.getRefillStrategy());
     }
 
     // ========================= 내부 메서드 =========================
 
     /**
-     * 버킷 설정 생성
+     * 엔드포인트 별 버킷 설정 맵
      *
-     * @param capacity    토큰 수
-     * @param duration    리필 기간
-     * @param fixedRefill 고정 인터벌 리필 여부
+     * @return {경로패턴: BucketConfiguration} 맵
+     */
+    public Map<String, BucketConfiguration> getConfigurations() {
+        return rateLimitProperties.getEndpoints()
+                                  .stream()
+                                  .collect(Collectors.toMap(
+                                          EndpointConfig::getPathPattern,
+                                          config -> buildBucketConfiguration(
+                                                  config.getCapacity(),
+                                                  config.getDurationMinutes(),
+                                                  config.getRefillStrategy()
+                                          ),
+                                          (existing, replacement) -> existing,
+                                          HashMap::new
+                                  ));
+    }
+
+    /**
+     * 버킷 설정 빌드
+     *
+     * @param capacity        토큰 수
+     * @param durationMinutes 리필 주기(분)
+     * @param refillStrategy  리필 전략
      * @return 버킷 설정
      */
-    private BucketConfiguration createBucketConfiguration(final long capacity,
-                                                          final Duration duration,
-                                                          final boolean fixedRefill) {
+    private BucketConfiguration buildBucketConfiguration(final long capacity,
+                                                         final long durationMinutes,
+                                                         final String refillStrategy) {
         return BucketConfiguration.builder()
-                                  .addLimit(fixedRefill
-                                            ? Bandwidth.builder()
-                                                       .capacity(capacity)
-                                                       .refillIntervally(capacity, duration)
-                                                       .build()
-                                            : Bandwidth.builder()
-                                                       .capacity(capacity)
-                                                       .refillGreedy(capacity, duration)
-                                                       .build())
+                                  .addLimit(createBandwidth(capacity, durationMinutes, refillStrategy))
                                   .build();
     }
 

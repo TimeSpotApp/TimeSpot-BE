@@ -2,6 +2,7 @@ package com.timespot.backend.common.ratelimit.filter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.timespot.backend.common.ratelimit.builder.RateLimitBucketBuilder;
+import com.timespot.backend.common.ratelimit.constant.RateLimitConst;
 import com.timespot.backend.common.response.BaseResponse;
 import com.timespot.backend.common.response.ErrorCode;
 import com.timespot.backend.common.security.model.CustomUserDetails;
@@ -15,8 +16,11 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Map;
+import java.util.Map.Entry;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
@@ -36,6 +40,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
  * 26. 3. 15.    loadingKKamo21       Initial creation
  */
 @RequiredArgsConstructor
+@Slf4j
 public class RateLimitFilter extends OncePerRequestFilter {
 
     private final ObjectMapper objectMapper;
@@ -55,36 +60,46 @@ public class RateLimitFilter extends OncePerRequestFilter {
 
         final String rateLimitKey = resolveRateLimitKey(request);
 
-        BucketConfiguration config = findBucketConfiguration(requestURI);
+        BucketConfiguration config = resolveBucketConfiguration(requestURI, request);
 
-        BucketProxy bucketProxy = (config != null)
-                                  ? proxyManager.builder()
-                                                .build(rateLimitKey, () -> config)
-                                  : proxyManager.builder()
-                                                .build(rateLimitKey, rateLimitBucketBuilder::getDefaultConfig);
+        BucketProxy bucketProxy = proxyManager.builder().build(rateLimitKey, () -> config);
 
         ConsumptionProbe probe = bucketProxy.tryConsumeAndReturnRemaining(1);
 
-        if (probe.isConsumed()) filterChain.doFilter(request, response);
-        else handleRateLimitExceeded(response, probe);
+        if (probe.isConsumed()) {
+            response.setHeader("X-Rate-Limit-Remaining", String.valueOf(probe.getRemainingTokens()));
+            filterChain.doFilter(request, response);
+        } else handleRateLimitExceeded(response, probe);
     }
 
     // ========================= 내부 메서드 =========================
 
     private boolean isExcludedPath(final String requestURI) {
-        return requestURI.startsWith("/management")
-               || requestURI.startsWith("/swagger-ui")
-               || requestURI.startsWith("/v3/api-docs");
+        return Arrays.stream(RateLimitConst.excludedPathPrefixes)
+                     .anyMatch(requestURI::startsWith);
     }
 
-    private BucketConfiguration findBucketConfiguration(final String requestURI) {
-        Map<String, BucketConfiguration> configs = rateLimitBucketBuilder.getConfigurations();
-        return configs.entrySet()
-                      .stream()
-                      .filter(entry -> requestURI.startsWith(entry.getKey()))
-                      .max(Map.Entry.comparingByKey())
-                      .map(Map.Entry::getValue)
-                      .orElse(null);
+    private BucketConfiguration resolveBucketConfiguration(final String requestURI, final HttpServletRequest request) {
+        final Map<String, BucketConfiguration> endpointConfigs = rateLimitBucketBuilder.getConfigurations();
+
+        for (Entry<String, BucketConfiguration> entry : endpointConfigs.entrySet())
+            if (requestURI.startsWith(entry.getKey())) {
+                log.debug("Endpoint-specific rate limit applied: {} -> {}", requestURI, entry.getKey());
+                return entry.getValue();
+            }
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        boolean isAuthenticated = authentication != null
+                                  && authentication.isAuthenticated()
+                                  && authentication.getPrincipal() instanceof CustomUserDetails;
+
+        if (isAuthenticated) {
+            log.debug("Authenticated user rate limit applied for: {}", requestURI);
+            return rateLimitBucketBuilder.getAuthenticatedConfig();
+        } else {
+            log.debug("Anonymous user rate limit applied for: {}", requestURI);
+            return rateLimitBucketBuilder.getAnonymousConfig();
+        }
     }
 
     private String resolveRateLimitKey(final HttpServletRequest request) {
@@ -93,9 +108,9 @@ public class RateLimitFilter extends OncePerRequestFilter {
         if (authentication != null
             && authentication.isAuthenticated()
             && authentication.getPrincipal() instanceof CustomUserDetails userDetails)
-            return "user:" + userDetails.getId();
+            return RateLimitConst.AUTHENTICATED_KEY_PREFIX + userDetails.getId();
 
-        return "ip:" + extractIpAddress(request);
+        return RateLimitConst.ANONYMOUS_KEY_PREFIX + extractIpAddress(request);
     }
 
     private String extractIpAddress(final HttpServletRequest request) {
@@ -113,17 +128,19 @@ public class RateLimitFilter extends OncePerRequestFilter {
 
     private void handleRateLimitExceeded(final HttpServletResponse response, final ConsumptionProbe probe)
     throws IOException {
+        final long retryAfterSeconds = probe.getNanosToWaitForRefill() / 1_000_000_000L;
+
         response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
-
-        long retryAfterSeconds = probe.getNanosToWaitForRefill() / 1_000_000_000L;
         response.setHeader("Retry-After", String.valueOf(retryAfterSeconds));
         response.setHeader("X-Rate-Limit-Retry-After-Seconds", String.valueOf(retryAfterSeconds));
 
         BaseResponse<Object> baseResponse = BaseResponse.error(ErrorCode.TOO_MANY_REQUESTS);
 
         objectMapper.writeValue(response.getWriter(), baseResponse);
+
+        log.warn("Rate limit exceeded. Retry after: {} seconds", retryAfterSeconds);
     }
 
 }
