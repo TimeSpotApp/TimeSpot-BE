@@ -58,18 +58,24 @@ public class RateLimitFilter extends OncePerRequestFilter {
             return;
         }
 
-        final String rateLimitKey = resolveRateLimitKey(request);
+        try {
+            final String rateLimitKey = resolveRateLimitKey(request);
 
-        BucketConfiguration config = resolveBucketConfiguration(requestURI, request);
+            BucketConfiguration config = resolveBucketConfiguration(requestURI, request);
 
-        BucketProxy bucketProxy = proxyManager.builder().build(rateLimitKey, () -> config);
+            BucketProxy bucketProxy = proxyManager.builder().build(rateLimitKey, () -> config);
 
-        ConsumptionProbe probe = bucketProxy.tryConsumeAndReturnRemaining(1);
+            ConsumptionProbe probe = bucketProxy.tryConsumeAndReturnRemaining(1);
 
-        if (probe.isConsumed()) {
-            response.setHeader("X-Rate-Limit-Remaining", String.valueOf(probe.getRemainingTokens()));
+            if (probe.isConsumed()) {
+                response.setHeader("X-Rate-Limit-Remaining", String.valueOf(probe.getRemainingTokens()));
+                filterChain.doFilter(request, response);
+            } else
+                handleRateLimitExceeded(response, probe);
+        } catch (Exception e) {
+            log.warn("Rate limit processing failed. Allowing request to proceed: {}", e.getMessage());
             filterChain.doFilter(request, response);
-        } else handleRateLimitExceeded(response, probe);
+        }
     }
 
     // ========================= 내부 메서드 =========================

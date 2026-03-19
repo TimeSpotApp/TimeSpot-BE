@@ -6,6 +6,7 @@ import io.lettuce.core.api.async.RedisAsyncCommands;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -24,6 +25,7 @@ import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactor
  */
 @Configuration
 @RequiredArgsConstructor
+@Slf4j
 public class Bucket4jConfig {
 
     @Bean
@@ -39,11 +41,15 @@ public class Bucket4jConfig {
     private RedisAsyncCommands<byte[], byte[]> createAsyncCommands(
             final RedisConnectionFactory redisConnectionFactory
     ) {
-        if (redisConnectionFactory instanceof LettuceConnectionFactory lettuceConnectionFactory) {
-            var connection = Objects.requireNonNull(lettuceConnectionFactory.getConnection());
+        if (redisConnectionFactory instanceof LettuceConnectionFactory lettuceConnectionFactory)
+            try {
+                var connection = Objects.requireNonNull(lettuceConnectionFactory.getConnection());
 
-            return (RedisAsyncCommands<byte[], byte[]>) connection.getNativeConnection();
-        }
+                return (RedisAsyncCommands<byte[], byte[]>) connection.getNativeConnection();
+            } catch (Exception e) {
+                log.error("Failed to create redis connection for Bucket4j: {}", e.getMessage());
+                throw new IllegalStateException("Failed to create Redis connection for Bucket4j", e);
+            }
 
         throw new IllegalStateException(
                 "RedisConnectionFactory must be LettuceConnectionFactory, but was: " +
