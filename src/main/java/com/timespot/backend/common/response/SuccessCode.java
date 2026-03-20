@@ -15,6 +15,7 @@ import org.springframework.http.HttpStatus;
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------
  * 26. 2. 26.    loadingKKamo21       Initial creation
+ * 26. 2. 19.    whitecity01          ADD GET_AVAILABLE_PLACE
  */
 @Getter
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
@@ -33,7 +34,10 @@ public enum SuccessCode {
     USER_UPDATE_SUCCESS(HttpStatus.OK, "회원정보 수정이 완료되었습니다."),
     USER_WITHDRAW_SUCCESS(HttpStatus.OK, "회원탈퇴가 완료되었습니다."),
     USER_AUTH_TOKEN_REFRESH_SUCCESS(HttpStatus.OK, "인증 토큰 갱신이 완료되었습니다."),
-    USER_GET_INFO_SUCCESS(HttpStatus.OK, "회원 정보 조회이 완료되었습니다.");
+    USER_GET_INFO_SUCCESS(HttpStatus.OK, "회원 정보 조회이 완료되었습니다."),
+
+    // Place
+    PLACE_GET_AVAILABLE_PLACES_SUCCESS(HttpStatus.OK, "방문 가능 장소 조회가 완료되었습니다.");
 
     private final HttpStatus status;
     private final String     message;
