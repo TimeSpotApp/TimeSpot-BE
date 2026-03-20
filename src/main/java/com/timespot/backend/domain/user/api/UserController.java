@@ -3,6 +3,7 @@ package com.timespot.backend.domain.user.api;
 import com.timespot.backend.common.response.BaseResponse;
 import com.timespot.backend.common.response.SuccessCode;
 import com.timespot.backend.common.security.model.CustomUserDetails;
+import com.timespot.backend.domain.user.dto.UserRequestDto.UserInfoUpdateRequest;
 import com.timespot.backend.domain.user.dto.UserResponseDto;
 import com.timespot.backend.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -10,6 +11,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -38,6 +41,16 @@ public class UserController implements UserApiDocs {
     ) {
         UserResponseDto.UserInfoResponse responseData = userService.findUserInfoById(userDetails.getId());
         return ResponseEntity.ok(BaseResponse.success(SuccessCode.USER_GET_INFO_SUCCESS, responseData));
+    }
+
+    @PutMapping
+    @Override
+    public ResponseEntity<BaseResponse<Void>> updateUserInfo(
+            @AuthenticationPrincipal final CustomUserDetails userDetails,
+            @RequestBody final UserInfoUpdateRequest dto
+    ) {
+        userService.updateUserInfo(userDetails.getId(), dto);
+        return ResponseEntity.ok(BaseResponse.success(SuccessCode.USER_UPDATE_SUCCESS));
     }
 
     @DeleteMapping

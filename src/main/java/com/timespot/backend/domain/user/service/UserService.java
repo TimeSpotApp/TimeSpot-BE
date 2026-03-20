@@ -1,5 +1,6 @@
 package com.timespot.backend.domain.user.service;
 
+import com.timespot.backend.domain.user.dto.UserRequestDto;
 import com.timespot.backend.domain.user.dto.UserResponseDto.UserInfoResponse;
 import com.timespot.backend.domain.user.model.ProviderType;
 import com.timespot.backend.domain.user.model.User;
@@ -30,6 +31,8 @@ public interface UserService {
     User findById(UUID id);
 
     UserInfoResponse findUserInfoById(UUID id);
+
+    void updateUserInfo(UUID id, UserRequestDto.UserInfoUpdateRequest dto);
 
     void withdraw(UUID id);
 

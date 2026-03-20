@@ -2,6 +2,7 @@ package com.timespot.backend.domain.user.api;
 
 import com.timespot.backend.common.response.BaseResponse;
 import com.timespot.backend.common.security.model.CustomUserDetails;
+import com.timespot.backend.domain.user.dto.UserRequestDto;
 import com.timespot.backend.domain.user.dto.UserResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -39,6 +40,19 @@ public interface UserApiDocs {
             @Parameter(hidden = true) CustomUserDetails userDetails
     );
 
+    @Operation(summary = "회원 정보 수정", description = "현재 사용자의 회원 정보를 수정합니다.")
+    @SecurityRequirement(name = "BearerAuth")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "회원 정보 수정 성공"),
+            @ApiResponse(responseCode = "400",
+                         description = "유효하지 않은 인증 토큰",
+                         content = @Content(schema = @Schema(hidden = true))),
+    })
+    ResponseEntity<BaseResponse<Void>> updateUserInfo(
+            @Parameter(hidden = true) CustomUserDetails userDetails,
+            @Parameter(description = "회원 정보 수정 요청 페이로드") UserRequestDto.UserInfoUpdateRequest dto
+    );
+
     @Operation(summary = "회원 탈퇴", description = "현재 사용자를 회원 탈퇴 처리합니다.")
     @SecurityRequirement(name = "BearerAuth")
     @ApiResponses({
@@ -50,4 +64,5 @@ public interface UserApiDocs {
     ResponseEntity<BaseResponse<Void>> withdraw(
             @Parameter(hidden = true) CustomUserDetails userDetails
     );
+
 }
