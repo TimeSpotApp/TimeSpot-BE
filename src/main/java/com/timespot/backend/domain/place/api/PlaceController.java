@@ -23,6 +23,7 @@ import java.util.List;
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------
  * 26. 3. 19.     whitecity01       Initial creation
+ * 26. 3. 20.     whitecity01       FIX getAvailablePlaces api url
  */
 @RestController
 @RequestMapping("/api/v1/place")
