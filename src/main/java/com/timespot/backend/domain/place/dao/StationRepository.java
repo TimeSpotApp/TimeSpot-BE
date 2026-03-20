@@ -17,5 +17,4 @@ import java.util.Optional;
  * 26. 3. 19.     whitecity01       Initial creation
  */
 public interface StationRepository extends JpaRepository<Station, Long> {
-    Optional<Station> findByIdAndIsActiveTrue(Long id);
 }
