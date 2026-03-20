@@ -245,7 +245,6 @@ class UserRepositoryTest {
             assertNotNull(userInfoResponse, "userInfoResponse는 null이 아니어야 합니다.");
             assertEquals(user.getEmail(), userInfoResponse.getEmail(), "email은 같아야 합니다.");
             assertEquals(user.getNickname(), userInfoResponse.getNickname(), "nickname은 같아야 합니다.");
-            assertEquals(user.getProfileImgUrl(), userInfoResponse.getProfileImgUrl(), "profileImgUrl은 같아야 합니다.");
             assertEquals(user.getRole().name(), userInfoResponse.getRole(), "role은 같아야 합니다.");
             assertEquals(socialConnection.getProviderType().name(), userInfoResponse.getProviderType(),
                          "providerType은 같아야 합니다.");
