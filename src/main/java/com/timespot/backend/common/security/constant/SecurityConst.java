@@ -49,7 +49,10 @@ public abstract class SecurityConst {
             // Auth
             "/api/v1/auth/logout"
     };
-    public static final String[] PUT_AUTHENTICATED_URLS    = {};
+    public static final String[] PUT_AUTHENTICATED_URLS    = {
+            // User
+            "/api/v1/users"
+    };
     public static final String[] PATCH_AUTHENTICATED_URLS  = {};
     public static final String[] DELETE_AUTHENTICATED_URLS = {
             // User

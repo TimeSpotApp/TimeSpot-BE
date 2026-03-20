@@ -4,6 +4,7 @@ import com.timespot.backend.common.error.GlobalException;
 import com.timespot.backend.common.response.ErrorCode;
 import com.timespot.backend.domain.user.dao.SocialConnectionRepository;
 import com.timespot.backend.domain.user.dao.UserRepository;
+import com.timespot.backend.domain.user.dto.UserRequestDto;
 import com.timespot.backend.domain.user.dto.UserResponseDto.UserInfoResponse;
 import com.timespot.backend.domain.user.model.ProviderType;
 import com.timespot.backend.domain.user.model.SocialConnection;
@@ -125,6 +126,19 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserInfoResponse findUserInfoById(final UUID id) {
         return userRepository.findUserInfoById(id).orElseThrow(() -> new GlobalException(ErrorCode.USER_NOT_FOUND));
+    }
+
+    /**
+     * 회원 정보 수정
+     *
+     * @param id  회원 ID
+     * @param dto 회원 정보 수정 요청 DTO
+     */
+    @Override
+    @Transactional
+    public void updateUserInfo(final UUID id, final UserRequestDto.UserInfoUpdateRequest dto) {
+        User user = userRepository.findById(id).orElseThrow(() -> new GlobalException(ErrorCode.USER_NOT_FOUND));
+        user.updateNickname(dto.getNewNickname());
     }
 
     /**
