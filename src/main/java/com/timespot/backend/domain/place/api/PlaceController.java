@@ -30,9 +30,9 @@ import java.util.List;
 public class PlaceController implements PlaceApiDocs {
     private final PlaceService placeService;
 
-    // 호출 예시: GET /api/v1/place/stores?userLat=37.559&userLon=126.977&stationId=1&remainingMinutes=40
+    // 호출 예시: GET /api/v1/place?userLat=37.559&userLon=126.977&stationId=1&remainingMinutes=40
     @Override
-    @GetMapping("/stores")
+    @GetMapping()
     public ResponseEntity<BaseResponse<List<PlaceResponseDto.AvailablePlace>>> getAvailablePlaces(
             @RequestParam double userLat,
             @RequestParam double userLon,
