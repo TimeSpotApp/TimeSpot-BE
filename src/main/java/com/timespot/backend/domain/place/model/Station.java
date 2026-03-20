@@ -52,7 +52,7 @@ public class Station {
     @NotNull
     @ColumnDefault("1")
     @Column(name = "is_active", nullable = false)
-    private Boolean isActive = false;
+    private Boolean isActive = true;
 
     @NotNull
     @ColumnDefault("CURRENT_TIMESTAMP")
