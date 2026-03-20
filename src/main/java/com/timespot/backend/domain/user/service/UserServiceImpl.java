@@ -39,7 +39,22 @@ public class UserServiceImpl implements UserService {
     private final IdpTokenExchangeClient idpTokenExchangeClient;
 
     /**
-     * 소셜 인증 제공자로부터 회원 정보를 저장하거나, 이미 존재하는 경우 기존 회원 정보를 반환
+     * 소셜 인증 정보를 사용하여 회원 정보 조회
+     *
+     * @param providerType   소셜 인증 제공자 유형
+     * @param providerUserId 소셜 인증 제공자 식별자
+     * @return 회원 엔티티(Optional)
+     */
+    @Override
+    public Optional<User> findUserForSocialConnection(final ProviderType providerType, final String providerUserId) {
+        Optional<SocialConnection> opSocialConnection = socialConnectionRepository.findByProviderTypeAndProviderId(
+                providerType, providerUserId
+        );
+        return opSocialConnection.map(SocialConnection::getUser);
+    }
+
+    /**
+     * 소셜 인증 정보를 사용하여 회원 정보 생성
      *
      * @param providerType      소셜 인증 제공자 유형
      * @param providerUserId    소셜 인증 제공자 식별자
@@ -50,16 +65,11 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     @Transactional
-    public User findOrCreateUserForSocialConnection(final ProviderType providerType,
-                                                    final String providerUserId,
-                                                    final String email,
-                                                    final String nickname,
-                                                    final String authorizationCode) {
-        Optional<SocialConnection> opSocialConnection = socialConnectionRepository.findByProviderTypeAndProviderId(
-                providerType, providerUserId
-        );
-        if (opSocialConnection.isPresent()) return opSocialConnection.get().getUser();
-
+    public User createUserForSocialConnection(final ProviderType providerType,
+                                              final String providerUserId,
+                                              final String email,
+                                              final String nickname,    // BODGE: APPLE 연동 시 닉네임 처리 확인 필요
+                                              final String authorizationCode) {
         if (email != null && !email.isBlank())
             if (userRepository.existsByEmail(email))
                 throw new GlobalException(ErrorCode.USER_EMAIL_DUPLICATED);
@@ -71,21 +81,28 @@ public class UserServiceImpl implements UserService {
                         authorizationCode
                 );
                 idpRefreshToken = tokenValidationResponse.refreshToken();
+
+                User user = userRepository.save(User.of(email, nickname));
+                socialConnectionRepository.save(
+                        SocialConnection.of(user, providerType, providerUserId, idpRefreshToken)
+                );
+
+                return user;
             }
             case GOOGLE -> {
                 //GoogleTokenValidationResponse tokenValidationResponse = idpTokenExchangeClient.validationGoogleAuthCode(
                 //        authorizationCode
                 //);
                 //idpRefreshToken = tokenValidationResponse.refreshToken();
-                idpRefreshToken = null;
+                idpRefreshToken = null; // NOTE: Google 계정의 경우 연동 인증 및 IDP 토큰 발급 처리 스킵
+
+                User user = userRepository.save(User.of(email, nickname));
+                socialConnectionRepository.save(SocialConnection.of(user, providerType, providerUserId));
+
+                return user;
             }
             default -> throw new GlobalException(ErrorCode.SOCIAL_CONNECTION_PROVIDER_NOT_SUPPORTED);
         }
-
-        User user = userRepository.save(User.of(email, nickname));
-        socialConnectionRepository.save(SocialConnection.of(user, providerType, providerUserId, idpRefreshToken));
-
-        return user;
     }
 
     /**
@@ -127,7 +144,9 @@ public class UserServiceImpl implements UserService {
         switch (socialConnection.getProviderType()) {
             case APPLE -> idpTokenExchangeClient.revokeAppleToken(TokenType.REFRESH_TOKEN,
                                                                   socialConnection.getIdpRefreshToken());
-            case GOOGLE -> idpTokenExchangeClient.revokeGoogleToken(socialConnection.getIdpRefreshToken());
+            case GOOGLE -> {}
+            // NOTE: Google 계정의 경우 연동 해지 시 IDP 토큰 폐기 스킵
+            //idpTokenExchangeClient.revokeGoogleToken(socialConnection.getIdpRefreshToken());
             default -> throw new GlobalException(ErrorCode.SOCIAL_CONNECTION_PROVIDER_NOT_SUPPORTED);
         }
 
