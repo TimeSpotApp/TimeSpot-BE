@@ -11,7 +11,6 @@ import com.timespot.backend.domain.user.model.User;
 import com.timespot.backend.infra.security.oauth.client.IdpTokenExchangeClient;
 import com.timespot.backend.infra.security.oauth.constant.TokenType;
 import com.timespot.backend.infra.security.oauth.dto.OAuthResponseDto.AppleTokenValidationResponse;
-import com.timespot.backend.infra.security.oauth.dto.OAuthResponseDto.GoogleTokenValidationResponse;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -74,10 +73,11 @@ public class UserServiceImpl implements UserService {
                 idpRefreshToken = tokenValidationResponse.refreshToken();
             }
             case GOOGLE -> {
-                GoogleTokenValidationResponse tokenValidationResponse = idpTokenExchangeClient.validationGoogleAuthCode(
-                        authorizationCode
-                );
-                idpRefreshToken = tokenValidationResponse.refreshToken();
+                //GoogleTokenValidationResponse tokenValidationResponse = idpTokenExchangeClient.validationGoogleAuthCode(
+                //        authorizationCode
+                //);
+                //idpRefreshToken = tokenValidationResponse.refreshToken();
+                idpRefreshToken = null;
             }
             default -> throw new GlobalException(ErrorCode.SOCIAL_CONNECTION_PROVIDER_NOT_SUPPORTED);
         }
