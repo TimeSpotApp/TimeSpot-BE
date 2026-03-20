@@ -1,10 +1,10 @@
 package com.timespot.backend.domain.user.dao;
 
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.timespot.backend.domain.user.dto.QUserResponseDto_UserInfoResponse;
 import com.timespot.backend.domain.user.dto.UserResponseDto.UserInfoResponse;
 import com.timespot.backend.domain.user.model.QSocialConnection;
 import com.timespot.backend.domain.user.model.QUser;
-import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -42,7 +42,6 @@ public class UserRepositoryImpl implements UserRepositoryCustom {
                                                        USER.id,
                                                        USER.email,
                                                        USER.nickname,
-                                                       USER.profileImgUrl,
                                                        USER.role,
                                                        SOCIAL_CONNECTION.providerType,
                                                        USER.createdAt

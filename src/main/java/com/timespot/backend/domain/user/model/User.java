@@ -52,21 +52,17 @@ public class User extends BaseAuditingEntity implements Persistable<UUID> {
     @Column(name = "nickname", nullable = false)
     private String nickname;
 
-    @Column(name = "profile_img_url")
-    private String profileImgUrl;
-
     @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false)
     private UserRole role;
 
     @Builder(access = AccessLevel.PRIVATE)
-    private User(final String email, final String nickname, final String profileImgUrl, final UserRole role) {
+    private User(final String email, final String nickname, final UserRole role) {
         validateEmail(email);
         validateNickname(nickname);
         this.id = UlidCreator.getUlid().toUuid();
         this.email = email.toLowerCase();
         this.nickname = nickname;
-        this.profileImgUrl = profileImgUrl;
         this.role = role != null ? role : UserRole.USER;
     }
 
@@ -78,10 +74,6 @@ public class User extends BaseAuditingEntity implements Persistable<UUID> {
 
     public static User of(final String email, final String nickname, final UserRole role) {
         return User.builder().email(email).nickname(nickname).role(role).build();
-    }
-
-    public static User of(final String email, final String nickname, final String profileImgUrl, final UserRole role) {
-        return User.builder().email(email).nickname(nickname).profileImgUrl(profileImgUrl).role(role).build();
     }
 
     // ========================= JPA 엔티티 메서드 =========================
@@ -140,15 +132,6 @@ public class User extends BaseAuditingEntity implements Persistable<UUID> {
     public void updateNickname(final String newNickname) {
         validateNickname(newNickname);
         this.nickname = newNickname;
-    }
-
-    /**
-     * 프로필 이미지 URL 업데이트
-     *
-     * @param newProfileImgUrl 새로운 프로필 이미지 URL
-     */
-    public void updateProfileImgUrl(final String newProfileImgUrl) {
-        this.profileImgUrl = newProfileImgUrl;
     }
 
 }
