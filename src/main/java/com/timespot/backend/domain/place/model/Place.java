@@ -1,14 +1,13 @@
 package com.timespot.backend.domain.place.model;
 
+import com.timespot.backend.common.model.BaseAuditingEntity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.ColumnDefault;
 
-import java.time.Instant;
 import java.util.Objects;
 
 /**
@@ -21,12 +20,13 @@ import java.util.Objects;
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------
  * 26. 3. 19.     whitecity01       Initial creation
+ * 26. 3. 20.     whitecity01       REFACTOR DATE INIT
  */
 @Getter
 @Entity
 @Table(name = "places")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Place {
+public class Place extends BaseAuditingEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "place_id", nullable = false)
@@ -51,15 +51,6 @@ public class Place {
     @NotNull
     @Column(name = "address", nullable = false)
     private String address;
-
-    @NotNull
-    @ColumnDefault("CURRENT_TIMESTAMP")
-    @Column(name = "created_at", nullable = false)
-    private Instant createdAt;
-    @NotNull
-    @ColumnDefault("CURRENT_TIMESTAMP")
-    @Column(name = "updated_at", nullable = false)
-    private Instant updatedAt;
 
     // ========================= JPA 엔티티 메서드 =========================
 

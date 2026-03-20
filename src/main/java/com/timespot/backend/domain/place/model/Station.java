@@ -1,5 +1,6 @@
 package com.timespot.backend.domain.place.model;
 
+import com.timespot.backend.common.model.BaseAuditingEntity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -20,12 +21,13 @@ import java.time.Instant;
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------
  * 26. 3. 19.     whitecity01       Initial creation
+ * 26. 3. 20.     whitecity01       REFACTOR DATE INIT
  */
 @Getter
 @Entity
 @Table(name = "stations")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Station {
+public class Station extends BaseAuditingEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "station_id", nullable = false)
@@ -53,15 +55,5 @@ public class Station {
     @ColumnDefault("1")
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
-
-    @NotNull
-    @ColumnDefault("CURRENT_TIMESTAMP")
-    @Column(name = "created_at", nullable = false)
-    private Instant createdAt;
-
-    @NotNull
-    @ColumnDefault("CURRENT_TIMESTAMP")
-    @Column(name = "updated_at", nullable = false)
-    private Instant updatedAt;
 
 }
