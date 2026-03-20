@@ -67,7 +67,8 @@ public enum ErrorCode {
     SOCIAL_CONNECTION_IDP_TOKEN_REVOKE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "SO012", "IDP 인증 토큰 폐기에 실패했습니다."),
 
     // Station
-    STATION_NOT_FOUND(HttpStatus.NOT_FOUND, "ST001", "역을 찾을 수 없습니다"),
+    STATION_NOT_FOUND(HttpStatus.NOT_FOUND, "ST001", "역을 찾을 수 없습니다."),
+    STATION_NOT_ACTIVE(HttpStatus.BAD_REQUEST, "ST002", "현재 비활성화된 역입니다."),
 
     // Place
     PLACE_INSUFFICIENT_REMAINING_TIME(HttpStatus.BAD_REQUEST, "PL001", "체류 가능한 시간이 부족합니다.");

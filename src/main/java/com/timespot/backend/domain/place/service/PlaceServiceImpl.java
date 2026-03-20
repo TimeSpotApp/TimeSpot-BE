@@ -50,6 +50,10 @@ public class PlaceServiceImpl implements PlaceService {
         Station station = stationRepository.findById(stationId)
                 .orElseThrow(() -> new GlobalException(ErrorCode.STATION_NOT_FOUND));
 
+        if(!station.getIsActive()) {
+            throw new GlobalException(ErrorCode.STATION_NOT_ACTIVE);
+        }
+
         if (remainingMinutes <= PlaceConst.TOTAL_BUFFER_TIME) {
             // 시간이 부족해서 어디도 갈 수 없는 상황
             throw new GlobalException(ErrorCode.PLACE_INSUFFICIENT_REMAINING_TIME);
