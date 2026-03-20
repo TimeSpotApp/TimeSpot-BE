@@ -31,7 +31,6 @@ public abstract class SecurityConst {
             "/swagger-ui.html",
             "/swagger-resources/**",
             "/v3/api-docs/**",
-            "/api/v1/place/stores",
             };
     public static final String[] POST_PERMIT_ALL_URLS   = {
             // Auth
