@@ -2,6 +2,7 @@ package com.timespot.backend.common.security.service;
 
 import com.timespot.backend.common.security.dto.AuthRequestDto;
 import com.timespot.backend.common.security.dto.AuthResponseDto;
+import java.util.UUID;
 
 /**
  * PackageName : com.timespot.backend.common.security.service
@@ -21,5 +22,7 @@ public interface AuthService {
     void logout(String accessToken);
 
     AuthResponseDto.AuthInfoResponse refresh(String refreshToken);
+
+    AuthResponseDto.AuthInfoResponse reissueTokenByUserId(UUID userId);
 
 }

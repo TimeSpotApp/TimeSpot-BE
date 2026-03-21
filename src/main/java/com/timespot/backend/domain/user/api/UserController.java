@@ -2,9 +2,12 @@ package com.timespot.backend.domain.user.api;
 
 import com.timespot.backend.common.response.BaseResponse;
 import com.timespot.backend.common.response.SuccessCode;
+import com.timespot.backend.common.security.dto.AuthResponseDto;
+import com.timespot.backend.common.security.dto.AuthResponseDto.AuthInfoResponse;
 import com.timespot.backend.common.security.model.CustomUserDetails;
 import com.timespot.backend.domain.user.dto.UserRequestDto;
 import com.timespot.backend.domain.user.dto.UserResponseDto;
+import com.timespot.backend.domain.user.facade.UserAuthFacade;
 import com.timespot.backend.domain.user.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -34,7 +37,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class UserController implements UserApiDocs {
 
-    private final UserService userService;
+    private final UserService    userService;
+    private final UserAuthFacade userAuthFacade;
 
     @GetMapping
     @Override
@@ -47,22 +51,22 @@ public class UserController implements UserApiDocs {
 
     @PutMapping
     @Override
-    public ResponseEntity<BaseResponse<Void>> updateUserInfo(
+    public ResponseEntity<BaseResponse<AuthResponseDto.AuthInfoResponse>> updateUserInfo(
             @AuthenticationPrincipal final CustomUserDetails userDetails,
             @RequestBody @Valid final UserRequestDto.UserInfoUpdateRequest dto
     ) {
-        userService.updateUserInfo(userDetails.getId(), dto);
-        return ResponseEntity.ok(BaseResponse.success(SuccessCode.USER_UPDATE_SUCCESS));
+        AuthInfoResponse responseData = userAuthFacade.updateUserInfoAndReissueToken(userDetails.getId(), dto);
+        return ResponseEntity.ok(BaseResponse.success(SuccessCode.USER_UPDATE_SUCCESS, responseData));
     }
 
     @PostMapping("/map")
     @Override
-    public ResponseEntity<BaseResponse<Void>> updateUserMapApi(
+    public ResponseEntity<BaseResponse<AuthResponseDto.AuthInfoResponse>> updateUserMapApi(
             @AuthenticationPrincipal final CustomUserDetails userDetails,
             @RequestBody @Valid final UserRequestDto.UserMapApiUpdateRequest dto
     ) {
-        userService.updateUserMapApi(userDetails.getId(), dto);
-        return ResponseEntity.ok(BaseResponse.success(SuccessCode.USER_MAP_API_UPDATE_SUCCESS));
+        AuthInfoResponse responseData = userAuthFacade.updateUserMapApiAndReissueToken(userDetails.getId(), dto);
+        return ResponseEntity.ok(BaseResponse.success(SuccessCode.USER_MAP_API_UPDATE_SUCCESS, responseData));
     }
 
     @DeleteMapping
