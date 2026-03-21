@@ -67,7 +67,9 @@ public class AuthServiceImpl implements AuthService {
 
         String resolvedNickname = dto.getNickname() != null && !dto.getNickname().isBlank()
                                   ? dto.getNickname()
-                                  : oAuthProfile.getNickname();
+                                  : oAuthProfile.getNickname() != null
+                                    ? oAuthProfile.getNickname()
+                                    : UUID.randomUUID().toString().replace("-", "").substring(0, 10);
 
         return userService.findUserForSocialConnection(providerType, oAuthProfile.getProviderUserId())
                           .map(user -> createAuthInfoResponse(user, false))
