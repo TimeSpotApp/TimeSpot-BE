@@ -1,6 +1,8 @@
 package com.timespot.backend.domain.user.dto;
 
+import com.timespot.backend.domain.user.constant.UserConst;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.Pattern;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -27,6 +29,7 @@ public abstract class UserRequestDto {
     @Schema(description = "회원 정보 수정 요청 페이로드")
     public static class UserInfoUpdateRequest {
 
+        @Pattern(regexp = UserConst.NICKNAME_REGEX, message = "닉네임은 한글, 영문, 숫자, '-', '_'만 사용하여 2~15자 이내로 입력해주세요.")
         @Schema(description = "[필수] 신규 닉네임")
         private String newNickname;
 
