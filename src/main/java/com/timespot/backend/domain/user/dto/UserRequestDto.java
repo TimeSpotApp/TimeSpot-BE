@@ -2,6 +2,7 @@ package com.timespot.backend.domain.user.dto;
 
 import com.timespot.backend.domain.user.constant.UserConst;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -32,6 +33,18 @@ public abstract class UserRequestDto {
         @Pattern(regexp = UserConst.NICKNAME_REGEX, message = "닉네임은 한글, 영문, 숫자, '-', '_'만 사용하여 2~15자 이내로 입력해주세요.")
         @Schema(description = "[필수] 신규 닉네임")
         private String newNickname;
+
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Schema(description = "주사용 지도 API 설정 요청 페이로드")
+    public static class UserMapApiUpdateRequest {
+
+        @NotBlank(message = "주사용 지도 API 유형은 필수입니다.")
+        @Schema(description = "[필수] 주사용 지도 API 유형 (예: apple, google, naver)", example = "apple")
+        private String mapApi;
 
     }
 

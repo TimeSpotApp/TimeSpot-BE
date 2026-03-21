@@ -53,16 +53,21 @@ public class User extends BaseAuditingEntity implements Persistable<UUID> {
     private String nickname;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "map_api")
+    private MapApi mapApi;
+
+    @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false)
     private UserRole role;
 
     @Builder(access = AccessLevel.PRIVATE)
-    private User(final String email, final String nickname, final UserRole role) {
+    private User(final String email, final String nickname, final MapApi mapApi, final UserRole role) {
         validateEmail(email);
         validateNickname(nickname);
         this.id = UlidCreator.getUlid().toUuid();
         this.email = email.toLowerCase();
         this.nickname = nickname;
+        this.mapApi = mapApi;
         this.role = role != null ? role : UserRole.USER;
     }
 
@@ -72,8 +77,16 @@ public class User extends BaseAuditingEntity implements Persistable<UUID> {
         return User.builder().email(email).nickname(nickname).role(UserRole.USER).build();
     }
 
+    public static User of(final String email, final String nickname, final MapApi mapApi) {
+        return User.builder().email(email).nickname(nickname).mapApi(mapApi).role(UserRole.USER).build();
+    }
+
     public static User of(final String email, final String nickname, final UserRole role) {
         return User.builder().email(email).nickname(nickname).role(role).build();
+    }
+
+    public static User of(final String email, final String nickname, final MapApi mapApi, final UserRole role) {
+        return User.builder().email(email).nickname(nickname).mapApi(mapApi).role(role).build();
     }
 
     // ========================= JPA 엔티티 메서드 =========================
@@ -132,6 +145,15 @@ public class User extends BaseAuditingEntity implements Persistable<UUID> {
     public void updateNickname(final String newNickname) {
         validateNickname(newNickname);
         this.nickname = newNickname;
+    }
+
+    /**
+     * 지도 API 업데이트
+     *
+     * @param mapApi 새로운 지도 API 유형
+     */
+    public void updateMapApi(final MapApi mapApi) {
+        this.mapApi = mapApi;
     }
 
 }

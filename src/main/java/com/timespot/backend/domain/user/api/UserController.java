@@ -3,7 +3,7 @@ package com.timespot.backend.domain.user.api;
 import com.timespot.backend.common.response.BaseResponse;
 import com.timespot.backend.common.response.SuccessCode;
 import com.timespot.backend.common.security.model.CustomUserDetails;
-import com.timespot.backend.domain.user.dto.UserRequestDto.UserInfoUpdateRequest;
+import com.timespot.backend.domain.user.dto.UserRequestDto;
 import com.timespot.backend.domain.user.dto.UserResponseDto;
 import com.timespot.backend.domain.user.service.UserService;
 import jakarta.validation.Valid;
@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -48,10 +49,20 @@ public class UserController implements UserApiDocs {
     @Override
     public ResponseEntity<BaseResponse<Void>> updateUserInfo(
             @AuthenticationPrincipal final CustomUserDetails userDetails,
-            @RequestBody @Valid final UserInfoUpdateRequest dto
+            @RequestBody @Valid final UserRequestDto.UserInfoUpdateRequest dto
     ) {
         userService.updateUserInfo(userDetails.getId(), dto);
         return ResponseEntity.ok(BaseResponse.success(SuccessCode.USER_UPDATE_SUCCESS));
+    }
+
+    @PostMapping("/map")
+    @Override
+    public ResponseEntity<BaseResponse<Void>> updateUserMapApi(
+            @AuthenticationPrincipal final CustomUserDetails userDetails,
+            @RequestBody @Valid final UserRequestDto.UserMapApiUpdateRequest dto
+    ) {
+        userService.updateUserMapApi(userDetails.getId(), dto);
+        return ResponseEntity.ok(BaseResponse.success(SuccessCode.USER_MAP_API_UPDATE_SUCCESS));
     }
 
     @DeleteMapping
