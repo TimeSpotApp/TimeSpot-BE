@@ -47,7 +47,9 @@ public abstract class SecurityConst {
     };
     public static final String[] POST_AUTHENTICATED_URLS   = {
             // Auth
-            "/api/v1/auth/logout"
+            "/api/v1/auth/logout",
+            // User
+            "/api/v1/users/map"
     };
     public static final String[] PUT_AUTHENTICATED_URLS    = {
             // User

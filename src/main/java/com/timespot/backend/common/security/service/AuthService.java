@@ -16,10 +16,10 @@ import com.timespot.backend.common.security.dto.AuthResponseDto;
  */
 public interface AuthService {
 
-    AuthResponseDto.TokenResponse login(AuthRequestDto.OAuth2LoginRequest dto);
+    AuthResponseDto.AuthInfoResponse login(AuthRequestDto.OAuth2LoginRequest dto);
 
     void logout(String accessToken);
 
-    AuthResponseDto.TokenResponse refresh(String refreshToken);
+    AuthResponseDto.AuthInfoResponse refresh(String refreshToken);
 
 }

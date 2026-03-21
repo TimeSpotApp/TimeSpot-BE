@@ -34,6 +34,8 @@ public interface UserService {
 
     void updateUserInfo(UUID id, UserRequestDto.UserInfoUpdateRequest dto);
 
+    void updateUserMapApi(UUID id, UserRequestDto.UserMapApiUpdateRequest dto);
+
     void withdraw(UUID id);
 
 }

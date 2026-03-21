@@ -53,6 +53,19 @@ public interface UserApiDocs {
             @Parameter(description = "회원 정보 수정 요청 페이로드") UserRequestDto.UserInfoUpdateRequest dto
     );
 
+    @Operation(summary = "주사용 지도 API 설정", description = "현재 사용자의 주사용 지도 API를 설정합니다.")
+    @SecurityRequirement(name = "BearerAuth")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "주사용 지도 API 설정 성공"),
+            @ApiResponse(responseCode = "400",
+                         description = "유효하지 않은 인증 토큰",
+                         content = @Content(schema = @Schema(hidden = true))),
+    })
+    ResponseEntity<BaseResponse<Void>> updateUserMapApi(
+            @Parameter(hidden = true) CustomUserDetails userDetails,
+            @Parameter(description = "주사용 지도 API 설정 요청 페이로드") UserRequestDto.UserMapApiUpdateRequest dto
+    );
+
     @Operation(summary = "회원 탈퇴", description = "현재 사용자를 회원 탈퇴 처리합니다.")
     @SecurityRequirement(name = "BearerAuth")
     @ApiResponses({

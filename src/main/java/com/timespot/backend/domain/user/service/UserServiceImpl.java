@@ -6,6 +6,7 @@ import com.timespot.backend.domain.user.dao.SocialConnectionRepository;
 import com.timespot.backend.domain.user.dao.UserRepository;
 import com.timespot.backend.domain.user.dto.UserRequestDto;
 import com.timespot.backend.domain.user.dto.UserResponseDto.UserInfoResponse;
+import com.timespot.backend.domain.user.model.MapApi;
 import com.timespot.backend.domain.user.model.ProviderType;
 import com.timespot.backend.domain.user.model.SocialConnection;
 import com.timespot.backend.domain.user.model.User;
@@ -139,6 +140,20 @@ public class UserServiceImpl implements UserService {
     public void updateUserInfo(final UUID id, final UserRequestDto.UserInfoUpdateRequest dto) {
         User user = userRepository.findById(id).orElseThrow(() -> new GlobalException(ErrorCode.USER_NOT_FOUND));
         user.updateNickname(dto.getNewNickname());
+    }
+
+    /**
+     * 회원의 주사용 지도 API 설정
+     *
+     * @param id  회원 ID
+     * @param dto 주사용 지도 API 설정 요청 DTO
+     */
+    @Override
+    @Transactional
+    public void updateUserMapApi(final UUID id, final UserRequestDto.UserMapApiUpdateRequest dto) {
+        MapApi mapApi = MapApi.from(dto.getMapApi());
+        User   user   = userRepository.findById(id).orElseThrow(() -> new GlobalException(ErrorCode.USER_NOT_FOUND));
+        user.updateMapApi(mapApi);
     }
 
     /**

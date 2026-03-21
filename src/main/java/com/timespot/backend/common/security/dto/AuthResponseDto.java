@@ -2,6 +2,7 @@ package com.timespot.backend.common.security.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.timespot.backend.domain.user.model.MapApi;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -27,8 +28,9 @@ public abstract class AuthResponseDto {
     @Getter
     @RequiredArgsConstructor
     @AllArgsConstructor
-    @Schema(name = "인증 토큰 응답 페이로드")
-    public static class TokenResponse {
+    @JsonInclude(Include.NON_NULL)
+    @Schema(name = "인증 정보 응답 페이로드")
+    public static class AuthInfoResponse {
 
         @Schema(description = "Access Token")
         private final String  accessToken;
@@ -38,7 +40,8 @@ public abstract class AuthResponseDto {
         private final String  refreshToken;
         @Schema(description = "Refresh Token 만료 시간(초)")
         private final long    refreshTokenExpiresIn;
-        @JsonInclude(Include.NON_NULL)
+        @Schema(description = "회원의 주사용 지도 API 유형", nullable = true)
+        private       MapApi  mapApi  = null;
         @Schema(description = "신규 회원 여부", nullable = true)
         private       Boolean newUser = null;
 

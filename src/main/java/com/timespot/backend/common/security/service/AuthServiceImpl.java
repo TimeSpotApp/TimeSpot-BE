@@ -4,6 +4,7 @@ import com.timespot.backend.common.error.GlobalException;
 import com.timespot.backend.common.response.ErrorCode;
 import com.timespot.backend.common.security.dto.AuthRequestDto;
 import com.timespot.backend.common.security.dto.AuthResponseDto;
+import com.timespot.backend.common.security.dto.AuthResponseDto.AuthInfoResponse;
 import com.timespot.backend.common.security.jwt.provider.JwtProvider;
 import com.timespot.backend.common.security.model.CustomUserDetails;
 import com.timespot.backend.domain.user.model.ProviderType;
@@ -51,10 +52,10 @@ public class AuthServiceImpl implements AuthService {
      * 소셜 인증 제공자 정보를 활용한 로그인
      *
      * @param dto 소셜 인증 제공자 데이터
-     * @return 신규 토큰 응답 DTO
+     * @return 신규 인증 정보 응답 DTO
      */
     @Override
-    public AuthResponseDto.TokenResponse login(final AuthRequestDto.OAuth2LoginRequest dto) {
+    public AuthResponseDto.AuthInfoResponse login(final AuthRequestDto.OAuth2LoginRequest dto) {
         Claims claims = tokenValidator.verifyAndParse(dto.getProvider(), dto.getIdToken());
 
         OAuthProfile oAuthProfile = OAuthProfileFactory.getOAuthProfile(dto.getProvider(), claims);
@@ -83,11 +84,12 @@ public class AuthServiceImpl implements AuthService {
                                  refreshToken,
                                  Duration.ofSeconds(refreshTokenExpiresIn));
 
-        return new AuthResponseDto.TokenResponse(accessToken,
-                                                 accessTokenExpiresIn,
-                                                 refreshToken,
-                                                 refreshTokenExpiresIn,
-                                                 true);
+        return new AuthInfoResponse(accessToken,
+                                    accessTokenExpiresIn,
+                                    refreshToken,
+                                    refreshTokenExpiresIn,
+                                    null,
+                                    true);
     }
 
     /**
@@ -116,10 +118,10 @@ public class AuthServiceImpl implements AuthService {
      * RefreshToken을 사용하여 AccessToken 및 RefreshToken 갱신
      *
      * @param refreshToken RefreshToken
-     * @return 갱신된 토큰 응답 DTO
+     * @return 갱신된 인증 정보 응답 DTO
      */
     @Override
-    public AuthResponseDto.TokenResponse refresh(final String refreshToken) {
+    public AuthResponseDto.AuthInfoResponse refresh(final String refreshToken) {
         try {
             jwtProvider.validateRefreshToken(refreshToken);
         } catch (ExpiredJwtException e) {
@@ -142,7 +144,7 @@ public class AuthServiceImpl implements AuthService {
             Authentication    authentication = jwtProvider.getAuthenticationFromRefreshToken(refreshToken);
             CustomUserDetails userDetails    = (CustomUserDetails) authentication.getPrincipal();
 
-            return new AuthResponseDto.TokenResponse(
+            return new AuthInfoResponse(
                     jwtProvider.generateAccessToken(userDetails.getId(),
                                                     userDetails.getUsername(),
                                                     userDetails.getRole()),
@@ -163,10 +165,10 @@ public class AuthServiceImpl implements AuthService {
                                  newRefreshToken,
                                  Duration.ofSeconds(jwtProvider.getRefreshTokenExpirationSeconds()));
 
-        return new AuthResponseDto.TokenResponse(newAccessToken,
-                                                 jwtProvider.getAccessTokenExpirationSeconds(),
-                                                 newRefreshToken,
-                                                 jwtProvider.getRefreshTokenExpirationSeconds());
+        return new AuthInfoResponse(newAccessToken,
+                                    jwtProvider.getAccessTokenExpirationSeconds(),
+                                    newRefreshToken,
+                                    jwtProvider.getRefreshTokenExpirationSeconds());
     }
 
 }
