@@ -8,6 +8,7 @@ import com.navercorp.fixturemonkey.api.introspector.ConstructorPropertiesArbitra
 import com.navercorp.fixturemonkey.api.introspector.FailoverIntrospector;
 import com.navercorp.fixturemonkey.api.introspector.FieldReflectionArbitraryIntrospector;
 import com.navercorp.fixturemonkey.jakarta.validation.plugin.JakartaValidationPlugin;
+import com.timespot.backend.domain.user.model.MapApi;
 import com.timespot.backend.domain.user.model.ProviderType;
 import com.timespot.backend.domain.user.model.SocialConnection;
 import com.timespot.backend.domain.user.model.User;
@@ -56,9 +57,11 @@ public final class TestUtils {
                              .instantiate(Instantiator.factoryMethod("of")
                                                       .parameter(String.class, "email")
                                                       .parameter(String.class, "nickname")
+                                                      .parameter(MapApi.class, "mapApi")
                                                       .parameter(UserRole.class, "role"))
                              .setLazy("email", () -> FAKER.internet().safeEmailAddress())
                              .setLazy("nickname", () -> FAKER.credentials().username().replace(".", "").substring(0, 5))
+                             .set("mapApi", MapApi.APPLE)
                              .set("role", UserRole.USER)
                              .sampleList(size);
     }
