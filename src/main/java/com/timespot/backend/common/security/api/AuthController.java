@@ -7,6 +7,7 @@ import com.timespot.backend.common.security.dto.AuthRequestDto;
 import com.timespot.backend.common.security.dto.AuthResponseDto;
 import com.timespot.backend.common.security.dto.AuthResponseDto.TokenResponse;
 import com.timespot.backend.common.security.service.AuthService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -36,7 +37,7 @@ public class AuthController implements AuthApiDocs {
     @Override
     @PostMapping("/login")
     public ResponseEntity<BaseResponse<TokenResponse>> login(
-            @RequestBody final AuthRequestDto.OAuth2LoginRequest dto
+            @RequestBody @Valid final AuthRequestDto.OAuth2LoginRequest dto
     ) {
         AuthResponseDto.TokenResponse responseData = authService.login(dto);
         return ResponseEntity.ok(BaseResponse.success(SuccessCode.USER_AUTH_LOGIN_SUCCESS, responseData));
@@ -56,7 +57,7 @@ public class AuthController implements AuthApiDocs {
     @Override
     @PostMapping("/refresh")
     public ResponseEntity<BaseResponse<TokenResponse>> refresh(
-            @RequestBody final AuthRequestDto.TokenRefreshRequest dto
+            @RequestBody @Valid final AuthRequestDto.TokenRefreshRequest dto
     ) {
         AuthResponseDto.TokenResponse responseData = authService.refresh(dto.getRefreshToken());
         return ResponseEntity.ok(BaseResponse.success(SuccessCode.USER_AUTH_TOKEN_REFRESH_SUCCESS, responseData));

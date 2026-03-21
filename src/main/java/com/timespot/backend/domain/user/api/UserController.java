@@ -6,6 +6,7 @@ import com.timespot.backend.common.security.model.CustomUserDetails;
 import com.timespot.backend.domain.user.dto.UserRequestDto.UserInfoUpdateRequest;
 import com.timespot.backend.domain.user.dto.UserResponseDto;
 import com.timespot.backend.domain.user.service.UserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -47,7 +48,7 @@ public class UserController implements UserApiDocs {
     @Override
     public ResponseEntity<BaseResponse<Void>> updateUserInfo(
             @AuthenticationPrincipal final CustomUserDetails userDetails,
-            @RequestBody final UserInfoUpdateRequest dto
+            @RequestBody @Valid final UserInfoUpdateRequest dto
     ) {
         userService.updateUserInfo(userDetails.getId(), dto);
         return ResponseEntity.ok(BaseResponse.success(SuccessCode.USER_UPDATE_SUCCESS));
