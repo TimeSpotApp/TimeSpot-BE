@@ -3,6 +3,7 @@ package com.timespot.backend.domain.place.dto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import net.minidev.json.annotate.JsonIgnore;
 
 /**
  * PackageName : com.timespot.backend.domain.place.dto
@@ -14,6 +15,7 @@ import lombok.NoArgsConstructor;
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------
  * 26. 3. 19.     whitecity01       Initial creation
+ * 26. 3. 22.     whitecity01       ADD pagenation
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 @Schema(description = "장소 도메인 응답 페이로드")
@@ -39,5 +41,8 @@ public abstract class PlaceResponseDto {
 
         @Schema(description = "경도", example = "120.1111")
         Double getLon();
+
+        @JsonIgnore
+        Integer getTotalCount();
     }
 }

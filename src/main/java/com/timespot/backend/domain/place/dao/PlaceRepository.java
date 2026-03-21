@@ -2,11 +2,13 @@ package com.timespot.backend.domain.place.dao;
 
 import com.timespot.backend.domain.place.dto.PlaceResponseDto;
 import com.timespot.backend.domain.place.model.Place;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+
 
 /**
  * PackageName : com.timespot.backend.domain.place.dao
@@ -18,6 +20,7 @@ import java.util.List;
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------
  * 26. 3. 19.     whitecity01       Initial creation
+ * 26. 3. 22.     whitecity01       ADD pagenation
  */
 public interface PlaceRepository extends JpaRepository<Place, Long> {
 
@@ -28,7 +31,8 @@ public interface PlaceRepository extends JpaRepository<Place, Long> {
                 p.category AS category,
                 p.address AS address,
                 ST_Y(p.location) AS lat,
-                ST_X(p.location) AS lon
+                ST_X(p.location) AS lon,
+                COUNT(*) OVER() AS totalCount
             FROM places p
             -- 1. 출발 역 근처 장소만 추출
             INNER JOIN station_place_map spm ON p.place_id = spm.place_id
@@ -53,6 +57,7 @@ public interface PlaceRepository extends JpaRepository<Place, Long> {
             @Param("userLon") double userLon,
             @Param("stationLat") double stationLat,
             @Param("stationLon") double stationLon,
-            @Param("walkableDistance") int walkableDistance
+            @Param("walkableDistance") int walkableDistance,
+            Pageable pageable
     );
 }
