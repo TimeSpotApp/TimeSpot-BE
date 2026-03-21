@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -36,11 +37,13 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
  * ---------------------------------------------------------------------------------------------------------------------
  * 26. 2. 28.    loadingKKamo21       Initial creation
  */
+@Profile("!test")
 @Configuration
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final ObjectMapper    objectMapper;
+    private final ObjectMapper objectMapper;
+
     private final JwtProvider     jwtProvider;
     private final RedisRepository redisRepository;
 
@@ -77,7 +80,7 @@ public class SecurityConfig {
                                                    final CorsConfigurationSource corsConfigurationSource)
     throws Exception {
         final JwtAuthenticationFilter jwtAuthenticationFilter = new JwtAuthenticationFilter(jwtProvider, redisRepository);
-        final JwtExceptionFilter jwtExceptionFilter = new JwtExceptionFilter(objectMapper);
+        final JwtExceptionFilter      jwtExceptionFilter      = new JwtExceptionFilter(objectMapper);
 
         http
                 .csrf(AbstractHttpConfigurer::disable)
@@ -107,11 +110,16 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.DELETE, SecurityConst.DELETE_AUTHENTICATED_URLS).authenticated()
 
                         // Role Admin Only
-                        //.requestMatchers(HttpMethod.GET, SecurityConst.GET_ROLE_ADMIN_URLS).hasAuthority(UserRole.ADMIN.getAuthority())
-                        //.requestMatchers(HttpMethod.POST, SecurityConst.POST_ROLE_ADMIN_URLS).hasAuthority(UserRole.ADMIN.getAuthority())
-                        //.requestMatchers(HttpMethod.PUT, SecurityConst.PUT_ROLE_ADMIN_URLS).hasAuthority(UserRole.ADMIN.getAuthority())
-                        //.requestMatchers(HttpMethod.PATCH, SecurityConst.PATCH_ROLE_ADMIN_URLS).hasAuthority(UserRole.ADMIN.getAuthority())
-                        //.requestMatchers(HttpMethod.DELETE, SecurityConst.DELETE_ROLE_ADMIN_URLS).hasAuthority(UserRole.ADMIN.getAuthority())
+                        //.requestMatchers(HttpMethod.GET, SecurityConst.GET_ROLE_ADMIN_URLS).hasAuthority(UserRole
+                        // .ADMIN.getAuthority())
+                        //.requestMatchers(HttpMethod.POST, SecurityConst.POST_ROLE_ADMIN_URLS).hasAuthority(UserRole
+                        // .ADMIN.getAuthority())
+                        //.requestMatchers(HttpMethod.PUT, SecurityConst.PUT_ROLE_ADMIN_URLS).hasAuthority(UserRole
+                        // .ADMIN.getAuthority())
+                        //.requestMatchers(HttpMethod.PATCH, SecurityConst.PATCH_ROLE_ADMIN_URLS).hasAuthority
+                        // (UserRole.ADMIN.getAuthority())
+                        //.requestMatchers(HttpMethod.DELETE, SecurityConst.DELETE_ROLE_ADMIN_URLS).hasAuthority
+                        // (UserRole.ADMIN.getAuthority())
 
                         .anyRequest().authenticated()
                 )
