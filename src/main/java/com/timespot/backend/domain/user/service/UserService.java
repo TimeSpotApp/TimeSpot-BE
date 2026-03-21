@@ -1,8 +1,10 @@
 package com.timespot.backend.domain.user.service;
 
+import com.timespot.backend.domain.user.dto.UserRequestDto;
 import com.timespot.backend.domain.user.dto.UserResponseDto.UserInfoResponse;
 import com.timespot.backend.domain.user.model.ProviderType;
 import com.timespot.backend.domain.user.model.User;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -18,15 +20,21 @@ import java.util.UUID;
  */
 public interface UserService {
 
-    User findOrCreateUserForSocialConnection(ProviderType providerType,
-                                             String providerUserId,
-                                             String email,
-                                             String nickname,
-                                             String authorizationCode);
+    Optional<User> findUserForSocialConnection(ProviderType providerType, String providerUserId);
+
+    User createUserForSocialConnection(ProviderType providerType,
+                                       String providerUserId,
+                                       String email,
+                                       String nickname,
+                                       String authorizationCode);
 
     User findById(UUID id);
 
     UserInfoResponse findUserInfoById(UUID id);
+
+    void updateUserInfo(UUID id, UserRequestDto.UserInfoUpdateRequest dto);
+
+    void updateUserMapApi(UUID id, UserRequestDto.UserMapApiUpdateRequest dto);
 
     void withdraw(UUID id);
 

@@ -52,21 +52,22 @@ public class User extends BaseAuditingEntity implements Persistable<UUID> {
     @Column(name = "nickname", nullable = false)
     private String nickname;
 
-    @Column(name = "profile_img_url")
-    private String profileImgUrl;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "map_api")
+    private MapApi mapApi;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false)
     private UserRole role;
 
     @Builder(access = AccessLevel.PRIVATE)
-    private User(final String email, final String nickname, final String profileImgUrl, final UserRole role) {
+    private User(final String email, final String nickname, final MapApi mapApi, final UserRole role) {
         validateEmail(email);
         validateNickname(nickname);
         this.id = UlidCreator.getUlid().toUuid();
         this.email = email.toLowerCase();
         this.nickname = nickname;
-        this.profileImgUrl = profileImgUrl;
+        this.mapApi = mapApi;
         this.role = role != null ? role : UserRole.USER;
     }
 
@@ -76,12 +77,16 @@ public class User extends BaseAuditingEntity implements Persistable<UUID> {
         return User.builder().email(email).nickname(nickname).role(UserRole.USER).build();
     }
 
+    public static User of(final String email, final String nickname, final MapApi mapApi) {
+        return User.builder().email(email).nickname(nickname).mapApi(mapApi).role(UserRole.USER).build();
+    }
+
     public static User of(final String email, final String nickname, final UserRole role) {
         return User.builder().email(email).nickname(nickname).role(role).build();
     }
 
-    public static User of(final String email, final String nickname, final String profileImgUrl, final UserRole role) {
-        return User.builder().email(email).nickname(nickname).profileImgUrl(profileImgUrl).role(role).build();
+    public static User of(final String email, final String nickname, final MapApi mapApi, final UserRole role) {
+        return User.builder().email(email).nickname(nickname).mapApi(mapApi).role(role).build();
     }
 
     // ========================= JPA 엔티티 메서드 =========================
@@ -143,12 +148,12 @@ public class User extends BaseAuditingEntity implements Persistable<UUID> {
     }
 
     /**
-     * 프로필 이미지 URL 업데이트
+     * 지도 API 업데이트
      *
-     * @param newProfileImgUrl 새로운 프로필 이미지 URL
+     * @param mapApi 새로운 지도 API 유형
      */
-    public void updateProfileImgUrl(final String newProfileImgUrl) {
-        this.profileImgUrl = newProfileImgUrl;
+    public void updateMapApi(final MapApi mapApi) {
+        this.mapApi = mapApi;
     }
 
 }

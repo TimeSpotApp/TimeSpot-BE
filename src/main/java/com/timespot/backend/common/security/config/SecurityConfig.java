@@ -102,7 +102,7 @@ public class SecurityConfig {
                         // Authenticated
                         .requestMatchers(HttpMethod.GET, SecurityConst.GET_AUTHENTICATED_URLS).authenticated()
                         .requestMatchers(HttpMethod.POST, SecurityConst.POST_AUTHENTICATED_URLS).authenticated()
-                        //.requestMatchers(HttpMethod.PUT, SecurityConst.PUT_AUTHENTICATED_URLS).authenticated()
+                        .requestMatchers(HttpMethod.PUT, SecurityConst.PUT_AUTHENTICATED_URLS).authenticated()
                         //.requestMatchers(HttpMethod.PATCH, SecurityConst.PATCH_AUTHENTICATED_URLS).authenticated()
                         .requestMatchers(HttpMethod.DELETE, SecurityConst.DELETE_AUTHENTICATED_URLS).authenticated()
 

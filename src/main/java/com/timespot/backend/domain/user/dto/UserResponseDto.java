@@ -1,9 +1,10 @@
 package com.timespot.backend.domain.user.dto;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.querydsl.core.annotations.QueryProjection;
+import com.timespot.backend.domain.user.model.MapApi;
 import com.timespot.backend.domain.user.model.ProviderType;
 import com.timespot.backend.domain.user.model.UserRole;
-import com.querydsl.core.annotations.QueryProjection;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -36,8 +37,8 @@ public abstract class UserResponseDto {
         private final String        email;
         @Schema(description = "닉네임")
         private final String        nickname;
-        @Schema(description = "프로필 이미지 URL", nullable = true)
-        private final String        profileImgUrl;
+        @Schema(description = "주사용 지도 API 유형: APPLE, GOOGLE, NAVER")
+        private final String        mapApi;
         @Schema(description = "계정 유형: USER, ADMIN")
         private final String        role;
         @Schema(description = "소셜 인증 제공자 유형: APPLE, GOOGLE")
@@ -50,14 +51,14 @@ public abstract class UserResponseDto {
         public UserInfoResponse(final UUID userId,
                                 final String email,
                                 final String nickname,
-                                final String profileImgUrl,
+                                final MapApi mapApi,
                                 final UserRole role,
                                 final ProviderType providerType,
                                 final LocalDateTime createdAt) {
             this.userId = userId != null ? userId.toString() : null;
             this.email = email;
             this.nickname = nickname;
-            this.profileImgUrl = profileImgUrl;
+            this.mapApi = mapApi != null ? mapApi.name() : null;
             this.role = role != null ? role.name() : null;
             this.providerType = providerType != null ? providerType.name() : null;
             this.createdAt = createdAt;

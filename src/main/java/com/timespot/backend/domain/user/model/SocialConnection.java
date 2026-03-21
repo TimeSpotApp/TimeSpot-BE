@@ -77,6 +77,16 @@ public class SocialConnection extends BaseAuditingEntity {
 
     public static SocialConnection of(final User user,
                                       final ProviderType providerType,
+                                      final String providerId) {
+        return SocialConnection.builder()
+                               .user(user)
+                               .providerType(providerType)
+                               .providerId(providerId)
+                               .build();
+    }
+
+    public static SocialConnection of(final User user,
+                                      final ProviderType providerType,
                                       final String providerId,
                                       final String idpRefreshToken) {
         SocialConnection socialConnection = SocialConnection.builder()

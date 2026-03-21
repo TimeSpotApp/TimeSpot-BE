@@ -14,6 +14,7 @@ import com.timespot.backend.common.config.P6SpyConfig;
 import com.timespot.backend.common.config.QuerydslConfig;
 import com.timespot.backend.common.util.TestUtils;
 import com.timespot.backend.domain.user.dto.UserResponseDto.UserInfoResponse;
+import com.timespot.backend.domain.user.model.MapApi;
 import com.timespot.backend.domain.user.model.SocialConnection;
 import com.timespot.backend.domain.user.model.User;
 import java.util.Optional;
@@ -67,6 +68,7 @@ class UserRepositoryTest {
             assertNotNull(savedUser, "savedUser는 null이 아니어야 합니다.");
             assertEquals(user.getEmail(), savedUser.getEmail(), "email은 같아야 합니다.");
             assertEquals(user.getNickname(), savedUser.getNickname(), "nickname은 같아야 합니다.");
+            assertEquals(user.getMapApi(), savedUser.getMapApi(), "mapApi는 같아야 합니다.");
             assertEquals(user.getRole(), savedUser.getRole(), "role은 같아야 합니다.");
         }
 
@@ -90,6 +92,7 @@ class UserRepositoryTest {
             assertNotNull(findUser, "findUser는 null이 아니어야 합니다.");
             assertEquals(user.getEmail(), findUser.getEmail(), "email은 같아야 합니다.");
             assertEquals(user.getNickname(), findUser.getNickname(), "nickname은 같아야 합니다.");
+            assertEquals(user.getMapApi(), findUser.getMapApi(), "mapApi는 같아야 합니다.");
             assertEquals(user.getRole(), findUser.getRole(), "role은 같아야 합니다.");
         }
 
@@ -125,6 +128,7 @@ class UserRepositoryTest {
             assertNotNull(findUser, "findUser는 null이 아니어야 합니다.");
             assertEquals(user.getEmail(), findUser.getEmail(), "email은 같아야 합니다.");
             assertEquals(user.getNickname(), findUser.getNickname(), "nickname은 같아야 합니다.");
+            assertEquals(user.getMapApi(), findUser.getMapApi(), "mapApi는 같아야 합니다.");
             assertEquals(user.getRole(), findUser.getRole(), "role은 같아야 합니다.");
         }
 
@@ -187,10 +191,12 @@ class UserRepositoryTest {
             User   user           = em.persistAndFlush(TestUtils.createUser());
             UUID   id             = user.getId();
             String beforeNickname = user.getNickname();
+            MapApi beforeMapApi   = user.getMapApi();
 
             // when
             User findUser = userRepository.findById(id).get();
             findUser.updateNickname(String.format("updated%s", findUser.getNickname()));
+            findUser.updateMapApi(MapApi.GOOGLE);
             em.flush();
 
             // then
@@ -199,6 +205,8 @@ class UserRepositoryTest {
             assertNotNull(updatedUser, "updatedUser는 존재하지 않아야 합니다.");
             assertEquals(findUser.getNickname(), updatedUser.getNickname(), "nickname은 업데이트된 값과 같아야 합니다.");
             assertNotEquals(beforeNickname, updatedUser.getNickname(), "nickname은 업데이트 이전 값과 달라야 합니다.");
+            assertEquals(findUser.getMapApi(), updatedUser.getMapApi(), "mapApi는 업데이트된 값과 같아야 합니다.");
+            assertNotEquals(beforeMapApi, updatedUser.getMapApi(), "mapApi는 업데이트 이전 값과 달라야 합니다.");
         }
 
     }
@@ -245,8 +253,8 @@ class UserRepositoryTest {
             assertNotNull(userInfoResponse, "userInfoResponse는 null이 아니어야 합니다.");
             assertEquals(user.getEmail(), userInfoResponse.getEmail(), "email은 같아야 합니다.");
             assertEquals(user.getNickname(), userInfoResponse.getNickname(), "nickname은 같아야 합니다.");
-            assertEquals(user.getProfileImgUrl(), userInfoResponse.getProfileImgUrl(), "profileImgUrl은 같아야 합니다.");
             assertEquals(user.getRole().name(), userInfoResponse.getRole(), "role은 같아야 합니다.");
+            assertEquals(user.getMapApi().name(), userInfoResponse.getMapApi(), "mapApi는 같아야 합니다.");
             assertEquals(socialConnection.getProviderType().name(), userInfoResponse.getProviderType(),
                          "providerType은 같아야 합니다.");
             assertEquals(user.getCreatedAt().withNano(0), userInfoResponse.getCreatedAt().withNano(0),
