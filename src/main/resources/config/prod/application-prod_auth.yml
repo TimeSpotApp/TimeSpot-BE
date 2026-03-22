@@ -29,3 +29,6 @@ app:
     refresh-token-secret: ${JWT_REFRESH_TOKEN_SECRET}
     access-token-expiration-seconds: ${JWT_ACCESS_TOKEN_EXPIRATION_SECONDS}
     refresh-token-expiration-seconds: ${JWT_REFRESH_TOKEN_EXPIRATION_SECONDS}
+google:
+  places:
+    api-key: ${GOOGLE_PLACES_API_KEY}
