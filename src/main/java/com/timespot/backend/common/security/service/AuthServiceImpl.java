@@ -296,8 +296,7 @@ public class AuthServiceImpl implements AuthService {
                 jwtProvider.getAccessTokenExpirationSeconds(),
                 graceToken,
                 jwtProvider.getRefreshTokenExpirationSeconds(),
-                userDetails.getMapApi(),
-                null
+                userDetails.getMapApi()
         );
     }
 
@@ -334,8 +333,7 @@ public class AuthServiceImpl implements AuthService {
                 accessTokenExpiresIn,
                 newRefreshToken,
                 refreshTokenExpiresIn,
-                user.getMapApi(),
-                null
+                user.getMapApi()
         );
     }
 

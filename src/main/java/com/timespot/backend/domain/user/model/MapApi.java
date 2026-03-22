@@ -7,6 +7,9 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 /**
  * PackageName : com.timespot.backend.domain.user.model
@@ -19,14 +22,20 @@ import java.util.stream.Stream;
  * ---------------------------------------------------------------------------------------------------------------------
  * 26. 3. 21.    loadingKKamo21       Initial creation
  */
+@Getter
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public enum MapApi {
 
-    APPLE, GOOGLE, NAVER;
+    APPLE("애플", null),
+    GOOGLE("구글", "comgooglemaps"),
+    NAVER("네이버", "nmap");
 
     private static final Map<String, MapApi> MAP_API_MAP = Stream.of(values())
                                                                  .collect(Collectors.toUnmodifiableMap(
                                                                          Enum::name, Function.identity())
                                                                  );
+    private final String name;
+    private final String urlScheme;
 
     /**
      * 지도 API 유형 조회
