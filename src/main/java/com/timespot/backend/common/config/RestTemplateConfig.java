@@ -1,4 +1,4 @@
-package com.timespot.backend.common.config; // 프로젝트 구조에 맞게 패키지명 수정
+package com.timespot.backend.common.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
