@@ -43,7 +43,10 @@ public abstract class SecurityConst {
 
     public static final String[] GET_AUTHENTICATED_URLS    = {
             // User
-            "/api/v1/users"
+            "/api/v1/users",
+            // Place
+            "/api/v1/place",
+            "/api/v1/place/detail"
     };
     public static final String[] POST_AUTHENTICATED_URLS   = {
             // Auth
