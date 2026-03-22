@@ -59,7 +59,7 @@ import org.springframework.web.bind.annotation.RestController;
  * ---------------------------------------------------------------------------------------------------------------------
  * 26. 3. 15.    loadingKKamo21       Initial creation
  */
-@WebMvcTest(controllers = TestController.class)
+@WebMvcTest(TestController.class)
 @Import({TestSecurityConfig.class, RateLimitConfig.class, RateLimitBucketBuilder.class, RateLimitProperties.class})
 class RateLimitFilterTest {
 
