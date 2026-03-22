@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestParam;
  * ---------------------------------------------------------------------------------------------------------------------
  * 26. 3. 19.     whitecity01       Initial creation
  * 26. 3. 22.     whitecity01       ADD pagenation
+ * 26. 3. 22.     whitecity01       ADD place details
  */
 @Tag(name = "Place API", description = "방문 가능 장소 조회 API")
 public interface PlaceApiDocs {
@@ -34,4 +35,12 @@ public interface PlaceApiDocs {
             @RequestParam int remainingMinutes,
             Pageable pageable
     );
+
+    @Operation(summary = "장소 상세 정보 조회", description = "해당 장소의 상세 정보를 조회합니다.")
+    @ApiResponse(responseCode = "200", description = "장소 상세 정보 조회 성공")
+    ResponseEntity<BaseResponse<PlaceResponseDto.PlaceDetail>> getPlaceDetail(
+            @RequestParam String googleId,
+            @RequestParam Long stationId
+    );
+
 }

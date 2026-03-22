@@ -27,6 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
  * 26. 3. 19.     whitecity01       Initial creation
  * 26. 3. 20.     whitecity01       FIX getAvailablePlaces api url
  * 26. 3. 22.     whitecity01       ADD pagenation
+ * 26. 3. 22.     whitecity01       ADD place details
  */
 @RestController
 @RequestMapping("/api/v1/place")
@@ -34,7 +35,6 @@ import org.springframework.web.bind.annotation.RestController;
 public class PlaceController implements PlaceApiDocs {
     private final PlaceService placeService;
 
-    // 호출 예시: GET /api/v1/place?userLat=37.559&userLon=126.977&stationId=1&remainingMinutes=40&page=0&size=10
     @Override
     @CustomPageResponse(totalPages = false, first = false, last = false)
     @GetMapping()
@@ -49,5 +49,16 @@ public class PlaceController implements PlaceApiDocs {
                 userLat, userLon, stationId, remainingMinutes, pageable);
 
         return ResponseEntity.ok(BaseResponse.success(SuccessCode.PLACE_GET_AVAILABLE_PLACES_SUCCESS, places));
+    }
+
+    @Override
+    @GetMapping("/detail")
+    public ResponseEntity<BaseResponse<PlaceResponseDto.PlaceDetail>> getPlaceDetail(
+            @RequestParam String googleId,
+            @RequestParam Long stationId) {
+
+        PlaceResponseDto.PlaceDetail placeDetail = placeService.getPlaceDetail(googleId, stationId);
+
+        return ResponseEntity.ok(BaseResponse.success(SuccessCode.PLACE_GET_DETAIL_SUCCESS, placeDetail));
     }
 }

@@ -16,6 +16,7 @@ import org.springframework.http.HttpStatus;
  * ---------------------------------------------------------------------------------------------------------------------
  * 26. 2. 26.    loadingKKamo21       Initial creation
  * 26. 3. 19.    whitecity01          Add Station, Place error
+ * 26. 3. 22.    whitecity01          Add place detail error
  */
 @Getter
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
@@ -71,7 +72,8 @@ public enum ErrorCode {
     STATION_NOT_ACTIVE(HttpStatus.BAD_REQUEST, "ST002", "현재 비활성화된 역입니다."),
 
     // Place
-    PLACE_INSUFFICIENT_REMAINING_TIME(HttpStatus.BAD_REQUEST, "PL001", "체류 가능한 시간이 부족합니다.");
+    PLACE_NOT_FOUND(HttpStatus.NOT_FOUND, "PL001", "장소를 찾을 수 없습니다."),
+    PLACE_INSUFFICIENT_REMAINING_TIME(HttpStatus.BAD_REQUEST, "PL002", "체류 가능한 시간이 부족합니다.");
 
     private final HttpStatus status;
     private final String     code;

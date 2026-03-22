@@ -4,6 +4,7 @@ import com.timespot.backend.common.error.GlobalException;
 import com.timespot.backend.common.response.ErrorCode;
 import com.timespot.backend.domain.place.constant.PlaceConst;
 import com.timespot.backend.domain.place.dao.PlaceRepository;
+import com.timespot.backend.domain.place.dto.GooglePlaceDto;
 import com.timespot.backend.domain.place.dto.PlaceResponseDto;
 import com.timespot.backend.domain.place.model.Station;
 import com.timespot.backend.domain.place.dao.StationRepository;
@@ -27,13 +28,15 @@ import java.util.List;
  * ---------------------------------------------------------------------------------------------------------------------
  * 26. 3. 19.     whitecity01       Initial creation
  * 26. 3. 22.     whitecity01       ADD pagenation
+ * 26. 3. 22.     whitecity01       ADD place detail
  */
 @Service
 @RequiredArgsConstructor
 public class PlaceServiceImpl implements PlaceService {
 
-    private final PlaceRepository   placeRepository;
-    private final StationRepository stationRepository;
+    private final PlaceRepository       placeRepository;
+    private final StationRepository     stationRepository;
+    private final GooglePlaceApiService googlePlaceApiService;
 
     /**
      * 유저 위치, 역ID, 남은 시간을 입력받아
@@ -74,5 +77,35 @@ public class PlaceServiceImpl implements PlaceService {
         int totalCount = places.isEmpty() ? 0 : places.get(0).getTotalCount();
 
         return new PageImpl<>(places, pageable, totalCount);
+    }
+
+    /**
+     * 장소 상세 정보 요청 -> 정제 -> 반환
+     *
+     * @param googleId   장소 구글id
+     * @param stationId  역 id
+     * @return 장소 세부 정보 엔티티
+     */
+    @Override
+    public PlaceResponseDto.PlaceDetail getPlaceDetail(String googleId, Long stationId) {
+
+        PlaceResponseDto.PlaceDetailInDB dbResult = placeRepository.findPlaceDetail(
+                googleId, stationId, PlaceConst.WALK_SPEED_PER_MINUTE)
+                .orElseThrow(() -> new GlobalException(ErrorCode.PLACE_NOT_FOUND));
+
+        // 구글 API 호출
+        GooglePlaceDto.ParsedResult googleApiResult = googlePlaceApiService.getPlaceDetails(googleId);
+
+        return PlaceResponseDto.PlaceDetail.builder()
+                .name(dbResult.getName())
+                .category(dbResult.getCategory())
+                .address(dbResult.getAddress())
+                .distanceToStation(dbResult.getDistanceToStation())
+                .timeToStation(dbResult.getTimeToStation())
+                .imageUrl(googleApiResult.getImageUrl())
+                .weekday(googleApiResult.getWeekdayHours())
+                .weekend(googleApiResult.getWeekendHours())
+                .phoneNumber(googleApiResult.getPhoneNumber())
+                .build();
     }
 }

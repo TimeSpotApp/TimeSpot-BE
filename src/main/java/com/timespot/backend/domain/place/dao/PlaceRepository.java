@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 
 /**
@@ -68,5 +69,25 @@ public interface PlaceRepository extends JpaRepository<Place, Long> {
             @Param("walkableDistance") int walkableDistance,
             @Param("walkSpeed") int walkSpeed,
             Pageable pageable
+    );
+
+    @Query(value = """
+            SELECT 
+                p.name AS name,
+                p.category AS category,
+                p.address AS address,
+                ST_Distance_Sphere(p.location, s.location) AS distanceToStation,
+                FLOOR(ST_Distance_Sphere(p.location, s.location) / :walkSpeed) AS timeToStation
+            FROM places p
+            INNER JOIN station_place_map spm ON p.place_id = spm.place_id
+            INNER JOIN stations s ON spm.station_id = s.station_id 
+            WHERE p.google_place_id = :googleId
+              AND s.station_id = :stationId
+            LIMIT 1
+            """, nativeQuery = true)
+    Optional<PlaceResponseDto.PlaceDetailInDB> findPlaceDetail(
+            @Param("googleId") String googleId,
+            @Param("stationId") Long stationId,
+            @Param("walkSpeed") int walkSpeed
     );
 }
