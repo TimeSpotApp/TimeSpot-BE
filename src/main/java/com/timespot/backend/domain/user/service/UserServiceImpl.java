@@ -13,6 +13,7 @@ import com.timespot.backend.domain.user.model.User;
 import com.timespot.backend.infra.security.oauth.client.IdpTokenExchangeClient;
 import com.timespot.backend.infra.security.oauth.constant.TokenType;
 import com.timespot.backend.infra.security.oauth.dto.OAuthResponseDto.AppleTokenValidationResponse;
+import com.timespot.backend.infra.security.oauth.dto.OAuthResponseDto.GoogleTokenValidationResponse;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -92,14 +93,15 @@ public class UserServiceImpl implements UserService {
                 return user;
             }
             case GOOGLE -> {
-                //GoogleTokenValidationResponse tokenValidationResponse = idpTokenExchangeClient.validationGoogleAuthCode(
-                //        authorizationCode
-                //);
-                //idpRefreshToken = tokenValidationResponse.refreshToken();
-                idpRefreshToken = null; // NOTE: Google 계정의 경우 연동 인증 및 IDP 토큰 발급 처리 스킵
+                GoogleTokenValidationResponse tokenValidationResponse = idpTokenExchangeClient.validationGoogleAuthCode(
+                        authorizationCode
+                );
+                idpRefreshToken = tokenValidationResponse.refreshToken();
 
                 User user = userRepository.save(User.of(email, nickname));
-                socialConnectionRepository.save(SocialConnection.of(user, providerType, providerUserId));
+                socialConnectionRepository.save(
+                        SocialConnection.of(user, providerType, providerUserId, idpRefreshToken)
+                );
 
                 return user;
             }
@@ -173,9 +175,7 @@ public class UserServiceImpl implements UserService {
         switch (socialConnection.getProviderType()) {
             case APPLE -> idpTokenExchangeClient.revokeAppleToken(TokenType.REFRESH_TOKEN,
                                                                   socialConnection.getIdpRefreshToken());
-            case GOOGLE -> {}
-            // NOTE: Google 계정의 경우 연동 해지 시 IDP 토큰 폐기 스킵
-            //idpTokenExchangeClient.revokeGoogleToken(socialConnection.getIdpRefreshToken());
+            case GOOGLE -> idpTokenExchangeClient.revokeGoogleToken(socialConnection.getIdpRefreshToken());
             default -> throw new GlobalException(ErrorCode.SOCIAL_CONNECTION_PROVIDER_NOT_SUPPORTED);
         }
 
