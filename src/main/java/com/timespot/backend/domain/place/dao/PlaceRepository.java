@@ -32,6 +32,14 @@ public interface PlaceRepository extends JpaRepository<Place, Long> {
                 p.address AS address,
                 ST_Y(p.location) AS lat,
                 ST_X(p.location) AS lon,
+                FLOOR(
+                    (
+                        :walkableDistance - (
+                            ST_Distance_Sphere(p.location, ST_GeomFromText(CONCAT('POINT(', :userLat, ' ', :userLon, ')'), 4326)) +
+                            ST_Distance_Sphere(p.location, ST_GeomFromText(CONCAT('POINT(', :stationLat, ' ', :stationLon, ')'), 4326))
+                        )
+                    ) / :walkSpeed
+                ) AS stayableMinutes,
                 COUNT(*) OVER() AS totalCount
             FROM places p
             -- 1. 출발 역 근처 장소만 추출
@@ -58,6 +66,7 @@ public interface PlaceRepository extends JpaRepository<Place, Long> {
             @Param("stationLat") double stationLat,
             @Param("stationLon") double stationLon,
             @Param("walkableDistance") int walkableDistance,
+            @Param("walkSpeed") int walkSpeed,
             Pageable pageable
     );
 }

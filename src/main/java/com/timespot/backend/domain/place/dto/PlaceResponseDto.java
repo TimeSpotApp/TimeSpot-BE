@@ -1,9 +1,9 @@
 package com.timespot.backend.domain.place.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
-import net.minidev.json.annotate.JsonIgnore;
 
 /**
  * PackageName : com.timespot.backend.domain.place.dto
@@ -41,6 +41,9 @@ public abstract class PlaceResponseDto {
 
         @Schema(description = "경도", example = "120.1111")
         Double getLon();
+
+        @Schema(description = "체류 가능 시간 (분)", example = "25")
+        Integer getStayableMinutes();
 
         @JsonIgnore
         Integer getTotalCount();

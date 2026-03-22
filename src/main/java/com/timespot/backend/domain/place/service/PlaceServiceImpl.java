@@ -68,7 +68,7 @@ public class PlaceServiceImpl implements PlaceService {
         int walkableDistance = (remainingMinutes- PlaceConst.TOTAL_BUFFER_TIME) * PlaceConst.WALK_SPEED_PER_MINUTE;
 
         List<PlaceResponseDto.AvailablePlace> places = placeRepository.findAvailablePlacesOnRoute(
-                stationId, userLat, userLon, station.getLatitude(), station.getLongitude(), walkableDistance, pageable
+                stationId, userLat, userLon, station.getLatitude(), station.getLongitude(), walkableDistance, PlaceConst.WALK_SPEED_PER_MINUTE, pageable
         );
 
         int totalCount = places.isEmpty() ? 0 : places.get(0).getTotalCount();
