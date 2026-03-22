@@ -18,7 +18,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -99,26 +98,26 @@ public class RateLimitFilter extends OncePerRequestFilter {
      * @return BucketConfiguration
      */
     private BucketConfiguration resolveBucketConfiguration(final String requestURI) {
-        Optional<Entry<String, BucketConfiguration>> exactMatch = rateLimitBucketBuilder.getEndpointConfigs()
-                                                                                        .entrySet()
-                                                                                        .stream()
-                                                                                        .filter(entry -> {
-                                                                                            try {
-                                                                                                return pathPatternParser.parse(entry.getKey()).matches(PathContainer.parsePath(requestURI));
-                                                                                            } catch (Exception e) {
-                                                                                                log.warn("PathPattern parsing failed for pattern: {}, URI: {}", entry.getKey(), requestURI, e);
-                                                                                                return false;
-                                                                                            }
-                                                                                        })
-                                                                                        .min(Comparator.comparing(e -> e.getKey().length()));
-        if (exactMatch.isPresent()) return exactMatch.get().getValue();
-
-        Optional<Entry<String, BucketConfiguration>> antMatch = rateLimitBucketBuilder.getEndpointConfigs()
-                                                                                      .entrySet()
-                                                                                      .stream()
-                                                                                      .filter(entry -> antPathMatcher.match(entry.getKey(), requestURI))
-                                                                                      .min(Comparator.comparing(e -> e.getKey().length()));
-        return antMatch.map(Map.Entry::getValue).orElse(rateLimitBucketBuilder.getAnonymousConfig());
+        Optional<BucketConfiguration> patternMatch = rateLimitBucketBuilder.getEndpointConfigs()
+                                                                           .entrySet()
+                                                                           .stream()
+                                                                           .filter(entry -> {
+                                                                               try {
+                                                                                   return pathPatternParser.parse(entry.getKey()).matches(PathContainer.parsePath(requestURI));
+                                                                               } catch (Exception e) {
+                                                                                   log.warn("PathPattern parsing failed for pattern: {}, URI: {}", entry.getKey(), requestURI, e);
+                                                                                   return false;
+                                                                               }
+                                                                           })
+                                                                           .max(Comparator.comparing(e -> e.getKey().length()))
+                                                                           .map(Map.Entry::getValue);
+        return patternMatch.orElseGet(() -> rateLimitBucketBuilder.getEndpointConfigs()
+                                                                  .entrySet()
+                                                                  .stream()
+                                                                  .filter(entry -> antPathMatcher.match(entry.getKey(), requestURI))
+                                                                  .max(Comparator.comparing(e -> e.getKey().length()))
+                                                                  .map(Map.Entry::getValue)
+                                                                  .orElse(rateLimitBucketBuilder.getAnonymousConfig()));
     }
 
     /**
