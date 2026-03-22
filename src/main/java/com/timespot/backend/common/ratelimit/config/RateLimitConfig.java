@@ -2,7 +2,6 @@ package com.timespot.backend.common.ratelimit.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.timespot.backend.common.ratelimit.builder.RateLimitBucketBuilder;
-import com.timespot.backend.common.ratelimit.constant.RateLimitConst;
 import com.timespot.backend.common.ratelimit.filter.RateLimitFilter;
 import io.github.bucket4j.distributed.proxy.ProxyManager;
 import lombok.RequiredArgsConstructor;
@@ -37,8 +36,6 @@ public class RateLimitConfig {
         registration.setFilter(new RateLimitFilter(objectMapper, proxyManager, rateLimitBucketBuilder));
         registration.addUrlPatterns("/*");
         registration.setOrder(Ordered.HIGHEST_PRECEDENCE);
-
-        registration.addInitParameter("excludedPathPrefixes", String.join(",", RateLimitConst.excludedPathPrefixes));
 
         return registration;
     }

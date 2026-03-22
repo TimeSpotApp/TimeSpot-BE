@@ -49,14 +49,8 @@ public final class RateLimitProperties {
 
     @Getter
     @Setter
-    public static class EndpointConfig {
-
+    public static class EndpointConfig extends BucketConfig {
         private String pathPattern;
-        private long   capacity        = 100L;
-        private long   durationMinutes = 1L;
-        private String refillStrategy  = RateLimitConst.REFILL_STRATEGY_GREEDY;
-        private String description     = "";
-
     }
 
 }

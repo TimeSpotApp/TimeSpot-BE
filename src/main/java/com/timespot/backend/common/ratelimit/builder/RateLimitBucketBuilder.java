@@ -2,14 +2,14 @@ package com.timespot.backend.common.ratelimit.builder;
 
 import com.timespot.backend.common.ratelimit.constant.RateLimitConst;
 import com.timespot.backend.common.ratelimit.properties.RateLimitProperties;
-import com.timespot.backend.common.ratelimit.properties.RateLimitProperties.BucketConfig;
-import com.timespot.backend.common.ratelimit.properties.RateLimitProperties.EndpointConfig;
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.BucketConfiguration;
+import jakarta.annotation.PostConstruct;
 import java.time.Duration;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.Map;
 import java.util.stream.Collectors;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -29,6 +29,17 @@ import org.springframework.stereotype.Component;
 public class RateLimitBucketBuilder {
 
     private final RateLimitProperties rateLimitProperties;
+
+    @Getter
+    private Map<String, BucketConfiguration> endpointConfigs;
+    @Getter
+    private BucketConfiguration              defaultConfig;
+    @Getter
+    private BucketConfiguration              authenticatedConfig;
+    @Getter
+    private BucketConfiguration              anonymousConfig;
+
+    // ========================= 내부 메서드 =========================
 
     /**
      * Bandwidth 생성
@@ -54,56 +65,38 @@ public class RateLimitBucketBuilder {
         };
     }
 
-    /**
-     * 기본 버킷 설정
-     *
-     * @return BucketConfiguration
-     */
-    public BucketConfiguration getDefaultConfig() {
-        BucketConfig config = rateLimitProperties.getDefaultConfig();
-        return buildBucketConfiguration(config.getCapacity(), config.getDurationMinutes(), config.getRefillStrategy());
-    }
-
-    /**
-     * 익명 요청 버킷 설정 (IP 기반)
-     *
-     * @return BucketConfiguration
-     */
-    public BucketConfiguration getAnonymousConfig() {
-        BucketConfig config = rateLimitProperties.getAnonymous();
-        return buildBucketConfiguration(config.getCapacity(), config.getDurationMinutes(), config.getRefillStrategy());
-    }
-
-    /**
-     * 인증된 클라이언트 요청 버킷 설정 (UserId 기반)
-     *
-     * @return BucketConfiguration
-     */
-    public BucketConfiguration getAuthenticatedConfig() {
-        BucketConfig config = rateLimitProperties.getAuthenticated();
-        return buildBucketConfiguration(config.getCapacity(), config.getDurationMinutes(), config.getRefillStrategy());
-    }
-
-    // ========================= 내부 메서드 =========================
-
-    /**
-     * 엔드포인트 별 버킷 설정 맵
-     *
-     * @return {경로패턴: BucketConfiguration} 맵
-     */
-    public Map<String, BucketConfiguration> getConfigurations() {
-        return rateLimitProperties.getEndpoints()
-                                  .stream()
-                                  .collect(Collectors.toMap(
-                                          EndpointConfig::getPathPattern,
-                                          config -> buildBucketConfiguration(
-                                                  config.getCapacity(),
-                                                  config.getDurationMinutes(),
-                                                  config.getRefillStrategy()
-                                          ),
-                                          (existing, replacement) -> existing,
-                                          HashMap::new
-                                  ));
+    @PostConstruct
+    private void init() {
+        this.endpointConfigs = rateLimitProperties.getEndpoints()
+                                                  .stream()
+                                                  .collect(
+                                                          Collectors.collectingAndThen(
+                                                                  Collectors.toMap(
+                                                                          RateLimitProperties.EndpointConfig::getPathPattern,
+                                                                          config -> buildBucketConfiguration(
+                                                                                  config.getCapacity(),
+                                                                                  config.getDurationMinutes(),
+                                                                                  config.getRefillStrategy()
+                                                                          )
+                                                                  ),
+                                                                  Collections::unmodifiableMap
+                                                          )
+                                                  );
+        this.defaultConfig = buildBucketConfiguration(
+                rateLimitProperties.getDefaultConfig().getCapacity(),
+                rateLimitProperties.getDefaultConfig().getDurationMinutes(),
+                rateLimitProperties.getDefaultConfig().getRefillStrategy()
+        );
+        this.authenticatedConfig = buildBucketConfiguration(
+                rateLimitProperties.getAuthenticated().getCapacity(),
+                rateLimitProperties.getAuthenticated().getDurationMinutes(),
+                rateLimitProperties.getAuthenticated().getRefillStrategy()
+        );
+        this.anonymousConfig = buildBucketConfiguration(
+                rateLimitProperties.getAnonymous().getCapacity(),
+                rateLimitProperties.getAnonymous().getDurationMinutes(),
+                rateLimitProperties.getAnonymous().getRefillStrategy()
+        );
     }
 
     /**

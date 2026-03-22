@@ -5,7 +5,6 @@ import com.timespot.backend.common.ratelimit.builder.RateLimitBucketBuilder;
 import com.timespot.backend.common.ratelimit.constant.RateLimitConst;
 import com.timespot.backend.common.response.BaseResponse;
 import com.timespot.backend.common.response.ErrorCode;
-import com.timespot.backend.common.security.model.CustomUserDetails;
 import io.github.bucket4j.BucketConfiguration;
 import io.github.bucket4j.ConsumptionProbe;
 import io.github.bucket4j.distributed.BucketProxy;
@@ -18,15 +17,10 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -45,14 +39,9 @@ import org.springframework.web.filter.OncePerRequestFilter;
 @Slf4j
 public class RateLimitFilter extends OncePerRequestFilter {
 
-    private static final long LOG_THROTTLE_INTERVAL_MILLIS = TimeUnit.MINUTES.toMillis(1);
-
-    private final ObjectMapper objectMapper;
-
+    private final ObjectMapper           objectMapper;
     private final ProxyManager<String>   proxyManager;
     private final RateLimitBucketBuilder rateLimitBucketBuilder;
-
-    private final Map<String, Long> lastLogTimestamps = new ConcurrentHashMap<>();
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
@@ -64,23 +53,19 @@ public class RateLimitFilter extends OncePerRequestFilter {
             return;
         }
 
-        String rateLimitKey = null;
+        String              rateLimitKey = resolveRateLimitKey(request);
+        BucketConfiguration config       = resolveBucketConfiguration(requestURI);
+
         try {
-            rateLimitKey = resolveRateLimitKey(request);
-            BucketConfiguration config = resolveBucketConfiguration(requestURI);
-
-            BucketProxy bucketProxy = proxyManager.builder().build(rateLimitKey, () -> config);
-
-            ConsumptionProbe probe = bucketProxy.tryConsumeAndReturnRemaining(1);
+            BucketProxy      bucketProxy = proxyManager.builder().build(rateLimitKey, () -> config);
+            ConsumptionProbe probe       = bucketProxy.tryConsumeAndReturnRemaining(1);
 
             if (probe.isConsumed()) {
                 response.setHeader("X-Rate-Limit-Remaining", String.valueOf(probe.getRemainingTokens()));
                 filterChain.doFilter(request, response);
             } else handleRateLimitExceeded(response, probe, rateLimitKey);
         } catch (Exception e) {
-            log.warn("Rate limit processing failed. Allowing request to proceed: {} - {}",
-                     rateLimitKey != null ? rateLimitKey : "unknown",
-                     e.getMessage());
+            log.warn("Rate limit check failed for {}. Proceeding request.", rateLimitKey, e);
             filterChain.doFilter(request, response);
         }
     }
@@ -105,26 +90,13 @@ public class RateLimitFilter extends OncePerRequestFilter {
      * @return BucketConfiguration
      */
     private BucketConfiguration resolveBucketConfiguration(final String requestURI) {
-        final Map<String, BucketConfiguration> endpointConfigs = rateLimitBucketBuilder.getConfigurations();
-
-        for (Entry<String, BucketConfiguration> entry : endpointConfigs.entrySet())
-            if (requestURI.startsWith(entry.getKey())) {
-                log.debug("Endpoint-specific rate limit applied: {} -> {}", requestURI, entry.getKey());
-                return entry.getValue();
-            }
-
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        boolean isAuthenticated = authentication != null
-                                  && authentication.isAuthenticated()
-                                  && authentication.getPrincipal() instanceof CustomUserDetails;
-
-        if (isAuthenticated) {
-            log.debug("Authenticated user rate limit applied for: {}", requestURI);
-            return rateLimitBucketBuilder.getAuthenticatedConfig();
-        } else {
-            log.debug("Anonymous user rate limit applied for: {}", requestURI);
-            return rateLimitBucketBuilder.getAnonymousConfig();
-        }
+        return rateLimitBucketBuilder.getEndpointConfigs()
+                                     .entrySet()
+                                     .stream()
+                                     .filter(entry -> requestURI.startsWith(entry.getKey()))
+                                     .map(Map.Entry::getValue)
+                                     .findFirst()
+                                     .orElse(rateLimitBucketBuilder.getAnonymousConfig());
     }
 
     /**
@@ -134,13 +106,6 @@ public class RateLimitFilter extends OncePerRequestFilter {
      * @return Rate Limit 키
      */
     private String resolveRateLimitKey(final HttpServletRequest request) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        if (authentication != null
-            && authentication.isAuthenticated()
-            && authentication.getPrincipal() instanceof CustomUserDetails userDetails)
-            return RateLimitConst.AUTHENTICATED_KEY_PREFIX + userDetails.getId();
-
         return RateLimitConst.ANONYMOUS_KEY_PREFIX + extractIpAddress(request);
     }
 
@@ -153,15 +118,12 @@ public class RateLimitFilter extends OncePerRequestFilter {
      */
     private String extractIpAddress(final HttpServletRequest request) {
         String ip = request.getHeader("X-Forwarded-For");
-
-        if (!StringUtils.hasText(ip) || "unknown".equalsIgnoreCase(ip))
-            ip = request.getHeader("X-Real-IP");
+        if (StringUtils.hasText(ip) && !"unknown".equalsIgnoreCase(ip))
+            return ip.split(",")[0].trim();
+        ip = request.getHeader("X-Real-IP");
         if (!StringUtils.hasText(ip) || "unknown".equalsIgnoreCase(ip))
             ip = request.getRemoteAddr();
-        if ("0:0:0:0:0:0:0:1".equals(ip))
-            ip = "127.0.0.1";
-
-        return ip;
+        return "0:0:0:0:0:0:0:1".equals(ip) ? "127.0.0.1" : ip;
     }
 
     /**
@@ -173,10 +135,12 @@ public class RateLimitFilter extends OncePerRequestFilter {
      * @param rateLimitKey Rate Limit 키
      * @throws IOException IOException
      */
-    private void handleRateLimitExceeded(final HttpServletResponse response, final ConsumptionProbe probe,
-                                         final String rateLimitKey)
-    throws IOException {
+    private void handleRateLimitExceeded(
+            final HttpServletResponse response, final ConsumptionProbe probe, final String rateLimitKey
+    ) throws IOException {
         final long retryAfterSeconds = probe.getNanosToWaitForRefill() / 1_000_000_000L;
+
+        log.debug("Rate limit exceeded for {}. Retry in {}s", rateLimitKey, retryAfterSeconds);
 
         response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
@@ -187,36 +151,6 @@ public class RateLimitFilter extends OncePerRequestFilter {
         BaseResponse<Object> baseResponse = BaseResponse.error(ErrorCode.TOO_MANY_REQUESTS);
 
         objectMapper.writeValue(response.getWriter(), baseResponse);
-
-        logRateLimitExceeded(rateLimitKey, retryAfterSeconds);
-    }
-
-    /**
-     * Rate Limit 초과 로그 출력
-     * 동일한 RateLimitKey에 대해 1분에 1회만 WARN 로그 출력
-     * 나머지 시간은 DEBUG 로그로 기록
-     *
-     * @param rateLimitKey      Rate Limit 키
-     * @param retryAfterSeconds 재시도까지의 시간(초)
-     */
-    private void logRateLimitExceeded(final String rateLimitKey, final long retryAfterSeconds) {
-        final long now     = System.currentTimeMillis();
-        final Long lastLog = lastLogTimestamps.get(rateLimitKey);
-
-        if (lastLog == null || (now - lastLog) >= LOG_THROTTLE_INTERVAL_MILLIS) {
-            Long previous = lastLogTimestamps.putIfAbsent(rateLimitKey, now);
-            if (previous == null)
-                log.warn("Rate limit exceeded for key: {}. Retry after: {} seconds",
-                         rateLimitKey,
-                         retryAfterSeconds);
-            else
-                log.debug("Rate limit exceeded for key: {}. Retry after: {} seconds (throttled)",
-                          rateLimitKey,
-                          retryAfterSeconds);
-        } else
-            log.debug("Rate limit exceeded for key: {}. Retry after: {} seconds (throttled)",
-                      rateLimitKey,
-                      retryAfterSeconds);
     }
 
 }
