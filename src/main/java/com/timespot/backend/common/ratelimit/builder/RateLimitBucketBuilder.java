@@ -34,8 +34,8 @@ public class RateLimitBucketBuilder {
     private Map<String, BucketConfiguration> endpointConfigs;
     @Getter
     private BucketConfiguration              defaultConfig;
-    @Getter
-    private BucketConfiguration              authenticatedConfig;
+    //@Getter
+    //private BucketConfiguration              authenticatedConfig;   // NOTE: 인증된 사용자 요청에 대한 설정은 추후 필요 시 활용
     @Getter
     private BucketConfiguration              anonymousConfig;
 
@@ -87,11 +87,11 @@ public class RateLimitBucketBuilder {
                 rateLimitProperties.getDefaultConfig().getDurationMinutes(),
                 rateLimitProperties.getDefaultConfig().getRefillStrategy()
         );
-        this.authenticatedConfig = buildBucketConfiguration(
-                rateLimitProperties.getAuthenticated().getCapacity(),
-                rateLimitProperties.getAuthenticated().getDurationMinutes(),
-                rateLimitProperties.getAuthenticated().getRefillStrategy()
-        );
+        //this.authenticatedConfig = buildBucketConfiguration(
+        //        rateLimitProperties.getAuthenticated().getCapacity(),
+        //        rateLimitProperties.getAuthenticated().getDurationMinutes(),
+        //        rateLimitProperties.getAuthenticated().getRefillStrategy()
+        //);
         this.anonymousConfig = buildBucketConfiguration(
                 rateLimitProperties.getAnonymous().getCapacity(),
                 rateLimitProperties.getAnonymous().getDurationMinutes(),

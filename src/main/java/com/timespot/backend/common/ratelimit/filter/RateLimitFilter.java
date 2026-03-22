@@ -16,13 +16,19 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.server.PathContainer;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.util.pattern.PathPatternParser;
 
 /**
  * PackageName : com.timespot.backend.common.ratelimit.filter
@@ -38,6 +44,9 @@ import org.springframework.web.filter.OncePerRequestFilter;
 @RequiredArgsConstructor
 @Slf4j
 public class RateLimitFilter extends OncePerRequestFilter {
+
+    private final PathPatternParser pathPatternParser = new PathPatternParser();
+    private final AntPathMatcher    antPathMatcher    = new AntPathMatcher();
 
     private final ObjectMapper           objectMapper;
     private final ProxyManager<String>   proxyManager;
@@ -90,13 +99,26 @@ public class RateLimitFilter extends OncePerRequestFilter {
      * @return BucketConfiguration
      */
     private BucketConfiguration resolveBucketConfiguration(final String requestURI) {
-        return rateLimitBucketBuilder.getEndpointConfigs()
-                                     .entrySet()
-                                     .stream()
-                                     .filter(entry -> requestURI.startsWith(entry.getKey()))
-                                     .map(Map.Entry::getValue)
-                                     .findFirst()
-                                     .orElse(rateLimitBucketBuilder.getAnonymousConfig());
+        Optional<Entry<String, BucketConfiguration>> exactMatch = rateLimitBucketBuilder.getEndpointConfigs()
+                                                                                        .entrySet()
+                                                                                        .stream()
+                                                                                        .filter(entry -> {
+                                                                                            try {
+                                                                                                return pathPatternParser.parse(entry.getKey()).matches(PathContainer.parsePath(requestURI));
+                                                                                            } catch (Exception e) {
+                                                                                                log.warn("PathPattern parsing failed for pattern: {}, URI: {}", entry.getKey(), requestURI, e);
+                                                                                                return false;
+                                                                                            }
+                                                                                        })
+                                                                                        .min(Comparator.comparing(e -> e.getKey().length()));
+        if (exactMatch.isPresent()) return exactMatch.get().getValue();
+
+        Optional<Entry<String, BucketConfiguration>> antMatch = rateLimitBucketBuilder.getEndpointConfigs()
+                                                                                      .entrySet()
+                                                                                      .stream()
+                                                                                      .filter(entry -> antPathMatcher.match(entry.getKey(), requestURI))
+                                                                                      .min(Comparator.comparing(e -> e.getKey().length()));
+        return antMatch.map(Map.Entry::getValue).orElse(rateLimitBucketBuilder.getAnonymousConfig());
     }
 
     /**
