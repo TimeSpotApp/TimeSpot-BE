@@ -9,7 +9,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.RestClient;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -24,13 +24,14 @@ import java.util.stream.Collectors;
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------
  * 26. 3. 22.     whitecity01       ADD place detail
+ * 26. 3. 23.     whitecity01       refactor restTemplate to restClient
  */
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class GooglePlaceApiServiceImpl implements GooglePlaceApiService {
 
-    private final RestTemplate restTemplate;
+    private final RestClient restClient;
 
     @Value("${google.places.api-key}")
     private String apiKey;
@@ -47,20 +48,15 @@ public class GooglePlaceApiServiceImpl implements GooglePlaceApiService {
      */
     @Override
     public GooglePlaceDto.ParsedResult getPlaceDetails(String googlePlaceId) {
-        String url = GOOGLE_PLACES_API_URL + googlePlaceId;
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("X-Goog-Api-Key", apiKey);
-        headers.set("X-Goog-FieldMask", FIELD_MASK);
-        headers.set("Accept-Language", LANGUAGE_KO);
-
-        HttpEntity<String> entity = new HttpEntity<>(headers);
-
         try {
-            ResponseEntity<GooglePlaceDto.Response> response = restTemplate.exchange(
-                    url, HttpMethod.GET, entity, GooglePlaceDto.Response.class);
+            GooglePlaceDto.Response body = restClient.get()
+                    .uri(GOOGLE_PLACES_API_URL + "{placeId}", googlePlaceId)
+                    .header("X-Goog-Api-Key", apiKey)
+                    .header("X-Goog-FieldMask", FIELD_MASK)
+                    .header("Accept-Language", LANGUAGE_KO)
+                    .retrieve()
+                    .body(GooglePlaceDto.Response.class); // 바로 객체로 매핑
 
-            GooglePlaceDto.Response body = response.getBody();
             if (body == null) return createEmptyResult();
 
             String phoneNumber = body.getInternationalPhoneNumber();
