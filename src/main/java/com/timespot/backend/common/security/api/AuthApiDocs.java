@@ -2,7 +2,7 @@ package com.timespot.backend.common.security.api;
 
 import com.timespot.backend.common.response.BaseResponse;
 import com.timespot.backend.common.security.dto.AuthRequestDto;
-import com.timespot.backend.common.security.dto.AuthResponseDto.TokenResponse;
+import com.timespot.backend.common.security.dto.AuthResponseDto.AuthInfoResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -34,7 +34,7 @@ public interface AuthApiDocs {
                          description = "유효하지 않은 제공자 또는 토큰",
                          content = @Content(schema = @Schema(hidden = true))),
     })
-    ResponseEntity<BaseResponse<TokenResponse>> login(
+    ResponseEntity<BaseResponse<AuthInfoResponse>> login(
             @Parameter(description = "소셜 인증 제공자로부터 발급받은 인증 토큰 페이로드") AuthRequestDto.OAuth2LoginRequest dto
     );
 
@@ -45,7 +45,7 @@ public interface AuthApiDocs {
 
     @Operation(summary = "토큰 갱신", description = "리프레시 토큰을 사용하여 새로운 토큰을 발급받습니다.")
     @ApiResponse(responseCode = "200", description = "토큰 갱신 성공")
-    ResponseEntity<BaseResponse<TokenResponse>> refresh(
+    ResponseEntity<BaseResponse<AuthInfoResponse>> refresh(
             @Parameter(description = "리프레시 토큰 페이로드") AuthRequestDto.TokenRefreshRequest dto
     );
 
