@@ -62,6 +62,7 @@ public class AuthServiceImpl implements AuthService {
      * @return 신규 인증 정보 응답 DTO
      */
     @Override
+    @Transactional
     public AuthResponseDto.AuthInfoResponse signup(final AuthRequestDto.OAuth2SignupRequest dto) {
         final ProviderType providerType = ProviderType.from(dto.getProvider());
         User               user         = userService.createUserForSocialConnection(dto);
