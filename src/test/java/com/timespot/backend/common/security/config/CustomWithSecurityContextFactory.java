@@ -28,6 +28,7 @@ public class CustomWithSecurityContextFactory implements WithSecurityContextFact
 
         UserDetails userDetails = CustomUserDetails.of(UUID.fromString(annotation.id()),
                                                        annotation.email(),
+                                                       annotation.providerType(),
                                                        annotation.mapApi(),
                                                        annotation.role());
 
