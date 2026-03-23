@@ -8,6 +8,7 @@ import com.timespot.backend.common.security.dto.AuthResponseDto.AuthInfoResponse
 import com.timespot.backend.common.security.jwt.provider.JwtProvider;
 import com.timespot.backend.common.security.model.CustomUserDetails;
 import com.timespot.backend.domain.user.model.ProviderType;
+import com.timespot.backend.domain.user.model.SocialConnection;
 import com.timespot.backend.domain.user.model.User;
 import com.timespot.backend.domain.user.service.UserService;
 import com.timespot.backend.infra.redis.constant.RedisConst;
@@ -60,8 +61,9 @@ public class AuthServiceImpl implements AuthService {
      */
     @Override
     public AuthResponseDto.AuthInfoResponse signup(final AuthRequestDto.OAuth2SignupRequest dto) {
-        User user = userService.createUserForSocialConnection(dto);
-        return createAuthInfoResponse(user, true);
+        final ProviderType providerType = ProviderType.from(dto.getProvider());
+        User               user         = userService.createUserForSocialConnection(dto);
+        return createAuthInfoResponse(user, providerType, true);
     }
 
     /**
@@ -77,10 +79,14 @@ public class AuthServiceImpl implements AuthService {
         OAuthProfile oAuthProfile = OAuthProfileFactory.getOAuthProfile(dto.getProvider(), claims);
         ProviderType providerType = ProviderType.from(dto.getProvider());
 
-        User user = userService.findUserForSocialConnection(providerType, oAuthProfile.getProviderUserId())
-                               .orElseThrow(() -> new GlobalException(ErrorCode.USER_NOT_FOUND));
-
-        return createAuthInfoResponse(user, false);
+        return userService.findUserForSocialConnection(providerType, oAuthProfile.getProviderUserId())
+                          .map(user -> createAuthInfoResponse(user, providerType, false))
+                          .orElseGet(() -> new AuthInfoResponse(
+                                  providerType,
+                                  true,
+                                  oAuthProfile.getEmail(),
+                                  oAuthProfile.getNickname()
+                          ));
     }
 
     /**
@@ -129,8 +135,8 @@ public class AuthServiceImpl implements AuthService {
      */
     @Override
     public AuthResponseDto.AuthInfoResponse reissueTokenByUserId(final UUID userId) {
-        User user = userService.findById(userId);
-        return createAuthInfoResponse(user, false);
+        SocialConnection socialConnection = userService.findByUserId(userId);
+        return createAuthInfoResponse(socialConnection.getUser(), socialConnection.getProviderType(), false);
     }
 
 // ========================= 내부 메서드 =========================
@@ -138,16 +144,19 @@ public class AuthServiceImpl implements AuthService {
     /**
      * 인증 정보 응답 DTO 생성
      *
-     * @param user      회원 정보
-     * @param isNewUser 신규 회원 여부
+     * @param user         회원 정보
+     * @param providerType 소셜 인증 제공자 유형
+     * @param isNewUser    신규 회원 여부
      * @return 인증 정보 응답 DTO
      */
-    private AuthResponseDto.AuthInfoResponse createAuthInfoResponse(final User user, final boolean isNewUser) {
+    private AuthResponseDto.AuthInfoResponse createAuthInfoResponse(
+            final User user, final ProviderType providerType, final boolean isNewUser
+    ) {
         String accessToken = jwtProvider.generateAccessToken(
-                user.getId(), user.getEmail(), user.getMapApi(), user.getRole()
+                user.getId(), user.getEmail(), providerType, user.getMapApi(), user.getRole()
         );
         String refreshToken = jwtProvider.generateRefreshToken(
-                user.getId(), user.getEmail(), user.getMapApi(), user.getRole()
+                user.getId(), user.getEmail(), providerType, user.getMapApi(), user.getRole()
         );
 
         long accessTokenExpiresIn  = jwtProvider.getAccessTokenExpirationSeconds();
@@ -162,7 +171,7 @@ public class AuthServiceImpl implements AuthService {
                                     refreshToken,
                                     refreshTokenExpiresIn,
                                     user.getMapApi(),
-                                    isNewUser ? true : null);
+                                    providerType);
     }
 
     /**
@@ -265,7 +274,8 @@ public class AuthServiceImpl implements AuthService {
         CustomUserDetails userDetails    = (CustomUserDetails) authentication.getPrincipal();
 
         String accessToken = jwtProvider.generateAccessToken(
-                userDetails.getId(), userDetails.getUsername(), userDetails.getMapApi(), userDetails.getRole()
+                userDetails.getId(), userDetails.getUsername(), userDetails.getProviderType(), userDetails.getMapApi(),
+                userDetails.getRole()
         );
 
         return new AuthInfoResponse(
@@ -273,7 +283,8 @@ public class AuthServiceImpl implements AuthService {
                 jwtProvider.getAccessTokenExpirationSeconds(),
                 graceToken,
                 jwtProvider.getRefreshTokenExpirationSeconds(),
-                userDetails.getMapApi()
+                userDetails.getMapApi(),
+                userDetails.getProviderType()
         );
     }
 
@@ -288,13 +299,14 @@ public class AuthServiceImpl implements AuthService {
     private AuthResponseDto.AuthInfoResponse reissueWithNewToken(
             final UUID userId, final String refreshTokenRedisKey, final String graceRedisKey
     ) {
-        User user = userService.findById(userId);
+        SocialConnection socialConnection = userService.findByUserId(userId);
+        User             user             = socialConnection.getUser();
 
         String newAccessToken = jwtProvider.generateAccessToken(
-                user.getId(), user.getEmail(), user.getMapApi(), user.getRole()
+                user.getId(), user.getEmail(), socialConnection.getProviderType(), user.getMapApi(), user.getRole()
         );
         String newRefreshToken = jwtProvider.generateRefreshToken(
-                user.getId(), user.getEmail(), user.getMapApi(), user.getRole()
+                user.getId(), user.getEmail(), socialConnection.getProviderType(), user.getMapApi(), user.getRole()
         );
 
         long accessTokenExpiresIn  = jwtProvider.getAccessTokenExpirationSeconds();
@@ -310,7 +322,8 @@ public class AuthServiceImpl implements AuthService {
                 accessTokenExpiresIn,
                 newRefreshToken,
                 refreshTokenExpiresIn,
-                user.getMapApi()
+                user.getMapApi(),
+                socialConnection.getProviderType()
         );
     }
 

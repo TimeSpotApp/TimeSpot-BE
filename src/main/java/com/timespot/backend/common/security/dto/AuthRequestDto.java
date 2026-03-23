@@ -36,6 +36,10 @@ public abstract class AuthRequestDto {
         @Schema(description = "[필수] 인증 코드")
         private String authCode;
 
+        @NotBlank(message = "이메일은 필수입니다.")
+        @Schema(description = "[필수] 이메일")
+        private String email;
+
         @NotBlank(message = "닉네임은 필수입니다.")
         @Schema(description = "[필수] 닉네임")
         private String nickname;

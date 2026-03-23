@@ -4,6 +4,7 @@ import com.timespot.backend.common.security.dto.AuthRequestDto;
 import com.timespot.backend.domain.user.dto.UserRequestDto;
 import com.timespot.backend.domain.user.dto.UserResponseDto.UserInfoResponse;
 import com.timespot.backend.domain.user.model.ProviderType;
+import com.timespot.backend.domain.user.model.SocialConnection;
 import com.timespot.backend.domain.user.model.User;
 import java.util.Optional;
 import java.util.UUID;
@@ -25,7 +26,7 @@ public interface UserService {
 
     User createUserForSocialConnection(AuthRequestDto.OAuth2SignupRequest dto);
 
-    User findById(UUID id);
+    SocialConnection findByUserId(UUID userId);
 
     UserInfoResponse findUserInfoById(UUID id);
 
