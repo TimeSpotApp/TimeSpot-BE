@@ -65,7 +65,7 @@ class RateLimitFilterIntegrationTest {
             final String endpoint = "/api/v1/auth/login";
 
             String requestBody = objectMapper.writeValueAsString(
-                    new OAuth2LoginRequest("google", UUID.randomUUID().toString().replace("-", ""), null, null)
+                    new OAuth2LoginRequest("google", UUID.randomUUID().toString().replace("-", ""))
             );
 
             // when
