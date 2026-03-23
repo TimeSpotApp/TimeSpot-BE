@@ -53,6 +53,18 @@ public class AuthServiceImpl implements AuthService {
     private final UserService                userService;
 
     /**
+     * 소셜 인증 제공자 정보를 활용한 회원 가입
+     *
+     * @param dto 소셜 인증 제공자 데이터
+     * @return 신규 인증 정보 응답 DTO
+     */
+    @Override
+    public AuthResponseDto.AuthInfoResponse signup(final AuthRequestDto.OAuth2SignupRequest dto) {
+        User user = userService.createUserForSocialConnection(dto);
+        return createAuthInfoResponse(user, true);
+    }
+
+    /**
      * 소셜 인증 제공자 정보를 활용한 로그인
      *
      * @param dto 소셜 인증 제공자 데이터
@@ -65,20 +77,10 @@ public class AuthServiceImpl implements AuthService {
         OAuthProfile oAuthProfile = OAuthProfileFactory.getOAuthProfile(dto.getProvider(), claims);
         ProviderType providerType = ProviderType.from(dto.getProvider());
 
-        String resolvedNickname = dto.getNickname() != null && !dto.getNickname().isBlank()
-                                  ? dto.getNickname()
-                                  : oAuthProfile.getNickname() != null
-                                    ? oAuthProfile.getNickname()
-                                    : UUID.randomUUID().toString().replace("-", "").substring(0, 10);
+        User user = userService.findUserForSocialConnection(providerType, oAuthProfile.getProviderUserId())
+                               .orElseThrow(() -> new GlobalException(ErrorCode.USER_NOT_FOUND));
 
-        return userService.findUserForSocialConnection(providerType, oAuthProfile.getProviderUserId())
-                          .map(user -> createAuthInfoResponse(user, false))
-                          .orElseGet(() -> createNewUserAndAuthInfoResponse(
-                                  providerType,
-                                  oAuthProfile,
-                                  resolvedNickname,
-                                  dto.getAuthCode()
-                          ));
+        return createAuthInfoResponse(user, false);
     }
 
     /**
@@ -161,31 +163,6 @@ public class AuthServiceImpl implements AuthService {
                                     refreshTokenExpiresIn,
                                     user.getMapApi(),
                                     isNewUser ? true : null);
-    }
-
-    /**
-     * 신규 회원 생성 및 인증 정보 응답 DTO 생성
-     *
-     * @param providerType      소셜 인증 제공자 유형
-     * @param oAuthProfile      OAuth 프로필
-     * @param resolvedNickname  닉네임
-     * @param authorizationCode 소셜 인증 인가 코드
-     * @return 인증 정보 응답 DTO
-     */
-    private AuthResponseDto.AuthInfoResponse createNewUserAndAuthInfoResponse(
-            final ProviderType providerType,
-            final OAuthProfile oAuthProfile,
-            final String resolvedNickname,
-            final String authorizationCode
-    ) {
-        User user = userService.createUserForSocialConnection(
-                providerType,
-                oAuthProfile.getProviderUserId(),
-                oAuthProfile.getEmail(),
-                resolvedNickname,
-                authorizationCode
-        );
-        return createAuthInfoResponse(user, true);
     }
 
     /**

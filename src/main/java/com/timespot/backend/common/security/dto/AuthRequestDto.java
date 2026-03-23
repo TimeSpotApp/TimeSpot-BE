@@ -25,6 +25,30 @@ public abstract class AuthRequestDto {
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
+    @Schema(description = "소셜 회원가입 요청 페이로드")
+    public static class OAuth2SignupRequest {
+
+        @NotBlank(message = "소셜 인증 제공자는 필수입니다.")
+        @Schema(description = "[필수] 소셜 인증 제공자 (예: apple, google)", example = "apple")
+        private String provider;
+
+        @NotBlank(message = "인증 코드는 필수입니다.")
+        @Schema(description = "[필수] 인증 코드")
+        private String authCode;
+
+        @NotBlank(message = "닉네임은 필수입니다.")
+        @Schema(description = "[필수] 닉네임")
+        private String nickname;
+
+        @NotBlank(message = "주사용 지도 API 유형은 필수입니다.")
+        @Schema(description = "[필수] 주사용 지도 API 유형 (예: apple, google, naver)", example = "apple")
+        private String mapApi;
+
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     @Schema(description = "소셜 로그인 토큰 요청 페이로드")
     public static class OAuth2LoginRequest {
 
@@ -33,14 +57,8 @@ public abstract class AuthRequestDto {
         private String provider;
 
         @NotBlank(message = "소셜 인증 ID 토큰은 필수입니다.")
-        @Schema(description = "[필수] 소셜 인증 ID 토큰")
+        @Schema(description = "[필수] ID 토큰")
         private String idToken;
-
-        @Schema(description = "[선택/최초 로그인(회원가입) 시 필수] 1회용 인가 코드", nullable = true)
-        private String authCode;
-
-        @Schema(description = "[선택] 사용자 이름/닉네임 (APPLE 최초 로그인 시 필수)", nullable = true)
-        private String nickname;
 
     }
 

@@ -9,6 +9,7 @@ import com.timespot.backend.common.security.dto.AuthResponseDto.AuthInfoResponse
 import com.timespot.backend.common.security.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -33,6 +34,16 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController implements AuthApiDocs {
 
     private final AuthService authService;
+
+    @Override
+    @PostMapping("/signup")
+    public ResponseEntity<BaseResponse<AuthInfoResponse>> signup(
+            @RequestBody @Valid final AuthRequestDto.OAuth2SignupRequest dto
+    ) {
+        AuthInfoResponse responseData = authService.signup(dto);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                             .body(BaseResponse.success(SuccessCode.USER_REGISTER_SUCCESS, responseData));
+    }
 
     @Override
     @PostMapping("/login")

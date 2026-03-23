@@ -35,6 +35,7 @@ public abstract class OAuthResponseDto {
     public record GoogleTokenValidationResponse(
             @JsonProperty("access_token") String accessToken,
             @JsonProperty("expires_in") Long expiresIn,
+            @JsonProperty("id_token") String idToken,
             @JsonProperty("token_type") String tokenType,
             @JsonProperty("scope") String scope,
             @JsonProperty("refresh_token") String refreshToken

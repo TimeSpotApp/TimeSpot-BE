@@ -29,21 +29,6 @@ public class UserAuthFacade {
     private final AuthService authService;
 
     /**
-     * 주사용 지도 API 설정 및 인증 토큰 재발급
-     *
-     * @param id  회원 ID
-     * @param dto 주사용 지도 API 설정 요청 DTO
-     * @return 재발급된 인증 정보 응답 DTO
-     */
-    @Transactional
-    public AuthResponseDto.AuthInfoResponse updateUserMapApiAndReissueToken(
-            final UUID id, final UserRequestDto.UserMapApiUpdateRequest dto
-    ) {
-        userService.updateUserMapApi(id, dto);
-        return authService.reissueTokenByUserId(id);
-    }
-
-    /**
      * 회원 정보 수정 및 인증 토큰 재발급
      *
      * @param id  회원 ID

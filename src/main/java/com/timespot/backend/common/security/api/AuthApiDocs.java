@@ -2,6 +2,7 @@ package com.timespot.backend.common.security.api;
 
 import com.timespot.backend.common.response.BaseResponse;
 import com.timespot.backend.common.security.dto.AuthRequestDto;
+import com.timespot.backend.common.security.dto.AuthResponseDto;
 import com.timespot.backend.common.security.dto.AuthResponseDto.AuthInfoResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -27,6 +28,17 @@ import org.springframework.http.ResponseEntity;
 @Tag(name = "Authentication API", description = "OAuth2 로그인, 로그아웃 및 토큰 갱신 API")
 public interface AuthApiDocs {
 
+    @Operation(summary = "신규 회원 가입", description = "소셜 인증 제공자 정보를 사용하여 신규 회원 가입을 진행합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "신규 회원 가입 성공"),
+            @ApiResponse(responseCode = "400",
+                         description = "유효하지 않은 인증 토큰",
+                         content = @Content(schema = @Schema(hidden = true))),
+    })
+    ResponseEntity<BaseResponse<AuthResponseDto.AuthInfoResponse>> signup(
+            @Parameter(description = "소셜 인증 제공자로부터 발급받은 1회용 인증 코드 페이로드") AuthRequestDto.OAuth2SignupRequest dto
+    );
+
     @Operation(summary = "OAuth2 소셜 로그인", description = "소셜 인증 제공자의 토큰을 받아 자체 서비스 액세스 토큰을 발급합니다.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "로그인 성공"),
@@ -34,7 +46,7 @@ public interface AuthApiDocs {
                          description = "유효하지 않은 제공자 또는 토큰",
                          content = @Content(schema = @Schema(hidden = true))),
     })
-    ResponseEntity<BaseResponse<AuthInfoResponse>> login(
+    ResponseEntity<BaseResponse<AuthResponseDto.AuthInfoResponse>> login(
             @Parameter(description = "소셜 인증 제공자로부터 발급받은 인증 토큰 페이로드") AuthRequestDto.OAuth2LoginRequest dto
     );
 
