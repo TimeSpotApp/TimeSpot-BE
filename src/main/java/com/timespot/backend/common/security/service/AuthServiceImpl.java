@@ -28,6 +28,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * PackageName : com.timespot.backend.common.security.service
@@ -41,6 +42,7 @@ import org.springframework.stereotype.Service;
  * 26. 3. 9.     loadingKKamo21       Initial creation
  */
 @Service
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
 @Slf4j
 public class AuthServiceImpl implements AuthService {
