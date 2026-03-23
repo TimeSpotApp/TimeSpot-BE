@@ -1,8 +1,9 @@
 package com.timespot.backend.domain.place.service;
 
 import com.timespot.backend.domain.place.dto.PlaceResponseDto;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
-import java.util.List;
 
 /**
  * PackageName : com.timespot.backend.domain.place.service
@@ -14,10 +15,15 @@ import java.util.List;
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------
  * 26. 3. 19.     whitecity01       Initial creation
+ * 26. 3. 22.     whitecity01       ADD pagenation
+ * 26. 3. 22.     whitecity01       ADD place detail
  */
 public interface PlaceService {
-    List<PlaceResponseDto.AvailablePlace> getAvailablePlaces(double userLat,
+    Page<PlaceResponseDto.AvailablePlace> getAvailablePlaces(double userLat,
                                                              double userLon,
                                                              Long stationId,
-                                                             int remainingMinutes);
+                                                             int remainingMinutes,
+                                                             Pageable pageable);
+
+    PlaceResponseDto.PlaceDetail getPlaceDetail(String googleId, Long stationId);
 }

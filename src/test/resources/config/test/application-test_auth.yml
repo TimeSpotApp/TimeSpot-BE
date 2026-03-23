@@ -31,3 +31,6 @@ app:
     refresh-token-secret: b559bbaf8e1644c899bbaf8e16b4c88ab20a2f2874da4efc8a2f2874daeefc044dab6aad17ce4e38ab6aad17ce8e383a2674a7de49a54e34b4a7de49a5ee34fbc1a10769a31a415ca10769a31a415c5a6cb2d80457b24eb7b2d80457b26eb7f48d0de1abedf24f228de1abedf23f22df3bdeb635b4f541d89eb635b4f541d8fc5d9d0b253df14dc49d0b253df1cdc4ec57cbf0d4157b49d58bf0d4157b19d5c6
     access-token-expiration-seconds: 604800  # 7 days
     refresh-token-expiration-seconds: 1209600  # 2 weeks
+google:
+  places:
+    api-key: GOOGLE_PLACES_API_KEY

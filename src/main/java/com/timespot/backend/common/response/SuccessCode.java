@@ -16,6 +16,7 @@ import org.springframework.http.HttpStatus;
  * ---------------------------------------------------------------------------------------------------------------------
  * 26. 2. 26.    loadingKKamo21       Initial creation
  * 26. 2. 19.    whitecity01          ADD GET_AVAILABLE_PLACE
+ * 26. 3. 22.    whitecity01          Add place detail success
  */
 @Getter
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
@@ -38,7 +39,8 @@ public enum SuccessCode {
     USER_MAP_API_UPDATE_SUCCESS(HttpStatus.OK, "회원의 주사용 지도 API 설정이 완료되었습니다."),
 
     // Place
-    PLACE_GET_AVAILABLE_PLACES_SUCCESS(HttpStatus.OK, "방문 가능 장소 조회가 완료되었습니다.");
+    PLACE_GET_AVAILABLE_PLACES_SUCCESS(HttpStatus.OK, "방문 가능 장소 조회가 완료되었습니다."),
+    PLACE_GET_DETAIL_SUCCESS(HttpStatus.OK, "장소 상세 정보 조회가 완료되었습니다.");;
 
     private final HttpStatus status;
     private final String     message;
