@@ -12,6 +12,7 @@ querydsl = "7.1"
 p6spy = "1.12.1"
 jjwt = "0.13.0"
 jwks-rsa = "0.23.0"
+bucket4j = "8.17.0"
 
 # --- [TEST DEPENDENCIES] ---
 autoParams = "11.3.1"
@@ -26,6 +27,7 @@ spring-boot-dependencies = { module = "org.springframework.boot:spring-boot-depe
 
 ## --- [SPRING ECOSYSTEM - CORE & DX] ---
 spring-boot-starter-actuator = { module = "org.springframework.boot:spring-boot-starter-actuator" }
+spring-boot-starter-cache = { module = "org.springframework.boot:spring-boot-starter-cache" }
 spring-boot-starter-validation = { module = "org.springframework.boot:spring-boot-starter-validation" }
 spring-boot-starter-web = { module = "org.springframework.boot:spring-boot-starter-web" }
 spring-boot-devtools = { module = "org.springframework.boot:spring-boot-devtools" }
@@ -53,6 +55,7 @@ spring-boot-starter-batch = { module = "org.springframework.boot:spring-boot-sta
 ulid-creator = { module = "com.github.f4b6a3:ulid-creator", version.ref = "ulidCreator" }
 jackson-datatype-jsr310 = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310" }
 jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind" }
+bucket4j-jdk17-lettuce = { module = "com.bucket4j:bucket4j_jdk17-lettuce", version.ref = "bucket4j" }
 springdoc-openapi-starter-webmvc-ui = { module = "org.springdoc:springdoc-openapi-starter-webmvc-ui", version.ref = "springDocOpenApi" }
 micrometer-registry-graphite = { module = "io.micrometer:micrometer-registry-graphite" }
 micrometer-registry-prometheus = { module = "io.micrometer:micrometer-registry-prometheus" }

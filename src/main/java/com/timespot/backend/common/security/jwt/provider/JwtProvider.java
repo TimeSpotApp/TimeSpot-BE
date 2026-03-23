@@ -3,6 +3,8 @@ package com.timespot.backend.common.security.jwt.provider;
 import com.timespot.backend.common.security.constant.SecurityConst;
 import com.timespot.backend.common.security.jwt.provider.properties.JwtProperties;
 import com.timespot.backend.common.security.model.CustomUserDetails;
+import com.timespot.backend.domain.user.model.MapApi;
+import com.timespot.backend.domain.user.model.ProviderType;
 import com.timespot.backend.domain.user.model.UserRole;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -58,25 +60,37 @@ public class JwtProvider {
     /**
      * AccessToken 생성
      *
-     * @param userId 회원 ID
-     * @param email  회원 이메일
-     * @param role   계정 유형
+     * @param userId       회원 ID
+     * @param email        회원 이메일
+     * @param providerType 소셜 인증 제공자 유형
+     * @param mapApi       주사용 지도 API 유형
+     * @param role         계정 유형
      * @return JWT AccessToken
      */
-    public String generateAccessToken(final UUID userId, final String email, final UserRole role) {
-        return generateToken(userId, email, role, false);
+    public String generateAccessToken(final UUID userId,
+                                      final String email,
+                                      final ProviderType providerType,
+                                      final MapApi mapApi,
+                                      final UserRole role) {
+        return generateToken(userId, email, providerType, mapApi, role, false);
     }
 
     /**
      * RefreshToken 생성
      *
-     * @param userId 회원 ID
-     * @param email  회원 이메일
-     * @param role   계정 유형
+     * @param userId       회원 ID
+     * @param email        회원 이메일
+     * @param providerType 소셜 인증 제공자 유형
+     * @param mapApi       주사용 지도 API 유형
+     * @param role         계정 유형
      * @return JWT RefreshToken
      */
-    public String generateRefreshToken(final UUID userId, final String email, final UserRole role) {
-        return generateToken(userId, email, role, true);
+    public String generateRefreshToken(final UUID userId,
+                                       final String email,
+                                       final ProviderType providerType,
+                                       final MapApi mapApi,
+                                       final UserRole role) {
+        return generateToken(userId, email, providerType, mapApi, role, true);
     }
 
     /**
@@ -184,12 +198,16 @@ public class JwtProvider {
      *
      * @param userId         회원 ID
      * @param email          회원 이메일
+     * @param providerType   소셜 인증 제공자 유형
+     * @param mapApi         주사용 지도 API 유형
      * @param role           계정 유형
      * @param isRefreshToken RefreshToken 인지 여부(false 시 AccessToken, true 시 RefreshToken)
      * @return JWT AccessToken 또는 RefreshToken
      */
     private String generateToken(final UUID userId,
                                  final String email,
+                                 final ProviderType providerType,
+                                 final MapApi mapApi,
                                  final UserRole role,
                                  final boolean isRefreshToken) {
         Date now = new Date(System.currentTimeMillis());
@@ -199,6 +217,8 @@ public class JwtProvider {
 
         String token = getJwtBuilder().subject(userId.toString())
                                       .claim(SecurityConst.JWT_USERNAME_KEY, email)
+                                      .claim(SecurityConst.JWT_PROVIDER_KEY, providerType.name())
+                                      .claim(SecurityConst.JWT_MAP_API_KEY, mapApi.name())
                                       .claim(SecurityConst.JWT_AUTHORITIES_KEY, role.name())
                                       .issuedAt(now)
                                       .expiration(expiresIn)
@@ -218,11 +238,13 @@ public class JwtProvider {
     private Authentication getAuthenticationFromToken(final String token, final boolean isRefreshToken) {
         Claims claims = getClaims(token, isRefreshToken ? refreshTokenKey : accessTokenKey);
 
-        UUID     id    = UUID.fromString(claims.getSubject());
-        String   email = claims.get(SecurityConst.JWT_USERNAME_KEY, String.class);
-        UserRole role  = UserRole.valueOf(claims.get(SecurityConst.JWT_AUTHORITIES_KEY, String.class));
+        UUID         id           = UUID.fromString(claims.getSubject());
+        String       email        = claims.get(SecurityConst.JWT_USERNAME_KEY, String.class);
+        ProviderType providerType = ProviderType.from(claims.get(SecurityConst.JWT_PROVIDER_KEY, String.class));
+        MapApi       mapApi       = MapApi.from(claims.get(SecurityConst.JWT_MAP_API_KEY, String.class));
+        UserRole     role         = UserRole.from(claims.get(SecurityConst.JWT_AUTHORITIES_KEY, String.class));
 
-        CustomUserDetails userDetails = CustomUserDetails.of(id, email, role);
+        CustomUserDetails userDetails = CustomUserDetails.of(id, email, providerType, mapApi, role);
         Collection<? extends GrantedAuthority> authorities = Collections.singletonList(
                 new SimpleGrantedAuthority(role.getAuthority())
         );
