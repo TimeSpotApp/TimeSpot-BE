@@ -81,6 +81,7 @@ public class UserServiceImpl implements UserService {
                 return createNewUser(providerType,
                                      tokenValidationResponse.idToken(),
                                      tokenValidationResponse.refreshToken(),
+                                     dto.getEmail(),
                                      dto.getNickname(),
                                      mapApi);
             }
@@ -91,6 +92,7 @@ public class UserServiceImpl implements UserService {
                 return createNewUser(providerType,
                                      tokenValidationResponse.idToken(),
                                      tokenValidationResponse.refreshToken(),
+                                     dto.getEmail(),
                                      dto.getNickname(),
                                      mapApi);
             }
@@ -99,14 +101,15 @@ public class UserServiceImpl implements UserService {
     }
 
     /**
-     * ID로 회원 정보 조회
+     * 회원 ID로 소셜 연결 정보 조회
      *
-     * @param id 회원 ID
-     * @return 회원 엔티티
+     * @param userId 회원 ID
+     * @return 소셜 연결 엔티티
      */
     @Override
-    public User findById(final UUID id) {
-        return userRepository.findById(id).orElseThrow(() -> new GlobalException(ErrorCode.USER_NOT_FOUND));
+    public SocialConnection findByUserId(final UUID userId) {
+        return socialConnectionRepository.findByUserId(userId)
+                                         .orElseThrow(() -> new GlobalException(ErrorCode.SOCIAL_CONNECTION_NOT_FOUND));
     }
 
     /**
@@ -177,12 +180,12 @@ public class UserServiceImpl implements UserService {
     private User createNewUser(final ProviderType providerType,
                                final String idToken,
                                final String refreshToken,
+                               final String email,
                                final String nickname,
                                final MapApi mapApi) {
         Claims claims = tokenValidator.verifyAndParse(providerType.name(), idToken);
 
         OAuthProfile oAuthProfile = OAuthProfileFactory.getOAuthProfile(providerType.name(), claims);
-        String       email        = oAuthProfile.getEmail();
         validateEmail(email);
 
         User user = userRepository.save(User.of(email, nickname, mapApi));

@@ -23,6 +23,7 @@ public abstract class SecurityConst {
 
     public static final String JWT_USERNAME_KEY    = "username";
     public static final String JWT_AUTHORITIES_KEY = "authorities";
+    public static final String JWT_PROVIDER_KEY    = "provider";
     public static final String JWT_MAP_API_KEY     = "map_api";
 
     public static final String[] GET_PERMIT_ALL_URLS    = {

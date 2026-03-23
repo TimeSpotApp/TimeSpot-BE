@@ -51,7 +51,12 @@ public class AuthController implements AuthApiDocs {
             @RequestBody @Valid final AuthRequestDto.OAuth2LoginRequest dto
     ) {
         AuthInfoResponse responseData = authService.login(dto);
-        return ResponseEntity.ok(BaseResponse.success(SuccessCode.USER_AUTH_LOGIN_SUCCESS, responseData));
+        final boolean    isNewUser    = responseData.getNewUser() != null && responseData.getNewUser();
+        final HttpStatus status       = isNewUser ? HttpStatus.ACCEPTED : HttpStatus.OK;
+        return ResponseEntity.status(status).body(
+                isNewUser ? BaseResponse.of(status, "로그인 요청 처리가 완료되었습니다.", responseData)
+                          : BaseResponse.success(SuccessCode.USER_AUTH_LOGIN_SUCCESS, responseData)
+        );
     }
 
     @Override

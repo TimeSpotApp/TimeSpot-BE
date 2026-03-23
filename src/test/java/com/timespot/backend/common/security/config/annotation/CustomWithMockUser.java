@@ -2,6 +2,7 @@ package com.timespot.backend.common.security.config.annotation;
 
 import com.timespot.backend.common.security.config.CustomWithSecurityContextFactory;
 import com.timespot.backend.domain.user.model.MapApi;
+import com.timespot.backend.domain.user.model.ProviderType;
 import com.timespot.backend.domain.user.model.UserRole;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -27,6 +28,8 @@ public @interface CustomWithMockUser {
     String email() default "test@example.com";
 
     String nickname() default "test";
+
+    ProviderType providerType() default ProviderType.APPLE;
 
     MapApi mapApi() default MapApi.APPLE;
 
