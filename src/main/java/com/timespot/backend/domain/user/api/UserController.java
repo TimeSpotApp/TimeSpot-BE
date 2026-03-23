@@ -16,7 +16,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -49,7 +48,7 @@ public class UserController implements UserApiDocs {
         return ResponseEntity.ok(BaseResponse.success(SuccessCode.USER_GET_INFO_SUCCESS, responseData));
     }
 
-    @PutMapping
+    @PostMapping
     @Override
     public ResponseEntity<BaseResponse<AuthResponseDto.AuthInfoResponse>> updateUserInfo(
             @AuthenticationPrincipal final CustomUserDetails userDetails,
@@ -57,16 +56,6 @@ public class UserController implements UserApiDocs {
     ) {
         AuthInfoResponse responseData = userAuthFacade.updateUserInfoAndReissueToken(userDetails.getId(), dto);
         return ResponseEntity.ok(BaseResponse.success(SuccessCode.USER_UPDATE_SUCCESS, responseData));
-    }
-
-    @PostMapping("/map")
-    @Override
-    public ResponseEntity<BaseResponse<AuthResponseDto.AuthInfoResponse>> updateUserMapApi(
-            @AuthenticationPrincipal final CustomUserDetails userDetails,
-            @RequestBody @Valid final UserRequestDto.UserMapApiUpdateRequest dto
-    ) {
-        AuthInfoResponse responseData = userAuthFacade.updateUserMapApiAndReissueToken(userDetails.getId(), dto);
-        return ResponseEntity.ok(BaseResponse.success(SuccessCode.USER_MAP_API_UPDATE_SUCCESS, responseData));
     }
 
     @DeleteMapping

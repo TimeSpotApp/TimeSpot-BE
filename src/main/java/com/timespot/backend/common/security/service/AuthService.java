@@ -17,6 +17,8 @@ import java.util.UUID;
  */
 public interface AuthService {
 
+    AuthResponseDto.AuthInfoResponse signup(AuthRequestDto.OAuth2SignupRequest dto);
+
     AuthResponseDto.AuthInfoResponse login(AuthRequestDto.OAuth2LoginRequest dto);
 
     void logout(String accessToken);

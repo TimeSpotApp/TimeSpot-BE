@@ -2,6 +2,7 @@ package com.timespot.backend.domain.user.service;
 
 import com.timespot.backend.common.error.GlobalException;
 import com.timespot.backend.common.response.ErrorCode;
+import com.timespot.backend.common.security.dto.AuthRequestDto;
 import com.timespot.backend.domain.user.dao.SocialConnectionRepository;
 import com.timespot.backend.domain.user.dao.UserRepository;
 import com.timespot.backend.domain.user.dto.UserRequestDto;
@@ -14,6 +15,10 @@ import com.timespot.backend.infra.security.oauth.client.IdpTokenExchangeClient;
 import com.timespot.backend.infra.security.oauth.constant.TokenType;
 import com.timespot.backend.infra.security.oauth.dto.OAuthResponseDto.AppleTokenValidationResponse;
 import com.timespot.backend.infra.security.oauth.dto.OAuthResponseDto.GoogleTokenValidationResponse;
+import com.timespot.backend.infra.security.oauth.model.OAuthProfile;
+import com.timespot.backend.infra.security.oauth.model.OAuthProfileFactory;
+import com.timespot.backend.infra.security.oauth.validator.CustomOAuth2TokenValidator;
+import io.jsonwebtoken.Claims;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -38,8 +43,8 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository             userRepository;
     private final SocialConnectionRepository socialConnectionRepository;
-
-    private final IdpTokenExchangeClient idpTokenExchangeClient;
+    private final IdpTokenExchangeClient     idpTokenExchangeClient;
+    private final CustomOAuth2TokenValidator tokenValidator;
 
     /**
      * 소셜 인증 정보를 사용하여 회원 정보 조회
@@ -59,51 +64,35 @@ public class UserServiceImpl implements UserService {
     /**
      * 소셜 인증 정보를 사용하여 회원 정보 생성
      *
-     * @param providerType      소셜 인증 제공자 유형
-     * @param providerUserId    소셜 인증 제공자 식별자
-     * @param email             이메일
-     * @param nickname          닉네임
-     * @param authorizationCode 소셜 인증 코드
+     * @param dto 신규 회원 가입 요청 DTO
      * @return 회원 엔티티
      */
     @Override
     @Transactional
-    public User createUserForSocialConnection(final ProviderType providerType,
-                                              final String providerUserId,
-                                              final String email,
-                                              final String nickname,    // BODGE: APPLE 연동 시 닉네임 처리 확인 필요
-                                              final String authorizationCode) {
-        if (email != null && !email.isBlank())
-            if (userRepository.existsByEmail(email))
-                throw new GlobalException(ErrorCode.USER_EMAIL_DUPLICATED);
+    public User createUserForSocialConnection(final AuthRequestDto.OAuth2SignupRequest dto) {
+        final ProviderType providerType = ProviderType.from(dto.getProvider());
+        final MapApi       mapApi       = MapApi.from(dto.getMapApi());
 
-        final String idpRefreshToken;
         switch (providerType) {
             case APPLE -> {
                 AppleTokenValidationResponse tokenValidationResponse = idpTokenExchangeClient.validationAppleAuthCode(
-                        authorizationCode
+                        dto.getAuthCode()
                 );
-                idpRefreshToken = tokenValidationResponse.refreshToken();
-
-                User user = userRepository.save(User.of(email, nickname));
-                socialConnectionRepository.save(
-                        SocialConnection.of(user, providerType, providerUserId, idpRefreshToken)
-                );
-
-                return user;
+                return createNewUser(providerType,
+                                     tokenValidationResponse.idToken(),
+                                     tokenValidationResponse.refreshToken(),
+                                     dto.getNickname(),
+                                     mapApi);
             }
             case GOOGLE -> {
                 GoogleTokenValidationResponse tokenValidationResponse = idpTokenExchangeClient.validationGoogleAuthCode(
-                        authorizationCode
+                        dto.getAuthCode()
                 );
-                idpRefreshToken = tokenValidationResponse.refreshToken();
-
-                User user = userRepository.save(User.of(email, nickname));
-                socialConnectionRepository.save(
-                        SocialConnection.of(user, providerType, providerUserId, idpRefreshToken)
-                );
-
-                return user;
+                return createNewUser(providerType,
+                                     tokenValidationResponse.idToken(),
+                                     tokenValidationResponse.refreshToken(),
+                                     dto.getNickname(),
+                                     mapApi);
             }
             default -> throw new GlobalException(ErrorCode.SOCIAL_CONNECTION_PROVIDER_NOT_SUPPORTED);
         }
@@ -140,21 +129,11 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void updateUserInfo(final UUID id, final UserRequestDto.UserInfoUpdateRequest dto) {
-        User user = userRepository.findById(id).orElseThrow(() -> new GlobalException(ErrorCode.USER_NOT_FOUND));
-        user.updateNickname(dto.getNewNickname());
-    }
+        final MapApi mapApi = MapApi.from(dto.getMapApi());
 
-    /**
-     * 회원의 주사용 지도 API 설정
-     *
-     * @param id  회원 ID
-     * @param dto 주사용 지도 API 설정 요청 DTO
-     */
-    @Override
-    @Transactional
-    public void updateUserMapApi(final UUID id, final UserRequestDto.UserMapApiUpdateRequest dto) {
-        MapApi mapApi = MapApi.from(dto.getMapApi());
-        User   user   = userRepository.findById(id).orElseThrow(() -> new GlobalException(ErrorCode.USER_NOT_FOUND));
+        User user = userRepository.findById(id).orElseThrow(() -> new GlobalException(ErrorCode.USER_NOT_FOUND));
+
+        user.updateNickname(dto.getNickname());
         user.updateMapApi(mapApi);
     }
 
@@ -181,6 +160,47 @@ public class UserServiceImpl implements UserService {
 
         socialConnectionRepository.delete(socialConnection);
         userRepository.delete(user);
+    }
+
+    // ========================= 내부 메서드 =========================
+
+    /**
+     * 신규 회원 엔티티 생성
+     *
+     * @param providerType 소셜 인증 제공자 유형
+     * @param idToken      소셜 ID 토큰
+     * @param refreshToken 소셜 Refresh Token
+     * @param nickname     닉네임
+     * @param mapApi       지도 API 유형
+     * @return 신규 회원 엔티티
+     */
+    private User createNewUser(final ProviderType providerType,
+                               final String idToken,
+                               final String refreshToken,
+                               final String nickname,
+                               final MapApi mapApi) {
+        Claims claims = tokenValidator.verifyAndParse(providerType.name(), idToken);
+
+        OAuthProfile oAuthProfile = OAuthProfileFactory.getOAuthProfile(providerType.name(), claims);
+        String       email        = oAuthProfile.getEmail();
+        validateEmail(email);
+
+        User user = userRepository.save(User.of(email, nickname, mapApi));
+        socialConnectionRepository.save(
+                SocialConnection.of(user, providerType, oAuthProfile.getProviderUserId(), refreshToken)
+        );
+
+        return user;
+    }
+
+    /**
+     * 이메일 검증
+     *
+     * @param email 이메일
+     */
+    private void validateEmail(final String email) {
+        if (email == null || email.isBlank()) throw new GlobalException(ErrorCode.USER_EMAIL_REQUIRED);
+        if (userRepository.existsByEmail(email)) throw new GlobalException(ErrorCode.USER_EMAIL_DUPLICATED);
     }
 
 }
