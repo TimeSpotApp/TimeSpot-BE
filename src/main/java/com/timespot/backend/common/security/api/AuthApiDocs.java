@@ -3,7 +3,6 @@ package com.timespot.backend.common.security.api;
 import com.timespot.backend.common.response.BaseResponse;
 import com.timespot.backend.common.security.dto.AuthRequestDto;
 import com.timespot.backend.common.security.dto.AuthResponseDto;
-import com.timespot.backend.common.security.dto.AuthResponseDto.AuthInfoResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -57,7 +56,7 @@ public interface AuthApiDocs {
 
     @Operation(summary = "토큰 갱신", description = "리프레시 토큰을 사용하여 새로운 토큰을 발급받습니다.")
     @ApiResponse(responseCode = "200", description = "토큰 갱신 성공")
-    ResponseEntity<BaseResponse<AuthInfoResponse>> refresh(
+    ResponseEntity<BaseResponse<AuthResponseDto.TokenInfoResponse>> refresh(
             @Parameter(description = "리프레시 토큰 페이로드") AuthRequestDto.TokenRefreshRequest dto
     );
 

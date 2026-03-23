@@ -6,6 +6,7 @@ import com.timespot.backend.common.security.constant.SecurityConst;
 import com.timespot.backend.common.security.dto.AuthRequestDto;
 import com.timespot.backend.common.security.dto.AuthResponseDto;
 import com.timespot.backend.common.security.dto.AuthResponseDto.AuthInfoResponse;
+import com.timespot.backend.common.security.dto.AuthResponseDto.TokenInfoResponse;
 import com.timespot.backend.common.security.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -72,10 +73,10 @@ public class AuthController implements AuthApiDocs {
 
     @Override
     @PostMapping("/refresh")
-    public ResponseEntity<BaseResponse<AuthResponseDto.AuthInfoResponse>> refresh(
+    public ResponseEntity<BaseResponse<AuthResponseDto.TokenInfoResponse>> refresh(
             @RequestBody @Valid final AuthRequestDto.TokenRefreshRequest dto
     ) {
-        AuthInfoResponse responseData = authService.refresh(dto.getRefreshToken());
+        TokenInfoResponse responseData = authService.refresh(dto.getRefreshToken());
         return ResponseEntity.ok(BaseResponse.success(SuccessCode.USER_AUTH_TOKEN_REFRESH_SUCCESS, responseData));
     }
 

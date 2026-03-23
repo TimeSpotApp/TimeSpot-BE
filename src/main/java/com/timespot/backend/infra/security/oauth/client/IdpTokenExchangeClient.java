@@ -82,9 +82,6 @@ public class IdpTokenExchangeClient {
                                                                                                      createAppleClientSecret(),
                                                                                                      authCode,
                                                                                                      appleRedirectUri);
-        log.info("----------------------------------------");
-        log.info("params: {}", params);
-        log.info("----------------------------------------");
 
         return executeAppleTokenValidation(params);
     }

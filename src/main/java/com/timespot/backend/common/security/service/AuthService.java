@@ -23,7 +23,7 @@ public interface AuthService {
 
     void logout(String accessToken);
 
-    AuthResponseDto.AuthInfoResponse refresh(String refreshToken);
+    AuthResponseDto.TokenInfoResponse refresh(String refreshToken);
 
     AuthResponseDto.AuthInfoResponse reissueTokenByUserId(UUID userId);
 

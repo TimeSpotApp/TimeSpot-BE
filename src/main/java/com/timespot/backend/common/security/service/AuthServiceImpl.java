@@ -5,6 +5,7 @@ import com.timespot.backend.common.response.ErrorCode;
 import com.timespot.backend.common.security.dto.AuthRequestDto;
 import com.timespot.backend.common.security.dto.AuthResponseDto;
 import com.timespot.backend.common.security.dto.AuthResponseDto.AuthInfoResponse;
+import com.timespot.backend.common.security.dto.AuthResponseDto.TokenInfoResponse;
 import com.timespot.backend.common.security.jwt.provider.JwtProvider;
 import com.timespot.backend.common.security.model.CustomUserDetails;
 import com.timespot.backend.domain.user.model.ProviderType;
@@ -66,7 +67,7 @@ public class AuthServiceImpl implements AuthService {
     public AuthResponseDto.AuthInfoResponse signup(final AuthRequestDto.OAuth2SignupRequest dto) {
         final ProviderType providerType = ProviderType.from(dto.getProvider());
         User               user         = userService.createUserForSocialConnection(dto);
-        return createAuthInfoResponse(user, providerType, true);
+        return createAuthInfoResponse(user, providerType);
     }
 
     /**
@@ -83,7 +84,7 @@ public class AuthServiceImpl implements AuthService {
         ProviderType providerType = ProviderType.from(dto.getProvider());
 
         return userService.findUserForSocialConnection(providerType, oAuthProfile.getProviderUserId())
-                          .map(user -> createAuthInfoResponse(user, providerType, false))
+                          .map(user -> createAuthInfoResponse(user, providerType))
                           .orElseGet(() -> new AuthInfoResponse(
                                   providerType,
                                   true,
@@ -114,7 +115,7 @@ public class AuthServiceImpl implements AuthService {
      * @return 갱신된 인증 정보 응답 DTO
      */
     @Override
-    public AuthResponseDto.AuthInfoResponse refresh(final String refreshToken) {
+    public AuthResponseDto.TokenInfoResponse refresh(final String refreshToken) {
         validateRefreshToken(refreshToken);
 
         UUID   userId               = jwtProvider.getUserIdFromRefreshToken(refreshToken);
@@ -139,7 +140,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public AuthResponseDto.AuthInfoResponse reissueTokenByUserId(final UUID userId) {
         SocialConnection socialConnection = userService.findByUserId(userId);
-        return createAuthInfoResponse(socialConnection.getUser(), socialConnection.getProviderType(), false);
+        return createAuthInfoResponse(socialConnection.getUser(), socialConnection.getProviderType());
     }
 
 // ========================= 내부 메서드 =========================
@@ -149,11 +150,10 @@ public class AuthServiceImpl implements AuthService {
      *
      * @param user         회원 정보
      * @param providerType 소셜 인증 제공자 유형
-     * @param isNewUser    신규 회원 여부
      * @return 인증 정보 응답 DTO
      */
     private AuthResponseDto.AuthInfoResponse createAuthInfoResponse(
-            final User user, final ProviderType providerType, final boolean isNewUser
+            final User user, final ProviderType providerType
     ) {
         String accessToken = jwtProvider.generateAccessToken(
                 user.getId(), user.getEmail(), providerType, user.getMapApi(), user.getRole()
@@ -174,7 +174,10 @@ public class AuthServiceImpl implements AuthService {
                                     refreshToken,
                                     refreshTokenExpiresIn,
                                     user.getMapApi(),
-                                    providerType);
+                                    providerType,
+                                    false,
+                                    user.getEmail(),
+                                    user.getNickname());
     }
 
     /**
@@ -270,7 +273,7 @@ public class AuthServiceImpl implements AuthService {
      * @param refreshToken RefreshToken
      * @return 재발급된 인증 정보 응답 DTO
      */
-    private AuthResponseDto.AuthInfoResponse reissueWithGracePeriod(
+    private AuthResponseDto.TokenInfoResponse reissueWithGracePeriod(
             final String graceToken, final String refreshToken
     ) {
         Authentication    authentication = jwtProvider.getAuthenticationFromRefreshToken(refreshToken);
@@ -281,13 +284,11 @@ public class AuthServiceImpl implements AuthService {
                 userDetails.getRole()
         );
 
-        return new AuthInfoResponse(
+        return new TokenInfoResponse(
                 accessToken,
                 jwtProvider.getAccessTokenExpirationSeconds(),
                 graceToken,
-                jwtProvider.getRefreshTokenExpirationSeconds(),
-                userDetails.getMapApi(),
-                userDetails.getProviderType()
+                jwtProvider.getRefreshTokenExpirationSeconds()
         );
     }
 
@@ -299,7 +300,7 @@ public class AuthServiceImpl implements AuthService {
      * @param graceRedisKey        Grace period 토큰 Redis 키
      * @return 재발급된 인증 정보 응답 DTO
      */
-    private AuthResponseDto.AuthInfoResponse reissueWithNewToken(
+    private AuthResponseDto.TokenInfoResponse reissueWithNewToken(
             final UUID userId, final String refreshTokenRedisKey, final String graceRedisKey
     ) {
         SocialConnection socialConnection = userService.findByUserId(userId);
@@ -320,13 +321,11 @@ public class AuthServiceImpl implements AuthService {
         // RefreshToken 갱신
         redisRepository.setValue(refreshTokenRedisKey, newRefreshToken, Duration.ofSeconds(refreshTokenExpiresIn));
 
-        return new AuthInfoResponse(
+        return new TokenInfoResponse(
                 newAccessToken,
                 accessTokenExpiresIn,
                 newRefreshToken,
-                refreshTokenExpiresIn,
-                user.getMapApi(),
-                socialConnection.getProviderType()
+                refreshTokenExpiresIn
         );
     }
 
