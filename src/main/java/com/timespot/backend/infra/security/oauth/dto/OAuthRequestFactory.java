@@ -52,7 +52,7 @@ public abstract class OAuthRequestFactory {
         params.add(CLIENT_SECRET, clientSecret);
         params.add(CODE, authorizationCode);
         params.add(GRANT_TYPE, OAuthConst.APPLE_IDP_TOKEN_AUTHORIZATION_GRANT_TYPE);
-        if (redirectUri != null && !redirectUri.isBlank()) params.add(REDIRECT_URI, redirectUri);
+        params.add(REDIRECT_URI, redirectUri);
         return params;
     }
 

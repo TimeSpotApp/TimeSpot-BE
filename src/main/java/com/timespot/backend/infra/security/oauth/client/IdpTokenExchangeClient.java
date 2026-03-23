@@ -82,6 +82,9 @@ public class IdpTokenExchangeClient {
                                                                                                      createAppleClientSecret(),
                                                                                                      authCode,
                                                                                                      appleRedirectUri);
+        log.info("----------------------------------------");
+        log.info("params: {}", params);
+        log.info("----------------------------------------");
 
         return executeAppleTokenValidation(params);
     }
@@ -172,7 +175,8 @@ public class IdpTokenExchangeClient {
     public void revokeGoogleToken(final String token) {
         try {
             ResponseEntity<String> response = restClient.post()
-                                                        .uri(OAuthConst.GOOGLE_IDP_TOKEN_REVOKE_URL + "?token={token}", token)
+                                                        .uri(OAuthConst.GOOGLE_IDP_TOKEN_REVOKE_URL + "?token={token}",
+                                                             token)
                                                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                                                         .retrieve()
                                                         .toEntity(String.class);
