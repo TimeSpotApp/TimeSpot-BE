@@ -168,10 +168,7 @@ public class IdpTokenExchangeClient {
     public void revokeGoogleToken(final String token) {
         try {
             ResponseEntity<String> response = restClient.post()
-                                                        .uri(builder -> builder
-                                                                .path(OAuthConst.GOOGLE_IDP_TOKEN_REVOKE_URL)
-                                                                .queryParam("token", token)
-                                                                .build())
+                                                        .uri(OAuthConst.GOOGLE_IDP_TOKEN_REVOKE_URL + "?token={token}", token)
                                                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                                                         .retrieve()
                                                         .toEntity(String.class);

@@ -74,7 +74,7 @@ public class User extends BaseAuditingEntity implements Persistable<UUID> {
     // ========================= 생성자 메서드 =========================
 
     public static User of(final String email, final String nickname) {
-        return User.builder().email(email).nickname(nickname).role(UserRole.USER).build();
+        return User.builder().email(email).nickname(nickname).mapApi(MapApi.APPLE).role(UserRole.USER).build();
     }
 
     public static User of(final String email, final String nickname, final MapApi mapApi) {
@@ -82,7 +82,7 @@ public class User extends BaseAuditingEntity implements Persistable<UUID> {
     }
 
     public static User of(final String email, final String nickname, final UserRole role) {
-        return User.builder().email(email).nickname(nickname).role(role).build();
+        return User.builder().email(email).nickname(nickname).mapApi(MapApi.APPLE).role(role).build();
     }
 
     public static User of(final String email, final String nickname, final MapApi mapApi, final UserRole role) {
