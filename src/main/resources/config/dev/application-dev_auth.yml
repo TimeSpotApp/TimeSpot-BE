@@ -31,4 +31,4 @@ app:
     refresh-token-expiration-seconds: ${JWT_REFRESH_TOKEN_EXPIRATION_SECONDS:1209600}  # 2 weeks
 google:
   places:
-    api-key: ${GOOGLE_PLACES_API_KEY}
+    api-key: ${GOOGLE_PLACES_API_KEY:GOOGLE_PLACES_API_KEY}
