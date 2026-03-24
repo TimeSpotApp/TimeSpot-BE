@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Configuration;
  * FileName    : QuerydslConfig
  * Author      : loadingKKamo21
  * Date        : 26. 2. 26.
- * Description :
+ * Description : QueryDSL 설정 (JPAQueryFactory Bean 등록)
  * =====================================================================================================================
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------

@@ -10,7 +10,7 @@ import org.springframework.http.HttpStatus;
  * FileName    : SuccessCode
  * Author      : loadingKKamo21
  * Date        : 26. 2. 26.
- * Description :
+ * Description : 성공 코드 열거형 (공통, 사용자, 장소)
  * =====================================================================================================================
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------
@@ -40,7 +40,7 @@ public enum SuccessCode {
 
     // Place
     PLACE_GET_AVAILABLE_PLACES_SUCCESS(HttpStatus.OK, "방문 가능 장소 조회가 완료되었습니다."),
-    PLACE_GET_DETAIL_SUCCESS(HttpStatus.OK, "장소 상세 정보 조회가 완료되었습니다.");;
+    PLACE_GET_DETAIL_SUCCESS(HttpStatus.OK, "장소 상세 정보 조회가 완료되었습니다.");
 
     private final HttpStatus status;
     private final String     message;

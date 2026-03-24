@@ -15,7 +15,7 @@ import org.springframework.stereotype.Repository;
  * FileName    : UserRepositoryImpl
  * Author      : loadingKKamo21
  * Date        : 26. 3. 9.
- * Description :
+ * Description : 사용자 리포지토리 커스텀 구현체 (QueryDSL)
  * =====================================================================================================================
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------

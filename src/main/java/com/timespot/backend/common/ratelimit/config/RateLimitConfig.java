@@ -16,7 +16,7 @@ import org.springframework.context.annotation.Configuration;
  * FileName    : RateLimitConfig
  * Author      : loadingKKamo21
  * Date        : 26. 3. 15.
- * Description :
+ * Description : Rate Limiting 필터 등록 설정
  * =====================================================================================================================
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------

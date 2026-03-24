@@ -40,7 +40,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
  * FileName    : SecurityConfig
  * Author      : loadingKKamo21
  * Date        : 26. 2. 28.
- * Description :
+ * Description : Spring Security 설정 및 인증/인가 필터 체인 구성
  * =====================================================================================================================
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------

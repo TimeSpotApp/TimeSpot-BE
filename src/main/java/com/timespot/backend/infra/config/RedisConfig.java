@@ -21,7 +21,7 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
  * FileName    : RedisConfig
  * Author      : loadingKKamo21
  * Date        : 26. 2. 28.
- * Description :
+ * Description : Redis 설정 (ConnectionFactory, RedisTemplate)
  * =====================================================================================================================
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------

@@ -36,7 +36,7 @@ import org.springframework.web.util.pattern.PathPatternParser;
  * FileName    : RateLimitFilter
  * Author      : loadingKKamo21
  * Date        : 26. 3. 15.
- * Description :
+ * Description : Rate Limiting 필터 (Bucket4j + Redis)
  * =====================================================================================================================
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------

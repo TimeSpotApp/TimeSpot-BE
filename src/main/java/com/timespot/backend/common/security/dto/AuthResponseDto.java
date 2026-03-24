@@ -16,7 +16,7 @@ import lombok.RequiredArgsConstructor;
  * FileName    : AuthResponseDto
  * Author      : loadingKKamo21
  * Date        : 26. 3. 9.
- * Description :
+ * Description : 인증 관련 응답 DTO
  * =====================================================================================================================
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------

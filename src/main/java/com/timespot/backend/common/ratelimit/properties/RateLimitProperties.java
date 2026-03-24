@@ -14,7 +14,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * FileName    : RateLimitProperties
  * Author      : loadingKKamo21
  * Date        : 26. 3. 14.
- * Description :
+ * Description : Rate Limiting 설정 속성 (엔드포인트별 토큰 버킷 설정)
  * =====================================================================================================================
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------

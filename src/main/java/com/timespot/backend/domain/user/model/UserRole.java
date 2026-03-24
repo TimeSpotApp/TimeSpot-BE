@@ -17,7 +17,7 @@ import lombok.RequiredArgsConstructor;
  * FileName    : UserRole
  * Author      : loadingKKamo21
  * Date        : 26. 3. 8.
- * Description :
+ * Description : 사용자 역할 열거형 (USER, ADMIN)
  * =====================================================================================================================
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------

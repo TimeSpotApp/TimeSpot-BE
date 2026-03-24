@@ -31,7 +31,7 @@ import org.springframework.web.bind.annotation.RestController;
  * FileName    : AuthController
  * Author      : loadingKKamo21
  * Date        : 26. 3. 9.
- * Description :
+ * Description : 인증/인가 API 컨트롤러 (로그인, 회원가입, 토큰 관리)
  * =====================================================================================================================
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------

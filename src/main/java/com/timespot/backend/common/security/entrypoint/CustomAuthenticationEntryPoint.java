@@ -21,7 +21,7 @@ import org.springframework.stereotype.Component;
  * FileName    : CustomAuthenticationEntryPoint
  * Author      : loadingKKamo21
  * Date        : 26. 3. 9.
- * Description :
+ * Description : 인증 실패 시 진입점 (401 Unauthorized 응답)
  * =====================================================================================================================
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------
@@ -38,7 +38,7 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
     public void commence(HttpServletRequest request,
                          HttpServletResponse response,
                          AuthenticationException authException) throws IOException, ServletException {
-        log.error("인증 실패: {}", authException.getMessage());
+        log.error("Authentication error: {}", authException.getMessage());
 
         BaseResponse<Void> baseResponse = BaseResponse.error(UNAUTHORIZED);
 

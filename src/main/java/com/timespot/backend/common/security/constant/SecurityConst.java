@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
  * FileName    : SecurityConst
  * Author      : loadingKKamo21
  * Date        : 26. 3. 9.
- * Description :
+ * Description : Spring Security 관련 상수 정의 (JWT, URL 패턴)
  * =====================================================================================================================
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------

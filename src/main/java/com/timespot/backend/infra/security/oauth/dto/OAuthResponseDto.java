@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
  * FileName    : OAuthResponseDto
  * Author      : loadingKKamo21
  * Date        : 26. 3. 12.
- * Description :
+ * Description : OAuth2 인증 제공자 응답 DTO (Token 교환 및 갱신)
  * =====================================================================================================================
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------

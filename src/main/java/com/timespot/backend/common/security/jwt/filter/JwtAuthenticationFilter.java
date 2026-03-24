@@ -25,7 +25,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
  * FileName    : JwtAuthenticationFilter
  * Author      : loadingKKamo21
  * Date        : 26. 3. 9.
- * Description :
+ * Description : JWT AccessToken 검증 및 SecurityContext 설정 필터
  * =====================================================================================================================
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------

@@ -27,7 +27,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
  * FileName    : JwtExceptionFilter
  * Author      : loadingKKamo21
  * Date        : 26. 3. 9.
- * Description :
+ * Description : JWT 예외 처리 및 에러 응답 변환 필터
  * =====================================================================================================================
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------

@@ -17,7 +17,7 @@ import java.util.function.Predicate;
  * FileName    : P6SpySqlFormatter
  * Author      : loadingKKamo21
  * Date        : 26. 3. 7.
- * Description :
+ * Description : P6Spy SQL 포맷터 (SQL 로그 포맷팅 및 호출 스택 추적)
  * =====================================================================================================================
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------

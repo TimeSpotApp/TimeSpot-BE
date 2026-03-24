@@ -17,7 +17,7 @@ import lombok.RequiredArgsConstructor;
  * FileName    : MapApi
  * Author      : loadingKKamo21
  * Date        : 26. 3. 21.
- * Description :
+ * Description : 지도 API 유형 열거형 (APPLE, GOOGLE, NAVER)
  * =====================================================================================================================
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------

@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
  * FileName    : UserController
  * Author      : loadingKKamo21
  * Date        : 26. 3. 8.
- * Description :
+ * Description : 사용자 API 컨트롤러 (회원 정보 조회, 수정, 탈퇴)
  * =====================================================================================================================
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------

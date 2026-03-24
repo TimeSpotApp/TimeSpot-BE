@@ -37,7 +37,7 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
  * FileName    : GlobalExceptionHandler
  * Author      : loadingKKamo21
  * Date        : 26. 2. 26.
- * Description :
+ * Description : 전역 예외 핸들러 (RestControllerAdvice 기반)
  * =====================================================================================================================
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------

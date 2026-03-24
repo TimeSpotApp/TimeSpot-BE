@@ -20,7 +20,7 @@ import org.springframework.stereotype.Component;
  * FileName    : RateLimitBucketBuilder
  * Author      : loadingKKamo21
  * Date        : 26. 3. 14.
- * Description :
+ * Description : Rate Limiting 버킷 설정 빌더 (엔드포인트별 BucketConfiguration 생성)
  * =====================================================================================================================
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------

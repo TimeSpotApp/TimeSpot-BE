@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
  * FileName    : OAuthProfileFactory
  * Author      : loadingKKamo21
  * Date        : 26. 3. 9.
- * Description :
+ * Description : OAuth 프로필 팩토리 (제공자별 프로필 생성)
  * =====================================================================================================================
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------

@@ -8,7 +8,7 @@ import org.springframework.scheduling.annotation.EnableAsync;
  * FileName    : EnableAsyncConfig
  * Author      : loadingKKamo21
  * Date        : 26. 3. 9.
- * Description :
+ * Description : 비동기 메서드 처리 활성화 설정 (@Async 사용 위한 설정)
  * =====================================================================================================================
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------

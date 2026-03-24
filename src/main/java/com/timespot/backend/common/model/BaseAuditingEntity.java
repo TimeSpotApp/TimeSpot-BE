@@ -14,7 +14,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
  * FileName    : BaseAuditingEntity
  * Author      : loadingKKamo21
  * Date        : 26. 2. 26.
- * Description :
+ * Description : JPA Auditing 기반 시간 정보 추상 엔티티 (createdAt, updatedAt)
  * =====================================================================================================================
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------

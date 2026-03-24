@@ -9,7 +9,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * FileName    : OAuth2Properties
  * Author      : loadingKKamo21
  * Date        : 26. 3. 9.
- * Description :
+ * Description : OAuth2 인증 설정 속성 (Apple, Google)
  * =====================================================================================================================
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------

@@ -40,7 +40,7 @@ import org.springframework.transaction.annotation.Transactional;
  * FileName    : AuthServiceImpl
  * Author      : loadingKKamo21
  * Date        : 26. 3. 9.
- * Description :
+ * Description : 인증 서비스 구현체
  * =====================================================================================================================
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------

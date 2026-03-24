@@ -1,6 +1,6 @@
 package com.timespot.backend.common.security.handler;
 
-import static com.timespot.backend.common.response.ErrorCode.USER_AUTH_ACCESS_DENIED;
+import static com.timespot.backend.common.response.ErrorCode.ACCESS_DENIED;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
@@ -21,7 +21,7 @@ import org.springframework.stereotype.Component;
  * FileName    : CustomAccessDeniedHandler
  * Author      : loadingKKamo21
  * Date        : 26. 3. 9.
- * Description :
+ * Description : 인가 실패 시 핸들러 (403 Forbidden 응답)
  * =====================================================================================================================
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------
@@ -38,9 +38,9 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
     public void handle(HttpServletRequest request,
                        HttpServletResponse response,
                        AccessDeniedException accessDeniedException) throws IOException, ServletException {
-        log.error("접근 거부: {}", accessDeniedException.getMessage());
+        log.error("Access denied error: {}", accessDeniedException.getMessage());
 
-        BaseResponse<Void> baseResponse = BaseResponse.error(USER_AUTH_ACCESS_DENIED);
+        BaseResponse<Void> baseResponse = BaseResponse.error(ACCESS_DENIED);
 
         response.setStatus(baseResponse.getCode());
         response.setContentType(APPLICATION_JSON_VALUE);

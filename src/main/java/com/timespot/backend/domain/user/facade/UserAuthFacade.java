@@ -14,7 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
  * FileName    : UserAuthFacade
  * Author      : loadingKKamo21
  * Date        : 26. 3. 21.
- * Description :
+ * Description : 사용자 인증 퍼사드 (회원 정보 수정 및 토큰 재발급 통합)
  * =====================================================================================================================
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------

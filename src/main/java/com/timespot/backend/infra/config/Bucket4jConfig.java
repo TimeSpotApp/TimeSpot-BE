@@ -16,7 +16,7 @@ import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactor
  * FileName    : Bucket4jConfig
  * Author      : loadingKKamo21
  * Date        : 26. 3. 14.
- * Description :
+ * Description : Bucket4j Rate Limiting 설정 (Redis 기반 분산 Rate Limiter)
  * =====================================================================================================================
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------

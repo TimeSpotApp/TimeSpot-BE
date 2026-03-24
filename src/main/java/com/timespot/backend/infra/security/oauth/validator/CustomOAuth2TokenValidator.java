@@ -30,7 +30,7 @@ import org.springframework.stereotype.Component;
  * FileName    : CustomOAuth2TokenValidator
  * Author      : loadingKKamo21
  * Date        : 26. 3. 9.
- * Description :
+ * Description : OAuth2 ID Token 검증 및 파싱 컴포넌트
  * =====================================================================================================================
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------

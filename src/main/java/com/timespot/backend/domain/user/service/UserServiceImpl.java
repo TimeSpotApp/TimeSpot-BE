@@ -35,7 +35,7 @@ import org.springframework.transaction.annotation.Transactional;
  * FileName    : UserServiceImpl
  * Author      : loadingKKamo21
  * Date        : 26. 3. 8.
- * Description :
+ * Description : 사용자 도메인 서비스 구현체
  * =====================================================================================================================
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------

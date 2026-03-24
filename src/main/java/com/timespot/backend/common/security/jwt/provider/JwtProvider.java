@@ -37,7 +37,7 @@ import org.springframework.stereotype.Component;
  * FileName    : JwtProvider
  * Author      : loadingKKamo21
  * Date        : 26. 3. 9.
- * Description :
+ * Description : JWT 토큰 생성 및 검증 컴포넌트
  * =====================================================================================================================
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------

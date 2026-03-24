@@ -39,7 +39,7 @@ import org.springframework.web.client.RestClient;
  * FileName    : IdpTokenExchangeClient
  * Author      : loadingKKamo21
  * Date        : 26. 3. 9.
- * Description :
+ * Description : IDP (Apple/Google) 토큰 교환 클라이언트
  * =====================================================================================================================
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------

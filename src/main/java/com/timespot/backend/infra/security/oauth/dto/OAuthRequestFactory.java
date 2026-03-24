@@ -26,7 +26,7 @@ import org.springframework.util.MultiValueMap;
  * FileName    : OAuthRequestFactory
  * Author      : loadingKKamo21
  * Date        : 26. 3. 12.
- * Description :
+ * Description : OAuth2 인증 요청 파라미터 생성 팩토리
  * =====================================================================================================================
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------

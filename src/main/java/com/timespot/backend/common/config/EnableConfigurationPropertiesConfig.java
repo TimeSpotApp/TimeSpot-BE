@@ -12,7 +12,7 @@ import org.springframework.context.annotation.Configuration;
  * FileName    : EnableConfigurationPropertiesConfig
  * Author      : loadingKKamo21
  * Date        : 26. 3. 9.
- * Description :
+ * Description : @ConfigurationProperties 클래스 활성화 설정
  * =====================================================================================================================
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------

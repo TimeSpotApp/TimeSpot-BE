@@ -20,7 +20,7 @@ import org.springframework.http.ResponseEntity;
  * FileName    : UserApiDocs
  * Author      : loadingKKamo21
  * Date        : 26. 3. 9.
- * Description :
+ * Description : 사용자 관련 API 문서화 인터페이스
  * =====================================================================================================================
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------
