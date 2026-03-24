@@ -1,12 +1,19 @@
 package com.timespot.backend.infra.security.oauth.validator;
 
+import static com.timespot.backend.common.response.ErrorCode.SOCIAL_CONNECTION_INVALID_TOKEN;
+import static com.timespot.backend.common.response.ErrorCode.SOCIAL_CONNECTION_PROVIDER_NOT_SUPPORTED;
+import static com.timespot.backend.common.response.ErrorCode.SOCIAL_CONNECTION_TOKEN_PARSE_FAILED;
+import static com.timespot.backend.infra.security.oauth.constant.OAuthConst.APPLE_ISSUER;
+import static com.timespot.backend.infra.security.oauth.constant.OAuthConst.APPLE_JWKS_URL;
+import static com.timespot.backend.infra.security.oauth.constant.OAuthConst.GOOGLE_ISSUER;
+import static com.timespot.backend.infra.security.oauth.constant.OAuthConst.GOOGLE_JWKS_URL;
+import static java.util.concurrent.TimeUnit.HOURS;
+
 import com.auth0.jwk.JwkException;
 import com.auth0.jwk.JwkProvider;
 import com.auth0.jwk.JwkProviderBuilder;
 import com.timespot.backend.common.error.GlobalException;
-import com.timespot.backend.common.response.ErrorCode;
 import com.timespot.backend.domain.user.model.ProviderType;
-import com.timespot.backend.infra.security.oauth.constant.OAuthConst;
 import com.timespot.backend.infra.security.oauth.properties.OAuth2Properties;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwsHeader;
@@ -15,7 +22,6 @@ import io.jsonwebtoken.Locator;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.Key;
-import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -41,10 +47,10 @@ public class CustomOAuth2TokenValidator {
     private final String googleClientId;
 
     public CustomOAuth2TokenValidator(final OAuth2Properties oAuth2Properties) throws MalformedURLException {
-        appleJwkProvider = new JwkProviderBuilder(new URL(OAuthConst.APPLE_JWKS_URL))
-                .cached(10, 10, TimeUnit.HOURS).build();
-        googleJwkProvider = new JwkProviderBuilder(new URL(OAuthConst.GOOGLE_JWKS_URL))
-                .cached(10, 10, TimeUnit.HOURS).build();
+        appleJwkProvider = new JwkProviderBuilder(new URL(APPLE_JWKS_URL))
+                .cached(10, 10, HOURS).build();
+        googleJwkProvider = new JwkProviderBuilder(new URL(GOOGLE_JWKS_URL))
+                .cached(10, 10, HOURS).build();
         appleClientId = oAuth2Properties.getApple().getClientId();
         googleClientId = oAuth2Properties.getGoogle().getClientId();
     }
@@ -65,29 +71,29 @@ public class CustomOAuth2TokenValidator {
 
         switch (providerType) {
             case APPLE -> {
-                expectedIssuer = OAuthConst.APPLE_ISSUER;
+                expectedIssuer = APPLE_ISSUER;
                 expectedAudience = appleClientId;
                 jwkProvider = appleJwkProvider;
             }
             case GOOGLE -> {
-                expectedIssuer = OAuthConst.GOOGLE_ISSUER;
+                expectedIssuer = GOOGLE_ISSUER;
                 expectedAudience = googleClientId;
                 jwkProvider = googleJwkProvider;
             }
-            default -> throw new GlobalException(ErrorCode.SOCIAL_CONNECTION_PROVIDER_NOT_SUPPORTED);
+            default -> throw new GlobalException(SOCIAL_CONNECTION_PROVIDER_NOT_SUPPORTED);
         }
 
         Locator<Key> keyLocator = locator -> {
             JwsHeader header = (JwsHeader) locator;
             String    keyId  = header.getKeyId();
 
-            if (keyId == null) throw new GlobalException(ErrorCode.SOCIAL_CONNECTION_TOKEN_PARSE_FAILED);
+            if (keyId == null) throw new GlobalException(SOCIAL_CONNECTION_TOKEN_PARSE_FAILED);
 
             try {
                 return jwkProvider.get(keyId).getPublicKey();
             } catch (JwkException e) {
                 log.error("{} 공개 키 조회 실패 - keyId: {}", provider, keyId, e);
-                throw new GlobalException(ErrorCode.SOCIAL_CONNECTION_TOKEN_PARSE_FAILED);
+                throw new GlobalException(SOCIAL_CONNECTION_TOKEN_PARSE_FAILED);
             }
         };
 
@@ -101,7 +107,7 @@ public class CustomOAuth2TokenValidator {
                        .getPayload();
         } catch (Exception e) {
             log.error("잘못되거나 만료된 {} 토큰입니다.", provider, e);
-            throw new GlobalException(ErrorCode.SOCIAL_CONNECTION_INVALID_TOKEN);
+            throw new GlobalException(SOCIAL_CONNECTION_INVALID_TOKEN);
         }
     }
 

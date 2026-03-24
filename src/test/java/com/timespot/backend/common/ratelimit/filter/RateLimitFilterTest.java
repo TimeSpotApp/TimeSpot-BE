@@ -1,5 +1,9 @@
 package com.timespot.backend.common.ratelimit.filter;
 
+import static com.timespot.backend.common.ratelimit.constant.RateLimitConst.ANONYMOUS_KEY_PREFIX;
+import static com.timespot.backend.common.ratelimit.constant.RateLimitConst.excludedPathPrefixes;
+import static com.timespot.backend.common.response.ErrorCode.TOO_MANY_REQUESTS;
+import static com.timespot.backend.common.response.SuccessCode.REQUEST_SUCCESS;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -16,12 +20,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.timespot.backend.common.ratelimit.builder.RateLimitBucketBuilder;
 import com.timespot.backend.common.ratelimit.config.RateLimitConfig;
-import com.timespot.backend.common.ratelimit.constant.RateLimitConst;
 import com.timespot.backend.common.ratelimit.filter.RateLimitFilterTest.TestController;
 import com.timespot.backend.common.ratelimit.properties.RateLimitProperties;
 import com.timespot.backend.common.response.BaseResponse;
-import com.timespot.backend.common.response.ErrorCode;
-import com.timespot.backend.common.response.SuccessCode;
 import com.timespot.backend.common.security.config.TestSecurityConfig;
 import com.timespot.backend.common.security.config.annotation.CustomWithMockUser;
 import io.github.bucket4j.ConsumptionProbe;
@@ -86,12 +87,12 @@ class RateLimitFilterTest {
 
         @GetMapping("/api/v1/test")
         public ResponseEntity<BaseResponse<Void>> test() {
-            return ResponseEntity.ok(BaseResponse.success(SuccessCode.REQUEST_SUCCESS));
+            return ResponseEntity.ok(BaseResponse.success(REQUEST_SUCCESS));
         }
 
         @GetMapping({"/management", "/swagger-ui", "/v3/api-docs"})
         public ResponseEntity<BaseResponse<Void>> excluded() {
-            return ResponseEntity.ok(BaseResponse.success(SuccessCode.REQUEST_SUCCESS));
+            return ResponseEntity.ok(BaseResponse.success(REQUEST_SUCCESS));
         }
 
     }
@@ -115,7 +116,7 @@ class RateLimitFilterTest {
             ResultActions resultActions = mockMvc.perform(get("/api/v1/test"));
 
             // then
-            final BaseResponse<Void> baseResponse = BaseResponse.success(SuccessCode.REQUEST_SUCCESS);
+            final BaseResponse<Void> baseResponse = BaseResponse.success(REQUEST_SUCCESS);
             final String             responseBody = objectMapper.writeValueAsString(baseResponse);
 
             resultActions.andExpect(status().isOk())
@@ -140,7 +141,7 @@ class RateLimitFilterTest {
             ResultActions resultActions = mockMvc.perform(get("/api/v1/test"));
 
             // then
-            final BaseResponse<Void> baseResponse = BaseResponse.error(ErrorCode.TOO_MANY_REQUESTS);
+            final BaseResponse<Void> baseResponse = BaseResponse.error(TOO_MANY_REQUESTS);
             final String             responseBody = objectMapper.writeValueAsString(baseResponse);
 
             resultActions.andExpect(status().isTooManyRequests())
@@ -177,7 +178,7 @@ class RateLimitFilterTest {
             ResultActions resultActions = mockMvc.perform(get("/api/v1/test"));
 
             // then
-            final BaseResponse<Void> baseResponse = BaseResponse.success(SuccessCode.REQUEST_SUCCESS);
+            final BaseResponse<Void> baseResponse = BaseResponse.success(REQUEST_SUCCESS);
             final String             responseBody = objectMapper.writeValueAsString(baseResponse);
 
             resultActions.andExpect(status().isOk())
@@ -201,7 +202,7 @@ class RateLimitFilterTest {
             ResultActions resultActions = mockMvc.perform(get("/api/v1/test"));
 
             // then
-            final BaseResponse<Void> baseResponse = BaseResponse.error(ErrorCode.TOO_MANY_REQUESTS);
+            final BaseResponse<Void> baseResponse = BaseResponse.error(TOO_MANY_REQUESTS);
             final String             responseBody = objectMapper.writeValueAsString(baseResponse);
 
             resultActions.andExpect(status().isTooManyRequests())
@@ -229,8 +230,7 @@ class RateLimitFilterTest {
                    .andDo(print());
 
             // then
-            verify(proxyManager.builder())
-                    .build(eq(RateLimitConst.ANONYMOUS_KEY_PREFIX + ipValue), any(Supplier.class));
+            verify(proxyManager.builder()).build(eq(ANONYMOUS_KEY_PREFIX + ipValue), any(Supplier.class));
         }
 
     }
@@ -240,7 +240,7 @@ class RateLimitFilterTest {
     class ExcludedPathTests {
 
         static Stream<String> excludedPathPrefixesProvider() {
-            return Stream.of(RateLimitConst.excludedPathPrefixes);
+            return Stream.of(excludedPathPrefixes);
         }
 
         @ParameterizedTest

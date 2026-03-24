@@ -1,26 +1,34 @@
 package com.timespot.backend.domain.user.model;
 
+import static com.timespot.backend.common.response.ErrorCode.USER_EMAIL_REQUIRED;
+import static com.timespot.backend.common.response.ErrorCode.USER_INVALID_EMAIL_FORMAT;
+import static com.timespot.backend.common.response.ErrorCode.USER_INVALID_NICKNAME_FORMAT;
+import static com.timespot.backend.common.response.ErrorCode.USER_NICKNAME_REQUIRED;
+import static com.timespot.backend.domain.user.constant.UserConst.EMAIL_PATTERN;
+import static com.timespot.backend.domain.user.constant.UserConst.NICKNAME_PATTERN;
+import static com.timespot.backend.domain.user.model.MapApi.APPLE;
+import static com.timespot.backend.domain.user.model.UserRole.USER;
+import static jakarta.persistence.EnumType.STRING;
+import static lombok.AccessLevel.PRIVATE;
+import static lombok.AccessLevel.PROTECTED;
+import static org.hibernate.type.SqlTypes.BINARY;
+
 import com.github.f4b6a3.ulid.UlidCreator;
 import com.timespot.backend.common.error.GlobalException;
 import com.timespot.backend.common.model.BaseAuditingEntity;
-import com.timespot.backend.common.response.ErrorCode;
-import com.timespot.backend.domain.user.constant.UserConst;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
 import java.util.Objects;
 import java.util.UUID;
-import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
 import org.springframework.data.domain.Persistable;
 
 /**
@@ -37,12 +45,12 @@ import org.springframework.data.domain.Persistable;
 @Entity
 @Table(name = "users")
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = PROTECTED)
+@AllArgsConstructor(access = PRIVATE)
 public class User extends BaseAuditingEntity implements Persistable<UUID> {
 
     @Id
-    @JdbcTypeCode(SqlTypes.BINARY)
+    @JdbcTypeCode(BINARY)
     @Column(name = "user_id", columnDefinition = "BINARY(16)", nullable = false, updatable = false)
     private UUID id;
 
@@ -52,15 +60,15 @@ public class User extends BaseAuditingEntity implements Persistable<UUID> {
     @Column(name = "nickname", nullable = false)
     private String nickname;
 
-    @Enumerated(EnumType.STRING)
+    @Enumerated(STRING)
     @Column(name = "map_api")
     private MapApi mapApi;
 
-    @Enumerated(EnumType.STRING)
+    @Enumerated(STRING)
     @Column(name = "role", nullable = false)
     private UserRole role;
 
-    @Builder(access = AccessLevel.PRIVATE)
+    @Builder(access = PRIVATE)
     private User(final String email, final String nickname, final MapApi mapApi, final UserRole role) {
         validateEmail(email);
         validateNickname(nickname);
@@ -68,21 +76,21 @@ public class User extends BaseAuditingEntity implements Persistable<UUID> {
         this.email = email.toLowerCase();
         this.nickname = nickname;
         this.mapApi = mapApi;
-        this.role = role != null ? role : UserRole.USER;
+        this.role = role != null ? role : USER;
     }
 
     // ========================= 생성자 메서드 =========================
 
     public static User of(final String email, final String nickname) {
-        return User.builder().email(email).nickname(nickname).mapApi(MapApi.APPLE).role(UserRole.USER).build();
+        return User.builder().email(email).nickname(nickname).mapApi(APPLE).role(USER).build();
     }
 
     public static User of(final String email, final String nickname, final MapApi mapApi) {
-        return User.builder().email(email).nickname(nickname).mapApi(mapApi).role(UserRole.USER).build();
+        return User.builder().email(email).nickname(nickname).mapApi(mapApi).role(USER).build();
     }
 
     public static User of(final String email, final String nickname, final UserRole role) {
-        return User.builder().email(email).nickname(nickname).mapApi(MapApi.APPLE).role(role).build();
+        return User.builder().email(email).nickname(nickname).mapApi(APPLE).role(role).build();
     }
 
     public static User of(final String email, final String nickname, final MapApi mapApi, final UserRole role) {
@@ -118,9 +126,9 @@ public class User extends BaseAuditingEntity implements Persistable<UUID> {
      */
     private void validateEmail(final String email) {
         if (email == null || email.isBlank())
-            throw new GlobalException(ErrorCode.USER_EMAIL_REQUIRED);
-        if (!UserConst.EMAIL_PATTERN.matcher(email).matches())
-            throw new GlobalException(ErrorCode.USER_INVALID_EMAIL_FORMAT);
+            throw new GlobalException(USER_EMAIL_REQUIRED);
+        if (!EMAIL_PATTERN.matcher(email).matches())
+            throw new GlobalException(USER_INVALID_EMAIL_FORMAT);
     }
 
     /**
@@ -130,9 +138,9 @@ public class User extends BaseAuditingEntity implements Persistable<UUID> {
      */
     private void validateNickname(final String nickname) {
         if (nickname == null || nickname.isBlank())
-            throw new GlobalException(ErrorCode.USER_NICKNAME_REQUIRED);
-        if (!UserConst.NICKNAME_PATTERN.matcher(nickname).matches())
-            throw new GlobalException(ErrorCode.USER_INVALID_NICKNAME_FORMAT);
+            throw new GlobalException(USER_NICKNAME_REQUIRED);
+        if (!NICKNAME_PATTERN.matcher(nickname).matches())
+            throw new GlobalException(USER_INVALID_NICKNAME_FORMAT);
     }
 
     // ========================= 비즈니스 메서드 =========================

@@ -1,9 +1,10 @@
 package com.timespot.backend.infra.config;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import io.github.bucket4j.distributed.proxy.ProxyManager;
 import io.github.bucket4j.redis.lettuce.Bucket4jLettuce;
 import io.lettuce.core.api.async.RedisAsyncCommands;
-import java.nio.charset.StandardCharsets;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -29,7 +30,7 @@ public class Bucket4jConfig {
     public ProxyManager<String> proxyManager(final RedisConnectionFactory redisConnectionFactory) {
         return Bucket4jLettuce.casBasedBuilder(getRedisAsyncCommands(redisConnectionFactory))
                               .build()
-                              .withMapper(key -> key.getBytes(StandardCharsets.UTF_8));
+                              .withMapper(key -> key.getBytes(UTF_8));
     }
 
     // ========================= 내부 메서드 =========================

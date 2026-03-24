@@ -1,5 +1,15 @@
 package com.timespot.backend.common.error;
 
+import static com.timespot.backend.common.response.ErrorCode.ACCESS_DENIED;
+import static com.timespot.backend.common.response.ErrorCode.ENTITY_NOT_FOUND;
+import static com.timespot.backend.common.response.ErrorCode.INTERNAL_SERVER_ERROR;
+import static com.timespot.backend.common.response.ErrorCode.INVALID_INPUT_VALUE;
+import static com.timespot.backend.common.response.ErrorCode.METHOD_ARGUMENT_TYPE_MISMATCH;
+import static com.timespot.backend.common.response.ErrorCode.METHOD_NOT_ALLOWED;
+import static com.timespot.backend.common.response.ErrorCode.METHOD_NOT_SUPPORTED;
+import static com.timespot.backend.common.response.ErrorCode.RESOURCE_NOT_FOUND;
+import static com.timespot.backend.common.response.ErrorCode.UNAUTHORIZED;
+
 import com.timespot.backend.common.response.BaseResponse;
 import com.timespot.backend.common.response.ErrorCode;
 import jakarta.persistence.EntityNotFoundException;
@@ -42,7 +52,7 @@ public class GlobalExceptionHandler {
             final MethodArgumentNotValidException e
     ) {
         log.error("handleMethodArgumentNotValidException: {}", e.getMessage(), e);
-        final ErrorCode errorCode = ErrorCode.INVALID_INPUT_VALUE;
+        final ErrorCode errorCode = INVALID_INPUT_VALUE;
         final String errorMessage = e.getBindingResult()
                                      .getAllErrors()
                                      .stream()
@@ -55,7 +65,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BindException.class)
     public ResponseEntity<BaseResponse<Void>> handleBindException(final BindException e) {
         log.error("handleBindException: {}", e.getMessage(), e);
-        final ErrorCode errorCode = ErrorCode.INVALID_INPUT_VALUE;
+        final ErrorCode errorCode = INVALID_INPUT_VALUE;
         final String errorMessage = e.getBindingResult()
                                      .getAllErrors()
                                      .stream()
@@ -70,7 +80,7 @@ public class GlobalExceptionHandler {
             final MethodArgumentTypeMismatchException e
     ) {
         log.error("handleMethodArgumentTypeMismatchException: {} for property {}", e.getMessage(), e.getName(), e);
-        final ErrorCode errorCode = ErrorCode.METHOD_ARGUMENT_TYPE_MISMATCH;
+        final ErrorCode errorCode = METHOD_ARGUMENT_TYPE_MISMATCH;
         final String errorMessage = String.format("요청 인자 '%s'의 타입이 올바르지 않습니다. 예상 타입: %s",
                                                   e.getName(),
                                                   e.getRequiredType() != null ? e.getRequiredType().getName()
@@ -84,7 +94,7 @@ public class GlobalExceptionHandler {
             final ServletRequestBindingException e
     ) {
         log.error("handleServletRequestBindingException: {}", e.getMessage(), e);
-        final ErrorCode errorCode    = ErrorCode.INVALID_INPUT_VALUE;
+        final ErrorCode errorCode    = INVALID_INPUT_VALUE;
         final String    errorMessage = "필수 요청 파라미터 또는 헤더가 누락되었습니다.";
         return ResponseEntity.status(errorCode.getStatus())
                              .body(BaseResponse.error(errorCode, errorMessage));
@@ -95,7 +105,7 @@ public class GlobalExceptionHandler {
             final HttpRequestMethodNotSupportedException e
     ) {
         log.error("handleHttpRequestMethodNotSupportedException: {}", e.getMessage(), e);
-        final ErrorCode errorCode = ErrorCode.METHOD_NOT_ALLOWED;
+        final ErrorCode errorCode = METHOD_NOT_ALLOWED;
         final String supportedMethods = e.getSupportedHttpMethods() != null
                                         ? e.getSupportedHttpMethods()
                                            .stream()
@@ -114,7 +124,7 @@ public class GlobalExceptionHandler {
             final HttpMediaTypeNotSupportedException e
     ) {
         log.error("handleHttpMediaTypeNotSupportedException: {}", e.getMessage(), e);
-        final ErrorCode errorCode = ErrorCode.METHOD_NOT_SUPPORTED;
+        final ErrorCode errorCode = METHOD_NOT_SUPPORTED;
         final String supportedTypes = e.getSupportedMediaTypes() != null
                                       ? e.getSupportedMediaTypes()
                                          .stream()
@@ -131,7 +141,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(NoResourceFoundException.class)
     public ResponseEntity<BaseResponse<Void>> handleNoResourceFoundException(final NoResourceFoundException e) {
         log.error("handleNoResourceFoundException: {}", e.getMessage(), e);
-        final ErrorCode errorCode = ErrorCode.RESOURCE_NOT_FOUND;
+        final ErrorCode errorCode = RESOURCE_NOT_FOUND;
         return ResponseEntity.status(errorCode.getStatus())
                              .body(BaseResponse.error(errorCode));
     }
@@ -139,7 +149,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity<BaseResponse<Void>> handleEntityNotFoundException(final EntityNotFoundException e) {
         log.error("handleEntityNotFoundException: {}", e.getMessage(), e);
-        final ErrorCode errorCode = ErrorCode.ENTITY_NOT_FOUND;
+        final ErrorCode errorCode = ENTITY_NOT_FOUND;
         return ResponseEntity.status(errorCode.getStatus())
                              .body(BaseResponse.error(errorCode));
     }
@@ -148,7 +158,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<BaseResponse<Void>> handleDataIntegrityViolationException(
             final DataIntegrityViolationException e
     ) {
-        final ErrorCode errorCode = ErrorCode.INTERNAL_SERVER_ERROR;
+        final ErrorCode errorCode = INTERNAL_SERVER_ERROR;
         return ResponseEntity.status(errorCode.getStatus())
                              .body(BaseResponse.error(errorCode));
     }
@@ -156,7 +166,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<BaseResponse<Void>> handleAccessDeniedException(final AccessDeniedException e) {
         log.error("handleAccessDeniedException: {}", e.getMessage(), e);
-        final ErrorCode errorCode = ErrorCode.ACCESS_DENIED;
+        final ErrorCode errorCode = ACCESS_DENIED;
         return ResponseEntity.status(errorCode.getStatus())
                              .body(BaseResponse.error(errorCode));
     }
@@ -164,9 +174,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<BaseResponse<Void>> handleAuthenticationException(final AuthenticationException e) {
         log.error("handleAuthenticationException: {}", e.getMessage(), e);
-        final ErrorCode errorCode = ErrorCode.UNAUTHORIZED;
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                             .body(BaseResponse.error(errorCode));
+                             .body(BaseResponse.error(UNAUTHORIZED));
     }
 
     @ExceptionHandler(GlobalException.class)
@@ -179,7 +188,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<BaseResponse<Void>> handleException(final Exception e) {
         log.error("handleException: {}", e.getMessage(), e);
-        final ErrorCode errorCode = ErrorCode.INTERNAL_SERVER_ERROR;
+        final ErrorCode errorCode = INTERNAL_SERVER_ERROR;
         return ResponseEntity.status(errorCode.getStatus())
                              .body(BaseResponse.error(errorCode));
     }

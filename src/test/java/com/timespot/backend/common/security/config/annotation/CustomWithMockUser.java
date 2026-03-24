@@ -1,11 +1,13 @@
 package com.timespot.backend.common.security.config.annotation;
 
+import static com.timespot.backend.domain.user.model.UserRole.USER;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
+
 import com.timespot.backend.common.security.config.CustomWithSecurityContextFactory;
 import com.timespot.backend.domain.user.model.MapApi;
 import com.timespot.backend.domain.user.model.ProviderType;
 import com.timespot.backend.domain.user.model.UserRole;
 import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
 import org.springframework.security.test.context.support.WithSecurityContext;
 
 /**
@@ -19,7 +21,7 @@ import org.springframework.security.test.context.support.WithSecurityContext;
  * ---------------------------------------------------------------------------------------------------------------------
  * 26. 3. 15.    loadingKKamo21       Initial creation
  */
-@Retention(RetentionPolicy.RUNTIME)
+@Retention(RUNTIME)
 @WithSecurityContext(factory = CustomWithSecurityContextFactory.class)
 public @interface CustomWithMockUser {
 
@@ -33,6 +35,6 @@ public @interface CustomWithMockUser {
 
     MapApi mapApi() default MapApi.APPLE;
 
-    UserRole role() default UserRole.USER;
+    UserRole role() default USER;
 
 }

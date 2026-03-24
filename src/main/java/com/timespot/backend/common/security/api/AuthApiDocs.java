@@ -1,8 +1,11 @@
 package com.timespot.backend.common.security.api;
 
 import com.timespot.backend.common.response.BaseResponse;
-import com.timespot.backend.common.security.dto.AuthRequestDto;
-import com.timespot.backend.common.security.dto.AuthResponseDto;
+import com.timespot.backend.common.security.dto.AuthRequestDto.OAuth2LoginRequest;
+import com.timespot.backend.common.security.dto.AuthRequestDto.OAuth2SignupRequest;
+import com.timespot.backend.common.security.dto.AuthRequestDto.TokenRefreshRequest;
+import com.timespot.backend.common.security.dto.AuthResponseDto.AuthInfoResponse;
+import com.timespot.backend.common.security.dto.AuthResponseDto.TokenInfoResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -34,8 +37,8 @@ public interface AuthApiDocs {
                          description = "유효하지 않은 제공자 또는 인증 코드",
                          content = @Content(schema = @Schema(hidden = true))),
     })
-    ResponseEntity<BaseResponse<AuthResponseDto.AuthInfoResponse>> signup(
-            @Parameter(description = "소셜 인증 제공자로부터 발급받은 인증 코드 페이로드") AuthRequestDto.OAuth2SignupRequest dto
+    ResponseEntity<BaseResponse<AuthInfoResponse>> signup(
+            @Parameter(description = "소셜 인증 제공자로부터 발급받은 인증 코드 페이로드") OAuth2SignupRequest dto
     );
 
     @Operation(summary = "OAuth2 소셜 로그인", description = "소셜 인증 제공자의 토큰을 받아 자체 서비스 액세스 토큰을 발급합니다.")
@@ -45,8 +48,8 @@ public interface AuthApiDocs {
                          description = "유효하지 않은 제공자 또는 토큰",
                          content = @Content(schema = @Schema(hidden = true))),
     })
-    ResponseEntity<BaseResponse<AuthResponseDto.AuthInfoResponse>> login(
-            @Parameter(description = "소셜 인증 제공자로부터 발급받은 ID 토큰 페이로드") AuthRequestDto.OAuth2LoginRequest dto
+    ResponseEntity<BaseResponse<AuthInfoResponse>> login(
+            @Parameter(description = "소셜 인증 제공자로부터 발급받은 ID 토큰 페이로드") OAuth2LoginRequest dto
     );
 
     @Operation(summary = "로그아웃", description = "현재 사용자의 액세스 토큰을 만료 처리하고 로그아웃합니다.")
@@ -56,8 +59,8 @@ public interface AuthApiDocs {
 
     @Operation(summary = "토큰 갱신", description = "리프레시 토큰을 사용하여 새로운 토큰을 발급받습니다.")
     @ApiResponse(responseCode = "200", description = "토큰 갱신 성공")
-    ResponseEntity<BaseResponse<AuthResponseDto.TokenInfoResponse>> refresh(
-            @Parameter(description = "리프레시 토큰 페이로드") AuthRequestDto.TokenRefreshRequest dto
+    ResponseEntity<BaseResponse<TokenInfoResponse>> refresh(
+            @Parameter(description = "리프레시 토큰 페이로드") TokenRefreshRequest dto
     );
 
 }

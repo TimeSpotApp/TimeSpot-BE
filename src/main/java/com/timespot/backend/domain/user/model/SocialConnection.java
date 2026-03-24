@@ -1,21 +1,25 @@
 package com.timespot.backend.domain.user.model;
 
+import static com.timespot.backend.common.response.ErrorCode.SOCIAL_CONNECTION_INVALID_PROVIDER_ID;
+import static com.timespot.backend.common.response.ErrorCode.SOCIAL_CONNECTION_PROVIDER_NOT_SUPPORTED;
+import static com.timespot.backend.common.response.ErrorCode.SOCIAL_CONNECTION_USER_MUST_NOT_BE_NULL;
+import static jakarta.persistence.EnumType.STRING;
+import static jakarta.persistence.FetchType.LAZY;
+import static jakarta.persistence.GenerationType.IDENTITY;
+import static lombok.AccessLevel.PRIVATE;
+import static lombok.AccessLevel.PROTECTED;
+
 import com.timespot.backend.common.error.GlobalException;
 import com.timespot.backend.common.model.BaseAuditingEntity;
-import com.timespot.backend.common.response.ErrorCode;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
-import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -35,20 +39,20 @@ import lombok.NoArgsConstructor;
 @Entity
 @Table(name = "social_connections")
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = PROTECTED)
+@AllArgsConstructor(access = PRIVATE)
 public class SocialConnection extends BaseAuditingEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = IDENTITY)
     @Column(name = "social_connection_id", nullable = false, updatable = false)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Enumerated(EnumType.STRING)
+    @Enumerated(STRING)
     @Column(name = "provider_type", nullable = false, updatable = false)
     private ProviderType providerType;
 
@@ -61,7 +65,7 @@ public class SocialConnection extends BaseAuditingEntity {
     @Column(name = "idp_refresh_token_received_at")
     private LocalDateTime idpRefreshTokenReceivedAt;
 
-    @Builder(access = AccessLevel.PRIVATE)
+    @Builder(access = PRIVATE)
     private SocialConnection(final User user,
                              final ProviderType providerType,
                              final String providerId) {
@@ -97,7 +101,7 @@ public class SocialConnection extends BaseAuditingEntity {
      */
     private void validateUser(final User user) {
         if (user == null || user.getId() == null || user.getCreatedAt() == null)
-            throw new GlobalException(ErrorCode.SOCIAL_CONNECTION_USER_MUST_NOT_BE_NULL);
+            throw new GlobalException(SOCIAL_CONNECTION_USER_MUST_NOT_BE_NULL);
     }
 
     /**
@@ -107,7 +111,7 @@ public class SocialConnection extends BaseAuditingEntity {
      */
     private void validateProviderType(final ProviderType providerType) {
         if (providerType == null)
-            throw new GlobalException(ErrorCode.SOCIAL_CONNECTION_PROVIDER_NOT_SUPPORTED);
+            throw new GlobalException(SOCIAL_CONNECTION_PROVIDER_NOT_SUPPORTED);
     }
 
     /**
@@ -117,7 +121,7 @@ public class SocialConnection extends BaseAuditingEntity {
      */
     private void validateProviderId(final String providerId) {
         if (providerId == null || providerId.isBlank())
-            throw new GlobalException(ErrorCode.SOCIAL_CONNECTION_INVALID_PROVIDER_ID);
+            throw new GlobalException(SOCIAL_CONNECTION_INVALID_PROVIDER_ID);
     }
 
     // ========================= 내부 메서드 =========================

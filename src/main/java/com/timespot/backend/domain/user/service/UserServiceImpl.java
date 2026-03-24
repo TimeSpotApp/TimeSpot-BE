@@ -1,18 +1,23 @@
 package com.timespot.backend.domain.user.service;
 
+import static com.timespot.backend.common.response.ErrorCode.SOCIAL_CONNECTION_NOT_FOUND;
+import static com.timespot.backend.common.response.ErrorCode.SOCIAL_CONNECTION_PROVIDER_NOT_SUPPORTED;
+import static com.timespot.backend.common.response.ErrorCode.USER_EMAIL_DUPLICATED;
+import static com.timespot.backend.common.response.ErrorCode.USER_EMAIL_REQUIRED;
+import static com.timespot.backend.common.response.ErrorCode.USER_NOT_FOUND;
+import static com.timespot.backend.infra.security.oauth.constant.TokenType.REFRESH_TOKEN;
+
 import com.timespot.backend.common.error.GlobalException;
-import com.timespot.backend.common.response.ErrorCode;
-import com.timespot.backend.common.security.dto.AuthRequestDto;
+import com.timespot.backend.common.security.dto.AuthRequestDto.OAuth2SignupRequest;
 import com.timespot.backend.domain.user.dao.SocialConnectionRepository;
 import com.timespot.backend.domain.user.dao.UserRepository;
-import com.timespot.backend.domain.user.dto.UserRequestDto;
+import com.timespot.backend.domain.user.dto.UserRequestDto.UserInfoUpdateRequest;
 import com.timespot.backend.domain.user.dto.UserResponseDto.UserInfoResponse;
 import com.timespot.backend.domain.user.model.MapApi;
 import com.timespot.backend.domain.user.model.ProviderType;
 import com.timespot.backend.domain.user.model.SocialConnection;
 import com.timespot.backend.domain.user.model.User;
 import com.timespot.backend.infra.security.oauth.client.IdpTokenExchangeClient;
-import com.timespot.backend.infra.security.oauth.constant.TokenType;
 import com.timespot.backend.infra.security.oauth.dto.OAuthResponseDto.AppleTokenValidationResponse;
 import com.timespot.backend.infra.security.oauth.dto.OAuthResponseDto.GoogleTokenValidationResponse;
 import com.timespot.backend.infra.security.oauth.model.OAuthProfile;
@@ -69,7 +74,7 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     @Transactional
-    public User createUserForSocialConnection(final AuthRequestDto.OAuth2SignupRequest dto) {
+    public User createUserForSocialConnection(final OAuth2SignupRequest dto) {
         final ProviderType providerType = ProviderType.from(dto.getProvider());
         final MapApi       mapApi       = MapApi.from(dto.getMapApi());
 
@@ -96,7 +101,7 @@ public class UserServiceImpl implements UserService {
                                      dto.getNickname(),
                                      mapApi);
             }
-            default -> throw new GlobalException(ErrorCode.SOCIAL_CONNECTION_PROVIDER_NOT_SUPPORTED);
+            default -> throw new GlobalException(SOCIAL_CONNECTION_PROVIDER_NOT_SUPPORTED);
         }
     }
 
@@ -109,7 +114,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public SocialConnection findByUserId(final UUID userId) {
         return socialConnectionRepository.findByUserId(userId)
-                                         .orElseThrow(() -> new GlobalException(ErrorCode.SOCIAL_CONNECTION_NOT_FOUND));
+                                         .orElseThrow(() -> new GlobalException(SOCIAL_CONNECTION_NOT_FOUND));
     }
 
     /**
@@ -120,7 +125,7 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public UserInfoResponse findUserInfoById(final UUID id) {
-        return userRepository.findUserInfoById(id).orElseThrow(() -> new GlobalException(ErrorCode.USER_NOT_FOUND));
+        return userRepository.findUserInfoById(id).orElseThrow(() -> new GlobalException(USER_NOT_FOUND));
     }
 
     /**
@@ -131,10 +136,10 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     @Transactional
-    public void updateUserInfo(final UUID id, final UserRequestDto.UserInfoUpdateRequest dto) {
+    public void updateUserInfo(final UUID id, final UserInfoUpdateRequest dto) {
         final MapApi mapApi = MapApi.from(dto.getMapApi());
 
-        User user = userRepository.findById(id).orElseThrow(() -> new GlobalException(ErrorCode.USER_NOT_FOUND));
+        User user = userRepository.findById(id).orElseThrow(() -> new GlobalException(USER_NOT_FOUND));
 
         user.updateNickname(dto.getNickname());
         user.updateMapApi(mapApi);
@@ -148,17 +153,14 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void withdraw(final UUID id) {
-        User user = userRepository.findById(id).orElseThrow(() -> new GlobalException(ErrorCode.USER_NOT_FOUND));
+        User user = userRepository.findById(id).orElseThrow(() -> new GlobalException(USER_NOT_FOUND));
         SocialConnection socialConnection = socialConnectionRepository.findByUserId(id)
-                                                                      .orElseThrow(() -> new GlobalException(
-                                                                              ErrorCode.SOCIAL_CONNECTION_NOT_FOUND
-                                                                      ));
+                                                                      .orElseThrow(() -> new GlobalException(SOCIAL_CONNECTION_NOT_FOUND));
 
         switch (socialConnection.getProviderType()) {
-            case APPLE -> idpTokenExchangeClient.revokeAppleToken(TokenType.REFRESH_TOKEN,
-                                                                  socialConnection.getIdpRefreshToken());
+            case APPLE -> idpTokenExchangeClient.revokeAppleToken(REFRESH_TOKEN, socialConnection.getIdpRefreshToken());
             case GOOGLE -> idpTokenExchangeClient.revokeGoogleToken(socialConnection.getIdpRefreshToken());
-            default -> throw new GlobalException(ErrorCode.SOCIAL_CONNECTION_PROVIDER_NOT_SUPPORTED);
+            default -> throw new GlobalException(SOCIAL_CONNECTION_PROVIDER_NOT_SUPPORTED);
         }
 
         socialConnectionRepository.delete(socialConnection);
@@ -202,8 +204,8 @@ public class UserServiceImpl implements UserService {
      * @param email 이메일
      */
     private void validateEmail(final String email) {
-        if (email == null || email.isBlank()) throw new GlobalException(ErrorCode.USER_EMAIL_REQUIRED);
-        if (userRepository.existsByEmail(email)) throw new GlobalException(ErrorCode.USER_EMAIL_DUPLICATED);
+        if (email == null || email.isBlank()) throw new GlobalException(USER_EMAIL_REQUIRED);
+        if (userRepository.existsByEmail(email)) throw new GlobalException(USER_EMAIL_DUPLICATED);
     }
 
 }

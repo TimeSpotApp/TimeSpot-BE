@@ -1,8 +1,9 @@
 package com.timespot.backend.infra.security.oauth.model;
 
+import static lombok.AccessLevel.PRIVATE;
+
 import com.timespot.backend.domain.user.model.ProviderType;
 import java.util.Map;
-import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
 /**
@@ -16,7 +17,7 @@ import lombok.NoArgsConstructor;
  * ---------------------------------------------------------------------------------------------------------------------
  * 26. 3. 9.     loadingKKamo21       Initial creation
  */
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = PRIVATE)
 public final class OAuthProfileFactory {
 
     public static OAuthProfile getOAuthProfile(final String registrationId, final Map<String, Object> attributes) {

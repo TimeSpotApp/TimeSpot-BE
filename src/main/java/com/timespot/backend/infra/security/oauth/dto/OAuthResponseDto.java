@@ -1,7 +1,8 @@
 package com.timespot.backend.infra.security.oauth.dto;
 
+import static lombok.AccessLevel.PRIVATE;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
 /**
@@ -15,7 +16,7 @@ import lombok.NoArgsConstructor;
  * ---------------------------------------------------------------------------------------------------------------------
  * 26. 3. 12.    loadingKKamo21       Initial creation
  */
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = PRIVATE)
 public abstract class OAuthResponseDto {
 
     public record AppleTokenValidationResponse(

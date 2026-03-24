@@ -1,14 +1,16 @@
 package com.timespot.backend.common.config.formatter;
 
-import com.p6spy.engine.logging.Category;
+import static com.p6spy.engine.logging.Category.STATEMENT;
+import static java.util.Locale.ROOT;
+import static org.hibernate.engine.jdbc.internal.FormatStyle.BASIC;
+import static org.hibernate.engine.jdbc.internal.FormatStyle.DDL;
+
 import com.p6spy.engine.spy.appender.MessageFormattingStrategy;
 import java.text.MessageFormat;
 import java.util.Arrays;
-import java.util.Locale;
 import java.util.Objects;
 import java.util.Stack;
 import java.util.function.Predicate;
-import org.hibernate.engine.jdbc.internal.FormatStyle;
 
 /**
  * PackageName : com.timespot.backend.common.config.formatter
@@ -51,16 +53,16 @@ public class P6SpySqlFormatter implements MessageFormattingStrategy {
 
     private String sqlFormatToUpper(final String sql, final String category) {
         if (isStatementDDL(sql, category))
-            return FormatStyle.DDL.getFormatter().format(sql).toUpperCase(Locale.ROOT).replace("+0900", "");
-        return FormatStyle.BASIC.getFormatter().format(sql).toUpperCase(Locale.ROOT).replace("+0900", "");
+            return DDL.getFormatter().format(sql).toUpperCase(ROOT).replace("+0900", "");
+        return BASIC.getFormatter().format(sql).toUpperCase(ROOT).replace("+0900", "");
     }
 
     private boolean isStatementDDL(final String sql, final String category) {
-        return isStatement(category) && isDDL(sql.trim().toLowerCase(Locale.ROOT));
+        return isStatement(category) && isDDL(sql.trim().toLowerCase(ROOT));
     }
 
     private boolean isStatement(final String category) {
-        return Category.STATEMENT.getName().equals(category);
+        return STATEMENT.getName().equals(category);
     }
 
     private boolean isDDL(final String lowerSql) {

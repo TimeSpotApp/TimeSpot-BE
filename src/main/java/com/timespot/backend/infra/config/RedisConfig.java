@@ -1,7 +1,8 @@
 package com.timespot.backend.infra.config;
 
+import static com.fasterxml.jackson.databind.ObjectMapper.DefaultTyping.NON_FINAL;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectMapper.DefaultTyping;
 import com.fasterxml.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -56,7 +57,7 @@ public class RedisConfig {
         copiedObjectMapper.activateDefaultTyping(BasicPolymorphicTypeValidator.builder()
                                                                               .allowIfBaseType(Object.class)
                                                                               .build(),
-                                                 DefaultTyping.NON_FINAL);
+                                                 NON_FINAL);
 
         template.setKeySerializer(new StringRedisSerializer());
         template.setValueSerializer(new GenericJackson2JsonRedisSerializer(copiedObjectMapper));

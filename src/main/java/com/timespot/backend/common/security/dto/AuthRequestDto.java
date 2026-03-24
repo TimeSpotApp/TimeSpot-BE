@@ -1,8 +1,9 @@
 package com.timespot.backend.common.security.dto;
 
+import static lombok.AccessLevel.PRIVATE;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
-import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -18,7 +19,7 @@ import lombok.NoArgsConstructor;
  * ---------------------------------------------------------------------------------------------------------------------
  * 26. 3. 9.     loadingKKamo21       Initial creation
  */
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = PRIVATE)
 @Schema(description = "OAuth2 소셜 로그인 요청 페이로드")
 public abstract class AuthRequestDto {
 

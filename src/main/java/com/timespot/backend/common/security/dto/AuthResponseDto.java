@@ -1,11 +1,12 @@
 package com.timespot.backend.common.security.dto;
 
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
+import static lombok.AccessLevel.PRIVATE;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.timespot.backend.domain.user.model.MapApi;
 import com.timespot.backend.domain.user.model.ProviderType;
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
@@ -21,13 +22,13 @@ import lombok.RequiredArgsConstructor;
  * ---------------------------------------------------------------------------------------------------------------------
  * 26. 3. 9.     loadingKKamo21       Initial creation
  */
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = PRIVATE)
 @Schema(description = "OAuth2 소셜 로그인 응답 페이로드")
 public abstract class AuthResponseDto {
 
     @Getter
     @RequiredArgsConstructor
-    @JsonInclude(Include.NON_NULL)
+    @JsonInclude(NON_NULL)
     @Schema(name = "인증 토큰 정보 응답 페이로드")
     public static class TokenInfoResponse {
 
@@ -43,7 +44,7 @@ public abstract class AuthResponseDto {
     }
 
     @Getter
-    @JsonInclude(Include.NON_NULL)
+    @JsonInclude(NON_NULL)
     @Schema(name = "인증 정보 응답 페이로드")
     public static class AuthInfoResponse extends TokenInfoResponse {
 
@@ -85,7 +86,7 @@ public abstract class AuthResponseDto {
 
         @Getter
         @RequiredArgsConstructor
-        @JsonInclude(Include.NON_NULL)
+        @JsonInclude(NON_NULL)
         @Schema(name = "지도 API 정보", description = "현재 사용자의 주사용 지도 API 관련 정보")
         static class Map {
 
@@ -98,7 +99,7 @@ public abstract class AuthResponseDto {
 
         @Getter
         @RequiredArgsConstructor
-        @JsonInclude(Include.NON_NULL)
+        @JsonInclude(NON_NULL)
         @Schema(name = "사용자 정보", description = "소셜 ID 토큰 내 사용자 정보")
         static class UserInfo {
 

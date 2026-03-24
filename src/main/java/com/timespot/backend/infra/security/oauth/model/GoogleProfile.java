@@ -1,6 +1,7 @@
 package com.timespot.backend.infra.security.oauth.model;
 
-import com.timespot.backend.domain.user.model.ProviderType;
+import static com.timespot.backend.domain.user.model.ProviderType.GOOGLE;
+
 import java.util.Map;
 
 /**
@@ -22,7 +23,7 @@ public class GoogleProfile extends OAuthProfile {
 
     @Override
     public String getProvider() {
-        return ProviderType.GOOGLE.name();
+        return GOOGLE.name();
     }
 
     @Override

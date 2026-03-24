@@ -1,19 +1,22 @@
 package com.timespot.backend.infra.security.oauth.dto;
 
+import static com.timespot.backend.infra.security.oauth.constant.OAuthConst.APPLE_IDP_TOKEN_AUTHORIZATION_GRANT_TYPE;
+import static com.timespot.backend.infra.security.oauth.constant.OAuthConst.APPLE_IDP_TOKEN_REFRESH_GRANT_TYPE;
 import static com.timespot.backend.infra.security.oauth.constant.OAuthConst.CLIENT_ID;
 import static com.timespot.backend.infra.security.oauth.constant.OAuthConst.CLIENT_SECRET;
 import static com.timespot.backend.infra.security.oauth.constant.OAuthConst.CODE;
+import static com.timespot.backend.infra.security.oauth.constant.OAuthConst.GOOGLE_IDP_TOKEN_AUTHORIZATION_GRANT_TYPE;
+import static com.timespot.backend.infra.security.oauth.constant.OAuthConst.GOOGLE_IDP_TOKEN_REFRESH_GRANT_TYPE;
 import static com.timespot.backend.infra.security.oauth.constant.OAuthConst.GRANT_TYPE;
 import static com.timespot.backend.infra.security.oauth.constant.OAuthConst.REDIRECT_URI;
 import static com.timespot.backend.infra.security.oauth.constant.OAuthConst.REFRESH_TOKEN;
 import static com.timespot.backend.infra.security.oauth.constant.OAuthConst.TOKEN;
 import static com.timespot.backend.infra.security.oauth.constant.OAuthConst.TOKEN_TYPE_HINT;
+import static lombok.AccessLevel.PRIVATE;
 
-import com.timespot.backend.infra.security.oauth.constant.OAuthConst;
 import com.timespot.backend.infra.security.oauth.constant.TokenType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -29,7 +32,7 @@ import org.springframework.util.MultiValueMap;
  * ---------------------------------------------------------------------------------------------------------------------
  * 26. 3. 12.    loadingKKamo21       Initial creation
  */
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = PRIVATE)
 public abstract class OAuthRequestFactory {
 
     /**
@@ -51,7 +54,7 @@ public abstract class OAuthRequestFactory {
         params.add(CLIENT_ID, clientId);
         params.add(CLIENT_SECRET, clientSecret);
         params.add(CODE, authorizationCode);
-        params.add(GRANT_TYPE, OAuthConst.APPLE_IDP_TOKEN_AUTHORIZATION_GRANT_TYPE);
+        params.add(GRANT_TYPE, APPLE_IDP_TOKEN_AUTHORIZATION_GRANT_TYPE);
         params.add(REDIRECT_URI, redirectUri);
         return params;
     }
@@ -72,7 +75,7 @@ public abstract class OAuthRequestFactory {
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add(CLIENT_ID, clientId);
         params.add(CLIENT_SECRET, clientSecret);
-        params.add(GRANT_TYPE, OAuthConst.APPLE_IDP_TOKEN_REFRESH_GRANT_TYPE);
+        params.add(GRANT_TYPE, APPLE_IDP_TOKEN_REFRESH_GRANT_TYPE);
         params.add(REFRESH_TOKEN, refreshToken);
         return params;
     }
@@ -119,7 +122,7 @@ public abstract class OAuthRequestFactory {
         params.add(CLIENT_ID, clientId);
         params.add(CLIENT_SECRET, clientSecret);
         params.add(CODE, authorizationCode);
-        params.add(GRANT_TYPE, OAuthConst.GOOGLE_IDP_TOKEN_AUTHORIZATION_GRANT_TYPE);
+        params.add(GRANT_TYPE, GOOGLE_IDP_TOKEN_AUTHORIZATION_GRANT_TYPE);
         params.add(REDIRECT_URI, redirectUri);
         return params;
     }
@@ -140,7 +143,7 @@ public abstract class OAuthRequestFactory {
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add(CLIENT_ID, clientId);
         params.add(CLIENT_SECRET, clientSecret);
-        params.add(GRANT_TYPE, OAuthConst.GOOGLE_IDP_TOKEN_REFRESH_GRANT_TYPE);
+        params.add(GRANT_TYPE, GOOGLE_IDP_TOKEN_REFRESH_GRANT_TYPE);
         params.add(REFRESH_TOKEN, refreshToken);
         return params;
     }

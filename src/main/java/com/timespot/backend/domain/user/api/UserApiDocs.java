@@ -1,10 +1,10 @@
 package com.timespot.backend.domain.user.api;
 
 import com.timespot.backend.common.response.BaseResponse;
-import com.timespot.backend.common.security.dto.AuthResponseDto;
+import com.timespot.backend.common.security.dto.AuthResponseDto.AuthInfoResponse;
 import com.timespot.backend.common.security.model.CustomUserDetails;
-import com.timespot.backend.domain.user.dto.UserRequestDto;
-import com.timespot.backend.domain.user.dto.UserResponseDto;
+import com.timespot.backend.domain.user.dto.UserRequestDto.UserInfoUpdateRequest;
+import com.timespot.backend.domain.user.dto.UserResponseDto.UserInfoResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -37,7 +37,7 @@ public interface UserApiDocs {
                          description = "유효하지 않은 인증 토큰",
                          content = @Content(schema = @Schema(hidden = true))),
     })
-    ResponseEntity<BaseResponse<UserResponseDto.UserInfoResponse>> getUserInfo(
+    ResponseEntity<BaseResponse<UserInfoResponse>> getUserInfo(
             @Parameter(hidden = true) CustomUserDetails userDetails
     );
 
@@ -49,9 +49,9 @@ public interface UserApiDocs {
                          description = "유효하지 않은 인증 토큰",
                          content = @Content(schema = @Schema(hidden = true))),
     })
-    ResponseEntity<BaseResponse<AuthResponseDto.AuthInfoResponse>> updateUserInfo(
+    ResponseEntity<BaseResponse<AuthInfoResponse>> updateUserInfo(
             @Parameter(hidden = true) CustomUserDetails userDetails,
-            @Parameter(description = "회원 정보 수정 요청 페이로드") UserRequestDto.UserInfoUpdateRequest dto
+            @Parameter(description = "회원 정보 수정 요청 페이로드") UserInfoUpdateRequest dto
     );
 
     @Operation(summary = "회원 탈퇴", description = "현재 사용자를 회원 탈퇴 처리합니다.")

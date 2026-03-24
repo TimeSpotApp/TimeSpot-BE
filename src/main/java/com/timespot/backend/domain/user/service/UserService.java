@@ -1,7 +1,7 @@
 package com.timespot.backend.domain.user.service;
 
-import com.timespot.backend.common.security.dto.AuthRequestDto;
-import com.timespot.backend.domain.user.dto.UserRequestDto;
+import com.timespot.backend.common.security.dto.AuthRequestDto.OAuth2SignupRequest;
+import com.timespot.backend.domain.user.dto.UserRequestDto.UserInfoUpdateRequest;
 import com.timespot.backend.domain.user.dto.UserResponseDto.UserInfoResponse;
 import com.timespot.backend.domain.user.model.ProviderType;
 import com.timespot.backend.domain.user.model.SocialConnection;
@@ -24,13 +24,13 @@ public interface UserService {
 
     Optional<User> findUserForSocialConnection(ProviderType providerType, String providerUserId);
 
-    User createUserForSocialConnection(AuthRequestDto.OAuth2SignupRequest dto);
+    User createUserForSocialConnection(OAuth2SignupRequest dto);
 
     SocialConnection findByUserId(UUID userId);
 
     UserInfoResponse findUserInfoById(UUID id);
 
-    void updateUserInfo(UUID id, UserRequestDto.UserInfoUpdateRequest dto);
+    void updateUserInfo(UUID id, UserInfoUpdateRequest dto);
 
     void withdraw(UUID id);
 

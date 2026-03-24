@@ -1,6 +1,12 @@
 package com.timespot.backend.common.security.jwt.provider;
 
-import com.timespot.backend.common.security.constant.SecurityConst;
+import static com.timespot.backend.common.security.constant.SecurityConst.JWT_AUTHORITIES_KEY;
+import static com.timespot.backend.common.security.constant.SecurityConst.JWT_MAP_API_KEY;
+import static com.timespot.backend.common.security.constant.SecurityConst.JWT_PROVIDER_KEY;
+import static com.timespot.backend.common.security.constant.SecurityConst.JWT_USERNAME_KEY;
+import static io.jsonwebtoken.Jwts.SIG.HS512;
+import static io.jsonwebtoken.io.Decoders.BASE64;
+
 import com.timespot.backend.common.security.jwt.provider.properties.JwtProperties;
 import com.timespot.backend.common.security.model.CustomUserDetails;
 import com.timespot.backend.domain.user.model.MapApi;
@@ -10,10 +16,8 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtBuilder;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.Jwts.SIG;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.UnsupportedJwtException;
-import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SecurityException;
 import java.util.Collection;
@@ -51,8 +55,8 @@ public class JwtProvider {
 
     public JwtProvider(final JwtProperties jwtProperties) {
         issuer = jwtProperties.getIssuer();
-        accessTokenKey = Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtProperties.getAccessTokenSecret()));
-        refreshTokenKey = Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtProperties.getRefreshTokenSecret()));
+        accessTokenKey = Keys.hmacShaKeyFor(BASE64.decode(jwtProperties.getAccessTokenSecret()));
+        refreshTokenKey = Keys.hmacShaKeyFor(BASE64.decode(jwtProperties.getRefreshTokenSecret()));
         accessTokenExpirationMillis = jwtProperties.getAccessTokenExpirationSeconds() * 1000L;
         refreshTokenExpirationMillis = jwtProperties.getRefreshTokenExpirationSeconds() * 1000L;
     }
@@ -216,13 +220,13 @@ public class JwtProvider {
         );
 
         String token = getJwtBuilder().subject(userId.toString())
-                                      .claim(SecurityConst.JWT_USERNAME_KEY, email)
-                                      .claim(SecurityConst.JWT_PROVIDER_KEY, providerType.name())
-                                      .claim(SecurityConst.JWT_MAP_API_KEY, mapApi.name())
-                                      .claim(SecurityConst.JWT_AUTHORITIES_KEY, role.name())
+                                      .claim(JWT_USERNAME_KEY, email)
+                                      .claim(JWT_PROVIDER_KEY, providerType.name())
+                                      .claim(JWT_MAP_API_KEY, mapApi.name())
+                                      .claim(JWT_AUTHORITIES_KEY, role.name())
                                       .issuedAt(now)
                                       .expiration(expiresIn)
-                                      .signWith(isRefreshToken ? refreshTokenKey : accessTokenKey, SIG.HS512)
+                                      .signWith(isRefreshToken ? refreshTokenKey : accessTokenKey, HS512)
                                       .compact();
 
         return token;
@@ -239,10 +243,10 @@ public class JwtProvider {
         Claims claims = getClaims(token, isRefreshToken ? refreshTokenKey : accessTokenKey);
 
         UUID         id           = UUID.fromString(claims.getSubject());
-        String       email        = claims.get(SecurityConst.JWT_USERNAME_KEY, String.class);
-        ProviderType providerType = ProviderType.from(claims.get(SecurityConst.JWT_PROVIDER_KEY, String.class));
-        MapApi       mapApi       = MapApi.from(claims.get(SecurityConst.JWT_MAP_API_KEY, String.class));
-        UserRole     role         = UserRole.from(claims.get(SecurityConst.JWT_AUTHORITIES_KEY, String.class));
+        String       email        = claims.get(JWT_USERNAME_KEY, String.class);
+        ProviderType providerType = ProviderType.from(claims.get(JWT_PROVIDER_KEY, String.class));
+        MapApi       mapApi       = MapApi.from(claims.get(JWT_MAP_API_KEY, String.class));
+        UserRole     role         = UserRole.from(claims.get(JWT_AUTHORITIES_KEY, String.class));
 
         CustomUserDetails userDetails = CustomUserDetails.of(id, email, providerType, mapApi, role);
         Collection<? extends GrantedAuthority> authorities = Collections.singletonList(

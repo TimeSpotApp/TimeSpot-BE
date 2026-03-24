@@ -1,5 +1,7 @@
 package com.timespot.backend.domain.user.dto;
 
+import static lombok.AccessLevel.PRIVATE;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.querydsl.core.annotations.QueryProjection;
 import com.timespot.backend.domain.user.model.MapApi;
@@ -8,7 +10,6 @@ import com.timespot.backend.domain.user.model.UserRole;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDateTime;
 import java.util.UUID;
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -23,7 +24,7 @@ import lombok.NoArgsConstructor;
  * ---------------------------------------------------------------------------------------------------------------------
  * 26. 3. 8.     loadingKKamo21       Initial creation
  */
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = PRIVATE)
 @Schema(description = "회원 도메인 응답 페이로드")
 public abstract class UserResponseDto {
 

@@ -1,8 +1,13 @@
 package com.timespot.backend.common.security.service;
 
+import static com.timespot.backend.common.response.ErrorCode.USER_AUTH_INVALID_REFRESH_TOKEN;
+import static com.timespot.backend.common.response.ErrorCode.USER_AUTH_REFRESH_TOKEN_EXPIRED;
+import static com.timespot.backend.infra.redis.constant.RedisConst.JWT_ACCESS_TOKEN_BLACKLIST_PREFIX;
+import static com.timespot.backend.infra.redis.constant.RedisConst.JWT_REFRESH_TOKEN_PREFIX;
+
 import com.timespot.backend.common.error.GlobalException;
-import com.timespot.backend.common.response.ErrorCode;
-import com.timespot.backend.common.security.dto.AuthRequestDto;
+import com.timespot.backend.common.security.dto.AuthRequestDto.OAuth2LoginRequest;
+import com.timespot.backend.common.security.dto.AuthRequestDto.OAuth2SignupRequest;
 import com.timespot.backend.common.security.dto.AuthResponseDto;
 import com.timespot.backend.common.security.dto.AuthResponseDto.AuthInfoResponse;
 import com.timespot.backend.common.security.dto.AuthResponseDto.TokenInfoResponse;
@@ -12,7 +17,6 @@ import com.timespot.backend.domain.user.model.ProviderType;
 import com.timespot.backend.domain.user.model.SocialConnection;
 import com.timespot.backend.domain.user.model.User;
 import com.timespot.backend.domain.user.service.UserService;
-import com.timespot.backend.infra.redis.constant.RedisConst;
 import com.timespot.backend.infra.redis.dao.RedisRepository;
 import com.timespot.backend.infra.security.oauth.model.OAuthProfile;
 import com.timespot.backend.infra.security.oauth.model.OAuthProfileFactory;
@@ -64,7 +68,7 @@ public class AuthServiceImpl implements AuthService {
      */
     @Override
     @Transactional
-    public AuthResponseDto.AuthInfoResponse signup(final AuthRequestDto.OAuth2SignupRequest dto) {
+    public AuthInfoResponse signup(final OAuth2SignupRequest dto) {
         final ProviderType providerType = ProviderType.from(dto.getProvider());
         User               user         = userService.createUserForSocialConnection(dto);
         return createAuthInfoResponse(user, providerType);
@@ -77,7 +81,7 @@ public class AuthServiceImpl implements AuthService {
      * @return 신규 인증 정보 응답 DTO
      */
     @Override
-    public AuthResponseDto.AuthInfoResponse login(final AuthRequestDto.OAuth2LoginRequest dto) {
+    public AuthInfoResponse login(final OAuth2LoginRequest dto) {
         Claims claims = tokenValidator.verifyAndParse(dto.getProvider(), dto.getIdToken());
 
         OAuthProfile oAuthProfile = OAuthProfileFactory.getOAuthProfile(dto.getProvider(), claims);
@@ -138,7 +142,7 @@ public class AuthServiceImpl implements AuthService {
      * @return 재발급된 인증 정보 응답 DTO
      */
     @Override
-    public AuthResponseDto.AuthInfoResponse reissueTokenByUserId(final UUID userId) {
+    public AuthInfoResponse reissueTokenByUserId(final UUID userId) {
         SocialConnection socialConnection = userService.findByUserId(userId);
         return createAuthInfoResponse(socialConnection.getUser(), socialConnection.getProviderType());
     }
@@ -152,7 +156,7 @@ public class AuthServiceImpl implements AuthService {
      * @param providerType 소셜 인증 제공자 유형
      * @return 인증 정보 응답 DTO
      */
-    private AuthResponseDto.AuthInfoResponse createAuthInfoResponse(
+    private AuthInfoResponse createAuthInfoResponse(
             final User user, final ProviderType providerType
     ) {
         String accessToken = jwtProvider.generateAccessToken(
@@ -165,7 +169,7 @@ public class AuthServiceImpl implements AuthService {
         long accessTokenExpiresIn  = jwtProvider.getAccessTokenExpirationSeconds();
         long refreshTokenExpiresIn = jwtProvider.getRefreshTokenExpirationSeconds();
 
-        redisRepository.setValue("%s%s".formatted(RedisConst.JWT_REFRESH_TOKEN_PREFIX, user.getId().toString()),
+        redisRepository.setValue("%s%s".formatted(JWT_REFRESH_TOKEN_PREFIX, user.getId().toString()),
                                  refreshToken,
                                  Duration.ofSeconds(refreshTokenExpiresIn));
 
@@ -187,7 +191,7 @@ public class AuthServiceImpl implements AuthService {
      * @return RefreshToken Redis 키
      */
     private String getRefreshTokenKey(final UUID userId) {
-        return RedisConst.JWT_REFRESH_TOKEN_PREFIX + userId;
+        return JWT_REFRESH_TOKEN_PREFIX + userId;
     }
 
     /**
@@ -209,7 +213,7 @@ public class AuthServiceImpl implements AuthService {
      * @param remainingSeconds 남은 유효 시간(초)
      */
     private void blacklistAccessToken(final String accessToken, final long remainingSeconds) {
-        String accessTokenBlacklistRedisKey = RedisConst.JWT_ACCESS_TOKEN_BLACKLIST_PREFIX + accessToken;
+        String accessTokenBlacklistRedisKey = JWT_ACCESS_TOKEN_BLACKLIST_PREFIX + accessToken;
         redisRepository.setValue(accessTokenBlacklistRedisKey, LOGOUT_VALUE, Duration.ofSeconds(remainingSeconds));
     }
 
@@ -224,19 +228,19 @@ public class AuthServiceImpl implements AuthService {
             jwtProvider.validateRefreshToken(refreshToken);
         } catch (ExpiredJwtException e) {
             log.error("RefreshToken 만료: {}", e.getMessage());
-            throw new GlobalException(ErrorCode.USER_AUTH_REFRESH_TOKEN_EXPIRED);
+            throw new GlobalException(USER_AUTH_REFRESH_TOKEN_EXPIRED);
         } catch (SecurityException | MalformedJwtException e) {
             log.error("RefreshToken 서명 오류: {}", e.getMessage());
-            throw new GlobalException(ErrorCode.USER_AUTH_INVALID_REFRESH_TOKEN);
+            throw new GlobalException(USER_AUTH_INVALID_REFRESH_TOKEN);
         } catch (UnsupportedJwtException e) {
             log.error("지원하지 않는 RefreshToken 형식: {}", e.getMessage());
-            throw new GlobalException(ErrorCode.USER_AUTH_INVALID_REFRESH_TOKEN);
+            throw new GlobalException(USER_AUTH_INVALID_REFRESH_TOKEN);
         } catch (IllegalArgumentException e) {
             log.error("잘못된 RefreshToken 형식: {}", e.getMessage());
-            throw new GlobalException(ErrorCode.USER_AUTH_INVALID_REFRESH_TOKEN);
+            throw new GlobalException(USER_AUTH_INVALID_REFRESH_TOKEN);
         } catch (Exception e) {
             log.error("예상치 못한 RefreshToken 오류: {}", e.getMessage(), e);
-            throw new GlobalException(ErrorCode.USER_AUTH_INVALID_REFRESH_TOKEN);
+            throw new GlobalException(USER_AUTH_INVALID_REFRESH_TOKEN);
         }
     }
 
@@ -252,7 +256,7 @@ public class AuthServiceImpl implements AuthService {
 
         if (savedToken == null || !savedToken.equals(refreshToken)) {
             log.error("RefreshToken 불일치: 저장된 토큰이 없음 또는 불일치");
-            throw new GlobalException(ErrorCode.USER_AUTH_INVALID_REFRESH_TOKEN);
+            throw new GlobalException(USER_AUTH_INVALID_REFRESH_TOKEN);
         }
     }
 
@@ -263,7 +267,7 @@ public class AuthServiceImpl implements AuthService {
      * @return Grace period 토큰 Redis 키
      */
     private String getGraceTokenKey(final String refreshToken) {
-        return "%sgrace:%s".formatted(RedisConst.JWT_REFRESH_TOKEN_PREFIX, refreshToken);
+        return "%sgrace:%s".formatted(JWT_REFRESH_TOKEN_PREFIX, refreshToken);
     }
 
     /**

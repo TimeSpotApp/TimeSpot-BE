@@ -1,10 +1,14 @@
 package com.timespot.backend.common.ratelimit.filter;
 
+import static com.timespot.backend.common.ratelimit.constant.RateLimitConst.ANONYMOUS_KEY_PREFIX;
+import static com.timespot.backend.common.ratelimit.constant.RateLimitConst.excludedPathPrefixes;
+import static com.timespot.backend.common.response.ErrorCode.TOO_MANY_REQUESTS;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.timespot.backend.common.ratelimit.builder.RateLimitBucketBuilder;
-import com.timespot.backend.common.ratelimit.constant.RateLimitConst;
 import com.timespot.backend.common.response.BaseResponse;
-import com.timespot.backend.common.response.ErrorCode;
 import io.github.bucket4j.BucketConfiguration;
 import io.github.bucket4j.ConsumptionProbe;
 import io.github.bucket4j.distributed.BucketProxy;
@@ -14,7 +18,6 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Map;
@@ -22,7 +25,6 @@ import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.server.PathContainer;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.util.StringUtils;
@@ -87,8 +89,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
      * @return 제외 경로 여부
      */
     private boolean isExcludedPath(final String requestURI) {
-        return Arrays.stream(RateLimitConst.excludedPathPrefixes)
-                     .anyMatch(requestURI::startsWith);
+        return Arrays.stream(excludedPathPrefixes).anyMatch(requestURI::startsWith);
     }
 
     /**
@@ -127,7 +128,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
      * @return Rate Limit 키
      */
     private String resolveRateLimitKey(final HttpServletRequest request) {
-        return RateLimitConst.ANONYMOUS_KEY_PREFIX + extractIpAddress(request);
+        return ANONYMOUS_KEY_PREFIX + extractIpAddress(request);
     }
 
     /**
@@ -164,12 +165,12 @@ public class RateLimitFilter extends OncePerRequestFilter {
         log.debug("Rate limit exceeded for {}. Retry in {}s", rateLimitKey, retryAfterSeconds);
 
         response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
-        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+        response.setContentType(APPLICATION_JSON_VALUE);
+        response.setCharacterEncoding(UTF_8.name());
         response.setHeader("Retry-After", String.valueOf(retryAfterSeconds));
         response.setHeader("X-Rate-Limit-Retry-After-Seconds", String.valueOf(retryAfterSeconds));
 
-        BaseResponse<Object> baseResponse = BaseResponse.error(ErrorCode.TOO_MANY_REQUESTS);
+        BaseResponse<Object> baseResponse = BaseResponse.error(TOO_MANY_REQUESTS);
 
         objectMapper.writeValue(response.getWriter(), baseResponse);
     }

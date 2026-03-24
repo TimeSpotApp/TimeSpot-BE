@@ -1,7 +1,8 @@
 package com.timespot.backend.domain.user.model;
 
+import static com.timespot.backend.common.response.ErrorCode.SOCIAL_CONNECTION_PROVIDER_NOT_SUPPORTED;
+
 import com.timespot.backend.common.error.GlobalException;
-import com.timespot.backend.common.response.ErrorCode;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
@@ -38,7 +39,7 @@ public enum ProviderType {
         return Optional.ofNullable(provider)
                        .map(String::toUpperCase)
                        .map(PROVIDER_TYPE_MAP::get)
-                       .orElseThrow(() -> new GlobalException(ErrorCode.SOCIAL_CONNECTION_PROVIDER_NOT_SUPPORTED));
+                       .orElseThrow(() -> new GlobalException(SOCIAL_CONNECTION_PROVIDER_NOT_SUPPORTED));
     }
 
 

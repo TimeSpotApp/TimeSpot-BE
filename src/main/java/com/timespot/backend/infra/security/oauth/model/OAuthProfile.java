@@ -1,7 +1,8 @@
 package com.timespot.backend.infra.security.oauth.model;
 
+import static lombok.AccessLevel.PROTECTED;
+
 import java.util.Map;
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -17,7 +18,7 @@ import lombok.RequiredArgsConstructor;
  * 26. 3. 8.     loadingKKamo21       Initial creation
  */
 @Getter
-@RequiredArgsConstructor(access = AccessLevel.PROTECTED)
+@RequiredArgsConstructor(access = PROTECTED)
 public abstract class OAuthProfile {
 
     private final Map<String, Object> attributes;

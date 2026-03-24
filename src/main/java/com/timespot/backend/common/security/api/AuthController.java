@@ -1,10 +1,18 @@
 package com.timespot.backend.common.security.api;
 
+import static com.timespot.backend.common.response.SuccessCode.USER_AUTH_LOGIN_SUCCESS;
+import static com.timespot.backend.common.response.SuccessCode.USER_AUTH_LOGOUT_SUCCESS;
+import static com.timespot.backend.common.response.SuccessCode.USER_AUTH_TOKEN_REFRESH_SUCCESS;
+import static com.timespot.backend.common.response.SuccessCode.USER_REGISTER_SUCCESS;
+import static com.timespot.backend.common.security.constant.SecurityConst.JWT_ACCESS_TOKEN_HEADER;
+import static org.springframework.http.HttpStatus.ACCEPTED;
+import static org.springframework.http.HttpStatus.CREATED;
+import static org.springframework.http.HttpStatus.OK;
+
 import com.timespot.backend.common.response.BaseResponse;
-import com.timespot.backend.common.response.SuccessCode;
-import com.timespot.backend.common.security.constant.SecurityConst;
-import com.timespot.backend.common.security.dto.AuthRequestDto;
-import com.timespot.backend.common.security.dto.AuthResponseDto;
+import com.timespot.backend.common.security.dto.AuthRequestDto.OAuth2LoginRequest;
+import com.timespot.backend.common.security.dto.AuthRequestDto.OAuth2SignupRequest;
+import com.timespot.backend.common.security.dto.AuthRequestDto.TokenRefreshRequest;
 import com.timespot.backend.common.security.dto.AuthResponseDto.AuthInfoResponse;
 import com.timespot.backend.common.security.dto.AuthResponseDto.TokenInfoResponse;
 import com.timespot.backend.common.security.service.AuthService;
@@ -39,45 +47,43 @@ public class AuthController implements AuthApiDocs {
     @Override
     @PostMapping("/signup")
     public ResponseEntity<BaseResponse<AuthInfoResponse>> signup(
-            @RequestBody @Valid final AuthRequestDto.OAuth2SignupRequest dto
+            @RequestBody @Valid final OAuth2SignupRequest dto
     ) {
         AuthInfoResponse responseData = authService.signup(dto);
-        return ResponseEntity.status(HttpStatus.CREATED)
-                             .body(BaseResponse.success(SuccessCode.USER_REGISTER_SUCCESS, responseData));
+        return ResponseEntity.status(CREATED).body(BaseResponse.success(USER_REGISTER_SUCCESS, responseData));
     }
 
     @Override
     @PostMapping("/login")
-    public ResponseEntity<BaseResponse<AuthResponseDto.AuthInfoResponse>> login(
-            @RequestBody @Valid final AuthRequestDto.OAuth2LoginRequest dto
+    public ResponseEntity<BaseResponse<AuthInfoResponse>> login(
+            @RequestBody @Valid final OAuth2LoginRequest dto
     ) {
         AuthInfoResponse responseData = authService.login(dto);
         final boolean    isNewUser    = responseData.getNewUser() != null && responseData.getNewUser();
-        final HttpStatus status       = isNewUser ? HttpStatus.ACCEPTED : HttpStatus.OK;
+        final HttpStatus status       = isNewUser ? ACCEPTED : OK;
         return ResponseEntity.status(status).body(
                 isNewUser ? BaseResponse.of(status, "로그인 요청 처리가 완료되었습니다.", responseData)
-                          : BaseResponse.success(SuccessCode.USER_AUTH_LOGIN_SUCCESS, responseData)
+                          : BaseResponse.success(USER_AUTH_LOGIN_SUCCESS, responseData)
         );
     }
 
     @Override
     @PostMapping("/logout")
     public ResponseEntity<BaseResponse<Void>> logout(
-            @RequestHeader(SecurityConst.JWT_ACCESS_TOKEN_HEADER) final String authorizationHeader
+            @RequestHeader(JWT_ACCESS_TOKEN_HEADER) final String authorizationHeader
     ) {
         String accessToken = authorizationHeader.substring(7);
         authService.logout(accessToken);
-
-        return ResponseEntity.ok(BaseResponse.success(SuccessCode.USER_AUTH_LOGOUT_SUCCESS));
+        return ResponseEntity.ok(BaseResponse.success(USER_AUTH_LOGOUT_SUCCESS));
     }
 
     @Override
     @PostMapping("/refresh")
-    public ResponseEntity<BaseResponse<AuthResponseDto.TokenInfoResponse>> refresh(
-            @RequestBody @Valid final AuthRequestDto.TokenRefreshRequest dto
+    public ResponseEntity<BaseResponse<TokenInfoResponse>> refresh(
+            @RequestBody @Valid final TokenRefreshRequest dto
     ) {
         TokenInfoResponse responseData = authService.refresh(dto.getRefreshToken());
-        return ResponseEntity.ok(BaseResponse.success(SuccessCode.USER_AUTH_TOKEN_REFRESH_SUCCESS, responseData));
+        return ResponseEntity.ok(BaseResponse.success(USER_AUTH_TOKEN_REFRESH_SUCCESS, responseData));
     }
 
 }

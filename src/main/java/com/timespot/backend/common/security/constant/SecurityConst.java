@@ -1,8 +1,9 @@
 package com.timespot.backend.common.security.constant;
 
+import static org.springframework.http.HttpHeaders.AUTHORIZATION;
+
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
-import org.springframework.http.HttpHeaders;
 
 /**
  * PackageName : com.timespot.backend.common.security.constant
@@ -19,7 +20,7 @@ import org.springframework.http.HttpHeaders;
 public abstract class SecurityConst {
 
     public static final String JWT_ACCESS_TOKEN_PREFIX = "Bearer ";
-    public static final String JWT_ACCESS_TOKEN_HEADER = HttpHeaders.AUTHORIZATION;
+    public static final String JWT_ACCESS_TOKEN_HEADER = AUTHORIZATION;
 
     public static final String JWT_USERNAME_KEY    = "username";
     public static final String JWT_AUTHORITIES_KEY = "authorities";

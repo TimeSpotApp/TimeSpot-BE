@@ -1,8 +1,17 @@
 package com.timespot.backend.infra.security.oauth.client;
 
+import static com.timespot.backend.common.response.ErrorCode.SOCIAL_CONNECTION_IDP_TOKEN_REFRESH_FAILED;
+import static com.timespot.backend.common.response.ErrorCode.SOCIAL_CONNECTION_IDP_TOKEN_REVOKE_FAILED;
+import static com.timespot.backend.common.response.ErrorCode.SOCIAL_CONNECTION_IDP_TOKEN_VALIDATION_FAILED;
+import static com.timespot.backend.infra.security.oauth.constant.OAuthConst.APPLE_IDP_TOKEN_REVOKE_URL;
+import static com.timespot.backend.infra.security.oauth.constant.OAuthConst.APPLE_IDP_TOKEN_URL;
+import static com.timespot.backend.infra.security.oauth.constant.OAuthConst.APPLE_ISSUER;
+import static com.timespot.backend.infra.security.oauth.constant.OAuthConst.GOOGLE_IDP_TOKEN_REVOKE_URL;
+import static com.timespot.backend.infra.security.oauth.constant.OAuthConst.GOOGLE_IDP_TOKEN_URL;
+import static org.springframework.http.MediaType.APPLICATION_FORM_URLENCODED;
+
 import com.timespot.backend.common.error.GlobalException;
 import com.timespot.backend.common.response.ErrorCode;
-import com.timespot.backend.infra.security.oauth.constant.OAuthConst;
 import com.timespot.backend.infra.security.oauth.constant.TokenType;
 import com.timespot.backend.infra.security.oauth.dto.OAuthRequestFactory;
 import com.timespot.backend.infra.security.oauth.dto.OAuthResponseDto;
@@ -19,7 +28,6 @@ import java.time.Duration;
 import java.util.Base64;
 import java.util.Date;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
@@ -144,22 +152,22 @@ public class IdpTokenExchangeClient {
 
         try {
             ResponseEntity<String> response = restClient.post()
-                                                        .uri(OAuthConst.APPLE_IDP_TOKEN_REVOKE_URL)
-                                                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                                                        .uri(APPLE_IDP_TOKEN_REVOKE_URL)
+                                                        .contentType(APPLICATION_FORM_URLENCODED)
                                                         .body(params)
                                                         .retrieve()
                                                         .toEntity(String.class);
 
             if (!response.getStatusCode().is2xxSuccessful()) {
                 log.error("Apple 계정 토큰 폐기 실패: status={}, body={}", response.getStatusCode(), response.getBody());
-                throw new GlobalException(ErrorCode.SOCIAL_CONNECTION_IDP_TOKEN_REVOKE_FAILED,
+                throw new GlobalException(SOCIAL_CONNECTION_IDP_TOKEN_REVOKE_FAILED,
                                           "Apple revoke failed: " + response.getBody());
             }
         } catch (GlobalException e) {
             throw e;
         } catch (Exception e) {
             log.error("Apple 계정 연동 해지 실패: {}", e.getMessage());
-            throw new GlobalException(ErrorCode.SOCIAL_CONNECTION_IDP_TOKEN_REVOKE_FAILED, e);
+            throw new GlobalException(SOCIAL_CONNECTION_IDP_TOKEN_REVOKE_FAILED, e);
         }
     }
 
@@ -172,22 +180,21 @@ public class IdpTokenExchangeClient {
     public void revokeGoogleToken(final String token) {
         try {
             ResponseEntity<String> response = restClient.post()
-                                                        .uri(OAuthConst.GOOGLE_IDP_TOKEN_REVOKE_URL + "?token={token}",
-                                                             token)
-                                                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                                                        .uri(GOOGLE_IDP_TOKEN_REVOKE_URL + "?token={token}", token)
+                                                        .contentType(APPLICATION_FORM_URLENCODED)
                                                         .retrieve()
                                                         .toEntity(String.class);
 
             if (!response.getStatusCode().is2xxSuccessful()) {
                 log.error("Google 계정 토큰 폐기 실패: status={}, body={}", response.getStatusCode(), response.getBody());
-                throw new GlobalException(ErrorCode.SOCIAL_CONNECTION_IDP_TOKEN_REVOKE_FAILED,
+                throw new GlobalException(SOCIAL_CONNECTION_IDP_TOKEN_REVOKE_FAILED,
                                           "Google revoke failed: " + response.getBody());
             }
         } catch (GlobalException e) {
             throw e;
         } catch (Exception e) {
             log.error("Google 계정 연동 해지 실패: {}", e.getMessage());
-            throw new GlobalException(ErrorCode.SOCIAL_CONNECTION_IDP_TOKEN_REVOKE_FAILED, e);
+            throw new GlobalException(SOCIAL_CONNECTION_IDP_TOKEN_REVOKE_FAILED, e);
         }
     }
 
@@ -210,14 +217,14 @@ public class IdpTokenExchangeClient {
             return Jwts.builder()
                        .header().keyId(appleKeyId).and()
                        .issuer(appleTeamId)
-                       .audience().add(OAuthConst.APPLE_ISSUER).and()
+                       .audience().add(APPLE_ISSUER).and()
                        .subject(appleClientId)
                        .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 5))    // Apple 인증 코드 만료 시간 5분
                        .signWith(privateKey)
                        .compact();
         } catch (Exception e) {
             log.error("Apple 클라이언트 시크릿 생성 실패: {}", e.getMessage());
-            throw new GlobalException(ErrorCode.SOCIAL_CONNECTION_IDP_TOKEN_VALIDATION_FAILED);
+            throw new GlobalException(SOCIAL_CONNECTION_IDP_TOKEN_VALIDATION_FAILED);
         }
     }
 
@@ -232,14 +239,14 @@ public class IdpTokenExchangeClient {
     ) {
         try {
             return restClient.post()
-                             .uri(OAuthConst.APPLE_IDP_TOKEN_URL)
-                             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                             .uri(APPLE_IDP_TOKEN_URL)
+                             .contentType(APPLICATION_FORM_URLENCODED)
                              .body(params)
                              .retrieve()
                              .body(AppleTokenValidationResponse.class);
         } catch (Exception e) {
-            log.error("Apple 계정 인증 실패 URL: {}, 원인: {}", OAuthConst.APPLE_IDP_TOKEN_URL, e.getMessage());
-            final ErrorCode errorCode    = ErrorCode.SOCIAL_CONNECTION_IDP_TOKEN_VALIDATION_FAILED;
+            log.error("Apple 계정 인증 실패 URL: {}, 원인: {}", APPLE_IDP_TOKEN_URL, e.getMessage());
+            final ErrorCode errorCode    = SOCIAL_CONNECTION_IDP_TOKEN_VALIDATION_FAILED;
             final String    errorMessage = "Apple 계정 인증 실패\n" + errorCode.getMessage();
             throw new GlobalException(errorCode, errorMessage);
         }
@@ -256,14 +263,14 @@ public class IdpTokenExchangeClient {
     ) {
         try {
             return restClient.post()
-                             .uri(OAuthConst.GOOGLE_IDP_TOKEN_URL)
-                             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                             .uri(GOOGLE_IDP_TOKEN_URL)
+                             .contentType(APPLICATION_FORM_URLENCODED)
                              .body(params)
                              .retrieve()
                              .body(GoogleTokenValidationResponse.class);
         } catch (Exception e) {
-            log.error("Google 계정 인증 실패 URL: {}, 원인: {}", OAuthConst.GOOGLE_IDP_TOKEN_URL, e.getMessage());
-            final ErrorCode errorCode    = ErrorCode.SOCIAL_CONNECTION_IDP_TOKEN_VALIDATION_FAILED;
+            log.error("Google 계정 인증 실패 URL: {}, 원인: {}", GOOGLE_IDP_TOKEN_URL, e.getMessage());
+            final ErrorCode errorCode    = SOCIAL_CONNECTION_IDP_TOKEN_VALIDATION_FAILED;
             final String    errorMessage = "Google 계정 인증 실패\n" + errorCode.getMessage();
             throw new GlobalException(errorCode, errorMessage);
         }
@@ -280,14 +287,14 @@ public class IdpTokenExchangeClient {
     ) {
         try {
             return restClient.post()
-                             .uri(OAuthConst.APPLE_IDP_TOKEN_URL)
-                             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                             .uri(APPLE_IDP_TOKEN_URL)
+                             .contentType(APPLICATION_FORM_URLENCODED)
                              .body(params)
                              .retrieve()
                              .body(AppleTokenRefreshResponse.class);
         } catch (Exception e) {
-            log.error("Apple 계정 토큰 갱신 실패 URL: {}, 원인: {}", OAuthConst.APPLE_IDP_TOKEN_URL, e.getMessage());
-            final ErrorCode errorCode    = ErrorCode.SOCIAL_CONNECTION_IDP_TOKEN_REFRESH_FAILED;
+            log.error("Apple 계정 토큰 갱신 실패 URL: {}, 원인: {}", APPLE_IDP_TOKEN_URL, e.getMessage());
+            final ErrorCode errorCode    = SOCIAL_CONNECTION_IDP_TOKEN_REFRESH_FAILED;
             final String    errorMessage = "Apple 계정 토큰 갱신 실패\n" + errorCode.getMessage();
             throw new GlobalException(errorCode, errorMessage);
         }
@@ -304,14 +311,14 @@ public class IdpTokenExchangeClient {
     ) {
         try {
             return restClient.post()
-                             .uri(OAuthConst.GOOGLE_IDP_TOKEN_URL)
-                             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                             .uri(GOOGLE_IDP_TOKEN_URL)
+                             .contentType(APPLICATION_FORM_URLENCODED)
                              .body(params)
                              .retrieve()
                              .body(GoogleTokenRefreshResponse.class);
         } catch (Exception e) {
-            log.error("Google 계정 토큰 갱신 실패 URL: {}, 원인: {}", OAuthConst.GOOGLE_IDP_TOKEN_URL, e.getMessage());
-            final ErrorCode errorCode    = ErrorCode.SOCIAL_CONNECTION_IDP_TOKEN_REFRESH_FAILED;
+            log.error("Google 계정 토큰 갱신 실패 URL: {}, 원인: {}", GOOGLE_IDP_TOKEN_URL, e.getMessage());
+            final ErrorCode errorCode    = SOCIAL_CONNECTION_IDP_TOKEN_REFRESH_FAILED;
             final String    errorMessage = "Google 계정 토큰 갱신 실패\n" + errorCode.getMessage();
             throw new GlobalException(errorCode, errorMessage);
         }
