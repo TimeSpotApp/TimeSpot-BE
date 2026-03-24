@@ -26,6 +26,7 @@ import com.timespot.backend.infra.security.oauth.validator.CustomOAuth2TokenVali
 import io.jsonwebtoken.Claims;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Function;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,6 +41,7 @@ import org.springframework.transaction.annotation.Transactional;
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------
  * 26. 3. 8.     loadingKKamo21       Initial creation
+ * 26. 3. 24.    loadingKKamo21       중복 로직 제거 및 최적화 (전략 패턴 활용)
  */
 @Service
 @Transactional(readOnly = true)
@@ -76,31 +78,21 @@ public class UserServiceImpl implements UserService {
         final ProviderType providerType = ProviderType.from(dto.getProvider());
         final MapApi       mapApi       = MapApi.from(dto.getMapApi());
 
-        switch (providerType) {
+        return switch (providerType) {
             case APPLE -> {
-                AppleTokenValidationResponse tokenValidationResponse = idpTokenExchangeClient.validationAppleAuthCode(
-                        dto.getAuthCode()
-                );
-                return createNewUser(providerType,
-                                     tokenValidationResponse.idToken(),
-                                     tokenValidationResponse.refreshToken(),
-                                     dto.getEmail(),
-                                     dto.getNickname(),
-                                     mapApi);
+                AppleTokenValidationResponse response =
+                        idpTokenExchangeClient.validationAppleAuthCode(dto.getAuthCode());
+                yield createNewUser(providerType, response.idToken(), response.refreshToken(),
+                                    dto.getEmail(), dto.getNickname(), mapApi);
             }
             case GOOGLE -> {
-                GoogleTokenValidationResponse tokenValidationResponse = idpTokenExchangeClient.validationGoogleAuthCode(
-                        dto.getAuthCode()
-                );
-                return createNewUser(providerType,
-                                     tokenValidationResponse.idToken(),
-                                     tokenValidationResponse.refreshToken(),
-                                     dto.getEmail(),
-                                     dto.getNickname(),
-                                     mapApi);
+                GoogleTokenValidationResponse response =
+                        idpTokenExchangeClient.validationGoogleAuthCode(dto.getAuthCode());
+                yield createNewUser(providerType, response.idToken(), response.refreshToken(),
+                                    dto.getEmail(), dto.getNickname(), mapApi);
             }
             default -> throw new GlobalException(SOCIAL_CONNECTION_PROVIDER_NOT_SUPPORTED);
-        }
+        };
     }
 
     /**
@@ -155,17 +147,33 @@ public class UserServiceImpl implements UserService {
         SocialConnection socialConnection = socialConnectionRepository.findByUserId(id)
                                                                       .orElseThrow(() -> new GlobalException(SOCIAL_CONNECTION_NOT_FOUND));
 
-        switch (socialConnection.getProviderType()) {
-            case APPLE -> idpTokenExchangeClient.revokeAppleToken(REFRESH_TOKEN, socialConnection.getIdpRefreshToken());
-            case GOOGLE -> idpTokenExchangeClient.revokeGoogleToken(socialConnection.getIdpRefreshToken());
-            default -> throw new GlobalException(SOCIAL_CONNECTION_PROVIDER_NOT_SUPPORTED);
-        }
-
+        revokeIdpToken(socialConnection);
         socialConnectionRepository.delete(socialConnection);
         userRepository.delete(user);
     }
 
     // ========================= 내부 메서드 =========================
+
+    /**
+     * IDP 토큰 폐기 (전략 패턴)
+     *
+     * @param socialConnection 소셜 연결 정보
+     */
+    private void revokeIdpToken(final SocialConnection socialConnection) {
+        Function<String, Void> revokeAction = switch (socialConnection.getProviderType()) {
+            case APPLE -> token -> {
+                idpTokenExchangeClient.revokeAppleToken(REFRESH_TOKEN, token);
+                return null;
+            };
+            case GOOGLE -> token -> {
+                idpTokenExchangeClient.revokeGoogleToken(token);
+                return null;
+            };
+            default -> throw new GlobalException(SOCIAL_CONNECTION_PROVIDER_NOT_SUPPORTED);
+        };
+
+        revokeAction.apply(socialConnection.getIdpRefreshToken());
+    }
 
     /**
      * 신규 회원 엔티티 생성

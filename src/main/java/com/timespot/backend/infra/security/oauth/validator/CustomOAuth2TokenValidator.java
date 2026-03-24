@@ -1,7 +1,6 @@
 package com.timespot.backend.infra.security.oauth.validator;
 
 import static com.timespot.backend.common.response.ErrorCode.SOCIAL_CONNECTION_INVALID_TOKEN;
-import static com.timespot.backend.common.response.ErrorCode.SOCIAL_CONNECTION_PROVIDER_NOT_SUPPORTED;
 import static com.timespot.backend.common.response.ErrorCode.SOCIAL_CONNECTION_TOKEN_PARSE_FAILED;
 import static com.timespot.backend.infra.security.oauth.constant.OAuthConst.APPLE_ISSUER;
 import static com.timespot.backend.infra.security.oauth.constant.OAuthConst.APPLE_JWKS_URL;
@@ -35,6 +34,7 @@ import org.springframework.stereotype.Component;
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------
  * 26. 3. 9.     loadingKKamo21       Initial creation
+ * 26. 3. 24.    loadingKKamo21       코드 최적화 (중복 제거, 전략 패턴)
  */
 @Component
 @Slf4j
@@ -47,43 +47,58 @@ public class CustomOAuth2TokenValidator {
     private final String googleClientId;
 
     public CustomOAuth2TokenValidator(final OAuth2Properties oAuth2Properties) throws MalformedURLException {
-        appleJwkProvider = new JwkProviderBuilder(new URL(APPLE_JWKS_URL))
-                .cached(10, 10, HOURS).build();
-        googleJwkProvider = new JwkProviderBuilder(new URL(GOOGLE_JWKS_URL))
-                .cached(10, 10, HOURS).build();
+        appleJwkProvider = new JwkProviderBuilder(new URL(APPLE_JWKS_URL)).cached(10, 10, HOURS).build();
+        googleJwkProvider = new JwkProviderBuilder(new URL(GOOGLE_JWKS_URL)).cached(10, 10, HOURS).build();
         appleClientId = oAuth2Properties.getApple().getClientId();
         googleClientId = oAuth2Properties.getGoogle().getClientId();
     }
 
     /**
-     * 소셜 인증 제공자 ID Token 서명 검증 및 페이로드 추출
+     * 소셜 인증 제공자 ID Token 서명 검증 및 Claims 추출
      *
-     * @param provider 소셜 인증 제공자 유형
+     * @param provider 소셜 인증 제공자 유형 (APPLE, GOOGLE)
      * @param token    인증 토큰
-     * @return Payload
+     * @return JWT Claims
+     * @throws GlobalException SOCIAL_CONNECTION_PROVIDER_NOT_SUPPORTED, SOCIAL_CONNECTION_INVALID_TOKEN
      */
     public Claims verifyAndParse(final String provider, final String token) {
         final ProviderType providerType = ProviderType.from(provider);
 
-        final String      expectedIssuer;
-        final String      expectedAudience;
-        final JwkProvider jwkProvider;
+        OAuth2Config config = getOAuth2Config(providerType);
 
-        switch (providerType) {
-            case APPLE -> {
-                expectedIssuer = APPLE_ISSUER;
-                expectedAudience = appleClientId;
-                jwkProvider = appleJwkProvider;
-            }
-            case GOOGLE -> {
-                expectedIssuer = GOOGLE_ISSUER;
-                expectedAudience = googleClientId;
-                jwkProvider = googleJwkProvider;
-            }
-            default -> throw new GlobalException(SOCIAL_CONNECTION_PROVIDER_NOT_SUPPORTED);
+        Locator<Key> keyLocator = createKeyLocator(provider, config.jwkProvider());
+
+        try {
+            return Jwts.parser()
+                       .keyLocator(keyLocator)
+                       .requireIssuer(config.issuer())
+                       .requireAudience(config.audience())
+                       .build()
+                       .parseSignedClaims(token)
+                       .getPayload();
+        } catch (Exception e) {
+            log.error("잘못되거나 만료된 {} 토큰입니다.", provider, e);
+            throw new GlobalException(SOCIAL_CONNECTION_INVALID_TOKEN);
         }
+    }
 
-        Locator<Key> keyLocator = locator -> {
+    // ========================= 내부 메서드 =========================
+
+    /**
+     * OAuth2 설정 조회 (전략 패턴)
+     */
+    private OAuth2Config getOAuth2Config(final ProviderType providerType) {
+        return switch (providerType) {
+            case APPLE -> new OAuth2Config(APPLE_ISSUER, appleClientId, appleJwkProvider);
+            case GOOGLE -> new OAuth2Config(GOOGLE_ISSUER, googleClientId, googleJwkProvider);
+        };
+    }
+
+    /**
+     * 공개 키 조회용 KeyLocator 생성
+     */
+    private Locator<Key> createKeyLocator(final String provider, final JwkProvider jwkProvider) {
+        return locator -> {
             JwsHeader header = (JwsHeader) locator;
             String    keyId  = header.getKeyId();
 
@@ -96,19 +111,12 @@ public class CustomOAuth2TokenValidator {
                 throw new GlobalException(SOCIAL_CONNECTION_TOKEN_PARSE_FAILED);
             }
         };
+    }
 
-        try {
-            return Jwts.parser()
-                       .keyLocator(keyLocator)
-                       .requireIssuer(expectedIssuer)
-                       .requireAudience(expectedAudience)
-                       .build()
-                       .parseSignedClaims(token)
-                       .getPayload();
-        } catch (Exception e) {
-            log.error("잘못되거나 만료된 {} 토큰입니다.", provider, e);
-            throw new GlobalException(SOCIAL_CONNECTION_INVALID_TOKEN);
-        }
+    /**
+     * OAuth2 설정 레코드
+     */
+    private record OAuth2Config(String issuer, String audience, JwkProvider jwkProvider) {
     }
 
 }

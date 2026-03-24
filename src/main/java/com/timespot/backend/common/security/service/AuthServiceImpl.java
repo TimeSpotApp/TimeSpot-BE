@@ -8,7 +8,6 @@ import static com.timespot.backend.infra.redis.constant.RedisConst.JWT_REFRESH_T
 import com.timespot.backend.common.error.GlobalException;
 import com.timespot.backend.common.security.dto.AuthRequestDto.OAuth2LoginRequest;
 import com.timespot.backend.common.security.dto.AuthRequestDto.OAuth2SignupRequest;
-import com.timespot.backend.common.security.dto.AuthResponseDto;
 import com.timespot.backend.common.security.dto.AuthResponseDto.AuthInfoResponse;
 import com.timespot.backend.common.security.dto.AuthResponseDto.TokenInfoResponse;
 import com.timespot.backend.common.security.jwt.provider.JwtProvider;
@@ -27,7 +26,6 @@ import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.security.SecurityException;
 import java.time.Duration;
-import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -45,6 +43,7 @@ import org.springframework.transaction.annotation.Transactional;
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------
  * 26. 3. 9.     loadingKKamo21       Initial creation
+ * 26. 3. 24.    loadingKKamo21       중복 로직 제거 및 최적화 (메서드 분리, 예외 처리 개선)
  */
 @Service
 @Transactional(readOnly = true)
@@ -89,12 +88,7 @@ public class AuthServiceImpl implements AuthService {
 
         return userService.findUserForSocialConnection(providerType, oAuthProfile.getProviderUserId())
                           .map(user -> createAuthInfoResponse(user, providerType))
-                          .orElseGet(() -> new AuthInfoResponse(
-                                  providerType,
-                                  true,
-                                  oAuthProfile.getEmail(),
-                                  oAuthProfile.getNickname()
-                          ));
+                          .orElseGet(() -> createNewUserInfoResponse(providerType, oAuthProfile));
     }
 
     /**
@@ -119,8 +113,8 @@ public class AuthServiceImpl implements AuthService {
      * @return 갱신된 인증 정보 응답 DTO
      */
     @Override
-    public AuthResponseDto.TokenInfoResponse refresh(final String refreshToken) {
-        validateRefreshToken(refreshToken);
+    public TokenInfoResponse refresh(final String refreshToken) {
+        validateRefreshTokenStructure(refreshToken);
 
         UUID   userId               = jwtProvider.getUserIdFromRefreshToken(refreshToken);
         String refreshTokenRedisKey = getRefreshTokenKey(userId);
@@ -129,10 +123,9 @@ public class AuthServiceImpl implements AuthService {
 
         String graceRedisKey = getGraceTokenKey(refreshToken);
 
-        Optional<String> opGraceToken = redisRepository.getValue(graceRedisKey, String.class);
-
-        return opGraceToken.map(token -> reissueWithGracePeriod(token, refreshToken))
-                           .orElseGet(() -> reissueWithNewToken(userId, refreshTokenRedisKey, graceRedisKey));
+        return redisRepository.getValue(graceRedisKey, String.class)
+                              .map(token -> reissueWithGracePeriod(token, refreshToken))
+                              .orElseGet(() -> reissueWithNewToken(userId, refreshTokenRedisKey, graceRedisKey));
     }
 
     /**
@@ -147,7 +140,7 @@ public class AuthServiceImpl implements AuthService {
         return createAuthInfoResponse(socialConnection.getUser(), socialConnection.getProviderType());
     }
 
-// ========================= 내부 메서드 =========================
+    // ========================= 내부 메서드 =========================
 
     /**
      * 인증 정보 응답 DTO 생성
@@ -167,9 +160,7 @@ public class AuthServiceImpl implements AuthService {
         long accessTokenExpiresIn  = jwtProvider.getAccessTokenExpirationSeconds();
         long refreshTokenExpiresIn = jwtProvider.getRefreshTokenExpirationSeconds();
 
-        redisRepository.setValue("%s%s".formatted(JWT_REFRESH_TOKEN_PREFIX, user.getId().toString()),
-                                 refreshToken,
-                                 Duration.ofSeconds(refreshTokenExpiresIn));
+        saveRefreshToken(user.getId(), refreshToken, refreshTokenExpiresIn);
 
         return new AuthInfoResponse(accessToken,
                                     accessTokenExpiresIn,
@@ -183,6 +174,17 @@ public class AuthServiceImpl implements AuthService {
     }
 
     /**
+     * 신규 사용자 정보 응답 DTO 생성 (토큰 없음)
+     *
+     * @param providerType 소셜 인증 제공자 유형
+     * @param profile      OAuth 프로필
+     * @return 인증 정보 응답 DTO (토큰 없음)
+     */
+    private AuthInfoResponse createNewUserInfoResponse(final ProviderType providerType, final OAuthProfile profile) {
+        return new AuthInfoResponse(providerType, true, profile.getEmail(), profile.getNickname());
+    }
+
+    /**
      * RefreshToken Redis 키 생성
      *
      * @param userId 회원 ID
@@ -190,6 +192,21 @@ public class AuthServiceImpl implements AuthService {
      */
     private String getRefreshTokenKey(final UUID userId) {
         return JWT_REFRESH_TOKEN_PREFIX + userId;
+    }
+
+    /**
+     * RefreshToken 저장
+     *
+     * @param userId           회원 ID
+     * @param refreshToken     RefreshToken
+     * @param expiresInSeconds 만료 시간 (초)
+     */
+    private void saveRefreshToken(final UUID userId, final String refreshToken, final long expiresInSeconds) {
+        redisRepository.setValue(
+                getRefreshTokenKey(userId),
+                refreshToken,
+                Duration.ofSeconds(expiresInSeconds)
+        );
     }
 
     /**
@@ -208,8 +225,9 @@ public class AuthServiceImpl implements AuthService {
      * @param remainingSeconds 남은 유효 시간 (초)
      */
     private void blacklistAccessToken(final String accessToken, final long remainingSeconds) {
-        String accessTokenBlacklistRedisKey = JWT_ACCESS_TOKEN_BLACKLIST_PREFIX + accessToken;
-        redisRepository.setValue(accessTokenBlacklistRedisKey, LOGOUT_VALUE, Duration.ofSeconds(remainingSeconds));
+        redisRepository.setValue(JWT_ACCESS_TOKEN_BLACKLIST_PREFIX + accessToken,
+                                 LOGOUT_VALUE,
+                                 Duration.ofSeconds(remainingSeconds));
     }
 
     /**
@@ -218,7 +236,7 @@ public class AuthServiceImpl implements AuthService {
      * @param refreshToken RefreshToken
      * @throws GlobalException 유효성 검증 실패
      */
-    private void validateRefreshToken(final String refreshToken) {
+    private void validateRefreshTokenStructure(final String refreshToken) {
         try {
             jwtProvider.validateRefreshToken(refreshToken);
         } catch (ExpiredJwtException e) {
@@ -247,12 +265,12 @@ public class AuthServiceImpl implements AuthService {
      * @throws GlobalException 토큰 불일치
      */
     private void validateRefreshTokenMatch(final String refreshToken, final String refreshTokenRedisKey) {
-        String savedToken = redisRepository.getValue(refreshTokenRedisKey, String.class).orElse(null);
-
-        if (savedToken == null || !savedToken.equals(refreshToken)) {
-            log.error("RefreshToken 불일치: 저장된 토큰이 없음 또는 불일치");
-            throw new GlobalException(USER_AUTH_INVALID_REFRESH_TOKEN);
-        }
+        redisRepository.getValue(refreshTokenRedisKey, String.class)
+                       .filter(savedToken -> savedToken.equals(refreshToken))
+                       .orElseThrow(() -> {
+                           log.error("RefreshToken 불일치: 저장된 토큰이 없음 또는 불일치");
+                           return new GlobalException(USER_AUTH_INVALID_REFRESH_TOKEN);
+                       });
     }
 
     /**
@@ -272,16 +290,15 @@ public class AuthServiceImpl implements AuthService {
      * @param refreshToken RefreshToken
      * @return 토큰 정보 응답 DTO
      */
-    private AuthResponseDto.TokenInfoResponse reissueWithGracePeriod(
-            final String graceToken, final String refreshToken
-    ) {
+    private TokenInfoResponse reissueWithGracePeriod(final String graceToken, final String refreshToken) {
         Authentication    authentication = jwtProvider.getAuthenticationFromRefreshToken(refreshToken);
         CustomUserDetails userDetails    = (CustomUserDetails) authentication.getPrincipal();
 
-        String accessToken = jwtProvider.generateAccessToken(
-                userDetails.getId(), userDetails.getUsername(), userDetails.getProviderType(), userDetails.getMapApi(),
-                userDetails.getRole()
-        );
+        String accessToken = jwtProvider.generateAccessToken(userDetails.getId(),
+                                                             userDetails.getUsername(),
+                                                             userDetails.getProviderType(),
+                                                             userDetails.getMapApi(),
+                                                             userDetails.getRole());
 
         return new TokenInfoResponse(
                 accessToken,
@@ -299,9 +316,9 @@ public class AuthServiceImpl implements AuthService {
      * @param graceRedisKey        Grace period 토큰 Redis 키
      * @return 토큰 정보 응답 DTO
      */
-    private AuthResponseDto.TokenInfoResponse reissueWithNewToken(
-            final UUID userId, final String refreshTokenRedisKey, final String graceRedisKey
-    ) {
+    private TokenInfoResponse reissueWithNewToken(final UUID userId,
+                                                  final String refreshTokenRedisKey,
+                                                  final String graceRedisKey) {
         SocialConnection socialConnection = userService.findByUserId(userId);
         User             user             = socialConnection.getUser();
 
@@ -318,7 +335,7 @@ public class AuthServiceImpl implements AuthService {
         // Grace period 설정 (30 초)
         redisRepository.setValue(graceRedisKey, newRefreshToken, Duration.ofSeconds(GRACE_PERIOD_SECONDS));
         // RefreshToken 갱신
-        redisRepository.setValue(refreshTokenRedisKey, newRefreshToken, Duration.ofSeconds(refreshTokenExpiresIn));
+        saveRefreshToken(userId, newRefreshToken, refreshTokenExpiresIn);
 
         return new TokenInfoResponse(
                 newAccessToken, accessTokenExpiresIn, newRefreshToken, refreshTokenExpiresIn
