@@ -156,9 +156,7 @@ public class AuthServiceImpl implements AuthService {
      * @param providerType 소셜 인증 제공자 유형
      * @return 인증 정보 응답 DTO
      */
-    private AuthInfoResponse createAuthInfoResponse(
-            final User user, final ProviderType providerType
-    ) {
+    private AuthInfoResponse createAuthInfoResponse(final User user, final ProviderType providerType) {
         String accessToken = jwtProvider.generateAccessToken(
                 user.getId(), user.getEmail(), providerType, user.getMapApi(), user.getRole()
         );
@@ -200,17 +198,14 @@ public class AuthServiceImpl implements AuthService {
      * @param userId 회원 ID
      */
     private void deleteRefreshToken(final UUID userId) {
-        if (userId != null) {
-            String refreshTokenRedisKey = getRefreshTokenKey(userId);
-            redisRepository.deleteData(refreshTokenRedisKey);
-        }
+        if (userId != null) redisRepository.deleteData(getRefreshTokenKey(userId));
     }
 
     /**
      * AccessToken 블랙리스트 등록
      *
      * @param accessToken      AccessToken
-     * @param remainingSeconds 남은 유효 시간(초)
+     * @param remainingSeconds 남은 유효 시간 (초)
      */
     private void blacklistAccessToken(final String accessToken, final long remainingSeconds) {
         String accessTokenBlacklistRedisKey = JWT_ACCESS_TOKEN_BLACKLIST_PREFIX + accessToken;
@@ -218,7 +213,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     /**
-     * RefreshToken 유효성 검증
+     * RefreshToken 구조적 유효성 검증
      *
      * @param refreshToken RefreshToken
      * @throws GlobalException 유효성 검증 실패
@@ -248,7 +243,7 @@ public class AuthServiceImpl implements AuthService {
      * RefreshToken 일치 여부 검증
      *
      * @param refreshToken         RefreshToken
-     * @param refreshTokenRedisKey RefreshToken Redis 키
+     * @param refreshTokenRedisKey Redis 키
      * @throws GlobalException 토큰 불일치
      */
     private void validateRefreshTokenMatch(final String refreshToken, final String refreshTokenRedisKey) {
@@ -275,7 +270,7 @@ public class AuthServiceImpl implements AuthService {
      *
      * @param graceToken   Grace period 토큰
      * @param refreshToken RefreshToken
-     * @return 재발급된 인증 정보 응답 DTO
+     * @return 토큰 정보 응답 DTO
      */
     private AuthResponseDto.TokenInfoResponse reissueWithGracePeriod(
             final String graceToken, final String refreshToken
@@ -302,7 +297,7 @@ public class AuthServiceImpl implements AuthService {
      * @param userId               회원 ID
      * @param refreshTokenRedisKey RefreshToken Redis 키
      * @param graceRedisKey        Grace period 토큰 Redis 키
-     * @return 재발급된 인증 정보 응답 DTO
+     * @return 토큰 정보 응답 DTO
      */
     private AuthResponseDto.TokenInfoResponse reissueWithNewToken(
             final UUID userId, final String refreshTokenRedisKey, final String graceRedisKey
@@ -320,16 +315,13 @@ public class AuthServiceImpl implements AuthService {
         long accessTokenExpiresIn  = jwtProvider.getAccessTokenExpirationSeconds();
         long refreshTokenExpiresIn = jwtProvider.getRefreshTokenExpirationSeconds();
 
-        // Grace period 설정
+        // Grace period 설정 (30 초)
         redisRepository.setValue(graceRedisKey, newRefreshToken, Duration.ofSeconds(GRACE_PERIOD_SECONDS));
         // RefreshToken 갱신
         redisRepository.setValue(refreshTokenRedisKey, newRefreshToken, Duration.ofSeconds(refreshTokenExpiresIn));
 
         return new TokenInfoResponse(
-                newAccessToken,
-                accessTokenExpiresIn,
-                newRefreshToken,
-                refreshTokenExpiresIn
+                newAccessToken, accessTokenExpiresIn, newRefreshToken, refreshTokenExpiresIn
         );
     }
 

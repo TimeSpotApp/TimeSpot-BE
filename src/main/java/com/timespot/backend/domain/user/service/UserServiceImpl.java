@@ -60,10 +60,8 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public Optional<User> findUserForSocialConnection(final ProviderType providerType, final String providerUserId) {
-        Optional<SocialConnection> opSocialConnection = socialConnectionRepository.findByProviderTypeAndProviderId(
-                providerType, providerUserId
-        );
-        return opSocialConnection.map(SocialConnection::getUser);
+        return socialConnectionRepository.findByProviderTypeAndProviderId(providerType, providerUserId)
+                                         .map(SocialConnection::getUser);
     }
 
     /**
@@ -175,6 +173,7 @@ public class UserServiceImpl implements UserService {
      * @param providerType 소셜 인증 제공자 유형
      * @param idToken      소셜 ID 토큰
      * @param refreshToken 소셜 Refresh Token
+     * @param email        이메일
      * @param nickname     닉네임
      * @param mapApi       지도 API 유형
      * @return 신규 회원 엔티티
@@ -188,6 +187,7 @@ public class UserServiceImpl implements UserService {
         Claims claims = tokenValidator.verifyAndParse(providerType.name(), idToken);
 
         OAuthProfile oAuthProfile = OAuthProfileFactory.getOAuthProfile(providerType.name(), claims);
+
         validateEmail(email);
 
         User user = userRepository.save(User.of(email, nickname, mapApi));
@@ -199,9 +199,10 @@ public class UserServiceImpl implements UserService {
     }
 
     /**
-     * 이메일 검증
+     * 이메일 중복 검증
      *
      * @param email 이메일
+     * @throws GlobalException USER_EMAIL_REQUIRED 또는 USER_EMAIL_DUPLICATED
      */
     private void validateEmail(final String email) {
         if (email == null || email.isBlank()) throw new GlobalException(USER_EMAIL_REQUIRED);

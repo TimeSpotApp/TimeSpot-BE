@@ -17,6 +17,12 @@ import java.util.UUID;
  */
 public interface UserRepositoryCustom {
 
+    /**
+     * 회원 ID 로 회원 정보 조회 (DTO)
+     *
+     * @param id 회원 ID
+     * @return 회원 정보 응답 DTO (Optional)
+     */
     Optional<UserInfoResponse> findUserInfoById(UUID id);
 
 }
