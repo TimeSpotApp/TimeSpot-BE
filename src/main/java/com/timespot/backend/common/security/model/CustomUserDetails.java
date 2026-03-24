@@ -1,5 +1,7 @@
 package com.timespot.backend.common.security.model;
 
+import com.timespot.backend.domain.user.model.MapApi;
+import com.timespot.backend.domain.user.model.ProviderType;
 import com.timespot.backend.domain.user.model.UserRole;
 import java.util.Collection;
 import java.util.Collections;
@@ -33,20 +35,41 @@ public class CustomUserDetails implements UserDetails, OAuth2User {
     private final UUID                id;
     private final String              email;
     @Getter
+    private final ProviderType        providerType;
+    @Getter
+    private final MapApi              mapApi;
+    @Getter
     private final UserRole            role;
     private final Map<String, Object> attributes;
 
     public static CustomUserDetails of(final UUID id,
                                        final String email,
+                                       final ProviderType providerType,
+                                       final MapApi mapApi,
                                        final UserRole role) {
-        return CustomUserDetails.builder().id(id).email(email).role(role).build();
+        return CustomUserDetails.builder()
+                                .id(id)
+                                .email(email)
+                                .providerType(providerType)
+                                .mapApi(mapApi)
+                                .role(role)
+                                .build();
     }
 
     public static CustomUserDetails of(final UUID id,
                                        final String email,
+                                       final ProviderType providerType,
+                                       final MapApi mapApi,
                                        final UserRole role,
                                        final Map<String, Object> attributes) {
-        return CustomUserDetails.builder().id(id).email(email).role(role).attributes(attributes).build();
+        return CustomUserDetails.builder()
+                                .id(id)
+                                .email(email)
+                                .providerType(providerType)
+                                .mapApi(mapApi)
+                                .role(role)
+                                .attributes(attributes)
+                                .build();
     }
 
     @Override

@@ -20,12 +20,17 @@ app:
       team-id: ${APPLE_TEAM_ID:APPLE_TEAM_ID}
       key-id: ${APPLE_KEY_ID:APPLE_KEY_ID}
       private-key: ${APPLE_PRIVATE_KEY:APPLE_PRIVATE_KEY}
+      redirect-uri: ${APPLE_IDP_TOKEN_REDIRECT_URL:http://localhost:8080/api/v1/auth/apple/callback}
     google:
       client-id: ${GOOGLE_CLIENT_ID:GOOGLE_CLIENT_ID}
       client-secret: ${GOOGLE_CLIENT_SECRET:GOOGLE_CLIENT_SECRET}
+      redirect-uri: ${GOOGLE_IDP_TOKEN_REDIRECT_URL:http://localhost:8080/api/v1/auth/google/callback}
   jwt:
     issuer: ${JWT_ISSUER:NomadSpot}
     access-token-secret: ${JWT_ACCESS_TOKEN_SECRET:e6b0746914514b4ab074691451bb4ab4ddee6414637b41b7ae6414637b81b79d23ea3748e479431faa3748e479431f6c6e25926ca2644d20a5926ca264ad20da27ffd36ebef54257bfd36ebef572576f0524394e85d2497ca4394e85d2597cfa7ad4f6cba246490194f6cba246f90164a8623956a89d4df3a23956a89dadf305b15765bc46f346809765bc46f3f68014459f2409099d4a829f2409099d5a82bb}
     refresh-token-secret: ${JWT_REFRESH_TOKEN_SECRET:b559bbaf8e1644c899bbaf8e16b4c88ab20a2f2874da4efc8a2f2874daeefc044dab6aad17ce4e38ab6aad17ce8e383a2674a7de49a54e34b4a7de49a5ee34fbc1a10769a31a415ca10769a31a415c5a6cb2d80457b24eb7b2d80457b26eb7f48d0de1abedf24f228de1abedf23f22df3bdeb635b4f541d89eb635b4f541d8fc5d9d0b253df14dc49d0b253df1cdc4ec57cbf0d4157b49d58bf0d4157b19d5c6}
     access-token-expiration-seconds: ${JWT_ACCESS_TOKEN_EXPIRATION_SECONDS:604800}  # 7 days
     refresh-token-expiration-seconds: ${JWT_REFRESH_TOKEN_EXPIRATION_SECONDS:1209600}  # 2 weeks
+google:
+  places:
+    api-key: ${GOOGLE_PLACES_API_KEY:GOOGLE_PLACES_API_KEY}

@@ -24,6 +24,7 @@ dependencies {
 
     // --- [SPRING ECOSYSTEM - CORE & DX] ---
     implementation libs.spring.boot.starter.actuator
+    implementation libs.spring.boot.starter.cache
     implementation libs.spring.boot.starter.validation
     implementation libs.spring.boot.starter.web
     developmentOnly libs.spring.boot.devtools
@@ -49,6 +50,7 @@ dependencies {
     implementation libs.ulid.creator
     implementation libs.jackson.datatype.jsr310
     implementation libs.jackson.databind
+    implementation libs.bucket4j.jdk17.lettuce
     implementation libs.springdoc.openapi.starter.webmvc.ui
     implementation libs.pushy
     //runtimeOnly libs.micrometer.registry.graphite
