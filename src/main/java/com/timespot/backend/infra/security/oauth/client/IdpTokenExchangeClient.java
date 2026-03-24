@@ -47,9 +47,11 @@ public class IdpTokenExchangeClient {
     private final String appleTeamId;
     private final String appleKeyId;
     private final String applePrivateKey;
+    private final String appleRedirectUri;
 
     private final String googleClientId;
     private final String googleClientSecret;
+    private final String googleRedirectUri;
 
     public IdpTokenExchangeClient(final RestClient.Builder builder, final OAuth2Properties oAuth2Properties) {
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
@@ -62,9 +64,11 @@ public class IdpTokenExchangeClient {
         appleTeamId = oAuth2Properties.getApple().getTeamId();
         appleKeyId = oAuth2Properties.getApple().getKeyId();
         applePrivateKey = oAuth2Properties.getApple().getPrivateKey();
+        appleRedirectUri = oAuth2Properties.getApple().getRedirectUri();
 
         googleClientId = oAuth2Properties.getGoogle().getClientId();
         googleClientSecret = oAuth2Properties.getGoogle().getClientSecret();
+        googleRedirectUri = oAuth2Properties.getGoogle().getRedirectUri();
     }
 
     /**
@@ -77,7 +81,7 @@ public class IdpTokenExchangeClient {
         MultiValueMap<String, String> params = OAuthRequestFactory.createAppleTokenValidationRequest(appleClientId,
                                                                                                      createAppleClientSecret(),
                                                                                                      authCode,
-                                                                                                     OAuthConst.APPLE_IDP_TOKEN_REDIRECT_URL);
+                                                                                                     appleRedirectUri);
 
         return executeAppleTokenValidation(params);
     }
@@ -92,7 +96,7 @@ public class IdpTokenExchangeClient {
         MultiValueMap<String, String> params = OAuthRequestFactory.createGoogleTokenValidationRequest(googleClientId,
                                                                                                       googleClientSecret,
                                                                                                       authCode,
-                                                                                                      OAuthConst.GOOGLE_IDP_TOKEN_REDIRECT_URL);
+                                                                                                      googleRedirectUri);
 
         return executeGoogleTokenValidation(params);
     }
@@ -168,10 +172,8 @@ public class IdpTokenExchangeClient {
     public void revokeGoogleToken(final String token) {
         try {
             ResponseEntity<String> response = restClient.post()
-                                                        .uri(builder -> builder
-                                                                .path(OAuthConst.GOOGLE_IDP_TOKEN_REVOKE_URL)
-                                                                .queryParam("token", token)
-                                                                .build())
+                                                        .uri(OAuthConst.GOOGLE_IDP_TOKEN_REVOKE_URL + "?token={token}",
+                                                             token)
                                                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                                                         .retrieve()
                                                         .toEntity(String.class);

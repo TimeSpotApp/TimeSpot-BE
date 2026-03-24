@@ -31,6 +31,7 @@ public final class OAuth2Properties {
         private String teamId;
         private String keyId;
         private String privateKey;
+        private String redirectUri;
     }
 
     @Getter
@@ -38,6 +39,7 @@ public final class OAuth2Properties {
     public static class Google {
         private String clientId;
         private String clientSecret;
+        private String redirectUri;
     }
 
 }

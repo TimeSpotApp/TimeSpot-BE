@@ -1,0 +1,10 @@
+app:
+  rate-limit:
+    anonymous:
+      capacity: 5
+      duration-minutes: 1
+      refill-strategy: greedy
+    authenticated:
+      capacity: 10
+      duration-minutes: 1
+      refill-strategy: greedy

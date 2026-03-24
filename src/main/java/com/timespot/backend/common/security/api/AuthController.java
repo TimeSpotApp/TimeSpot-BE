@@ -5,9 +5,12 @@ import com.timespot.backend.common.response.SuccessCode;
 import com.timespot.backend.common.security.constant.SecurityConst;
 import com.timespot.backend.common.security.dto.AuthRequestDto;
 import com.timespot.backend.common.security.dto.AuthResponseDto;
-import com.timespot.backend.common.security.dto.AuthResponseDto.TokenResponse;
+import com.timespot.backend.common.security.dto.AuthResponseDto.AuthInfoResponse;
+import com.timespot.backend.common.security.dto.AuthResponseDto.TokenInfoResponse;
 import com.timespot.backend.common.security.service.AuthService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -34,12 +37,27 @@ public class AuthController implements AuthApiDocs {
     private final AuthService authService;
 
     @Override
-    @PostMapping("/login")
-    public ResponseEntity<BaseResponse<TokenResponse>> login(
-            @RequestBody final AuthRequestDto.OAuth2LoginRequest dto
+    @PostMapping("/signup")
+    public ResponseEntity<BaseResponse<AuthInfoResponse>> signup(
+            @RequestBody @Valid final AuthRequestDto.OAuth2SignupRequest dto
     ) {
-        AuthResponseDto.TokenResponse responseData = authService.login(dto);
-        return ResponseEntity.ok(BaseResponse.success(SuccessCode.USER_AUTH_LOGIN_SUCCESS, responseData));
+        AuthInfoResponse responseData = authService.signup(dto);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                             .body(BaseResponse.success(SuccessCode.USER_REGISTER_SUCCESS, responseData));
+    }
+
+    @Override
+    @PostMapping("/login")
+    public ResponseEntity<BaseResponse<AuthResponseDto.AuthInfoResponse>> login(
+            @RequestBody @Valid final AuthRequestDto.OAuth2LoginRequest dto
+    ) {
+        AuthInfoResponse responseData = authService.login(dto);
+        final boolean    isNewUser    = responseData.getNewUser() != null && responseData.getNewUser();
+        final HttpStatus status       = isNewUser ? HttpStatus.ACCEPTED : HttpStatus.OK;
+        return ResponseEntity.status(status).body(
+                isNewUser ? BaseResponse.of(status, "로그인 요청 처리가 완료되었습니다.", responseData)
+                          : BaseResponse.success(SuccessCode.USER_AUTH_LOGIN_SUCCESS, responseData)
+        );
     }
 
     @Override
@@ -55,10 +73,10 @@ public class AuthController implements AuthApiDocs {
 
     @Override
     @PostMapping("/refresh")
-    public ResponseEntity<BaseResponse<TokenResponse>> refresh(
-            @RequestBody final AuthRequestDto.TokenRefreshRequest dto
+    public ResponseEntity<BaseResponse<AuthResponseDto.TokenInfoResponse>> refresh(
+            @RequestBody @Valid final AuthRequestDto.TokenRefreshRequest dto
     ) {
-        AuthResponseDto.TokenResponse responseData = authService.refresh(dto.getRefreshToken());
+        TokenInfoResponse responseData = authService.refresh(dto.getRefreshToken());
         return ResponseEntity.ok(BaseResponse.success(SuccessCode.USER_AUTH_TOKEN_REFRESH_SUCCESS, responseData));
     }
 

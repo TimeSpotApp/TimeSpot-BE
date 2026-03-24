@@ -31,7 +31,6 @@ public abstract class OAuthConst {
     public static final String APPLE_IDP_TOKEN_AUTHORIZATION_GRANT_TYPE = "authorization_code";
     public static final String APPLE_IDP_TOKEN_REFRESH_GRANT_TYPE       = TokenType.REFRESH_TOKEN.getValue();
     public static final String APPLE_IDP_TOKEN_URL                      = "https://appleid.apple.com/auth/token";
-    public static final String APPLE_IDP_TOKEN_REDIRECT_URL             = "https://timespot.up.railway.app/v1/auth/apple/callback"; // TODO: APPLE IDP 토큰 교환 리다이렉트 URL 적용 확인 필요
     public static final String APPLE_IDP_TOKEN_REVOKE_URL               = "https://appleid.apple.com/auth/revoke";
 
     public static final String GOOGLE_JWKS_URL                           = "https://www.googleapis.com/oauth2/v3/certs";
@@ -39,7 +38,6 @@ public abstract class OAuthConst {
     public static final String GOOGLE_IDP_TOKEN_AUTHORIZATION_GRANT_TYPE = "authorization_code";
     public static final String GOOGLE_IDP_TOKEN_REFRESH_GRANT_TYPE       = TokenType.REFRESH_TOKEN.getValue();
     public static final String GOOGLE_IDP_TOKEN_URL                      = "https://oauth2.googleapis.com/token";
-    public static final String GOOGLE_IDP_TOKEN_REDIRECT_URL             = "https://timespot.up.railway.app/v1/auth/google/callback"; // TODO: 구글 IDP 토큰 교환 리다이렉트 URL 필수, OAuth2 클라이언트 리다이렉트 URL과 같은 주소 적용 필요
     public static final String GOOGLE_IDP_TOKEN_REVOKE_URL               = "https://oauth2.googleapis.com/revoke";
 
 }

@@ -1,5 +1,6 @@
 package com.timespot.backend.common.config;
 
+import com.timespot.backend.common.ratelimit.properties.RateLimitProperties;
 import com.timespot.backend.common.security.config.properties.CorsProperties;
 import com.timespot.backend.common.security.jwt.provider.properties.JwtProperties;
 import com.timespot.backend.infra.security.oauth.properties.OAuth2Properties;
@@ -20,6 +21,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @EnableConfigurationProperties({CorsProperties.class,
                                 JwtProperties.class,
-                                OAuth2Properties.class})
+                                OAuth2Properties.class,
+                                RateLimitProperties.class})
 public class EnableConfigurationPropertiesConfig {
 }

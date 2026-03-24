@@ -15,6 +15,8 @@ import org.springframework.http.HttpStatus;
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------
  * 26. 2. 26.    loadingKKamo21       Initial creation
+ * 26. 3. 19.    whitecity01          Add Station, Place error
+ * 26. 3. 22.    whitecity01          Add place detail error
  */
 @Getter
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
@@ -50,6 +52,8 @@ public enum ErrorCode {
     USER_AUTH_ACCESS_TOKEN_EXPIRED(HttpStatus.BAD_REQUEST, "US010", "AccessToken이 만료되었습니다."),
     USER_AUTH_REFRESH_TOKEN_EXPIRED(HttpStatus.BAD_REQUEST, "US011", "RefreshToken이 만료되었습니다."),
     USER_AUTH_ACCESS_DENIED(HttpStatus.FORBIDDEN, "US012", "해당 회원은 접근 권한이 없습니다."),
+    USER_ROLE_NOT_SUPPORTED(HttpStatus.BAD_REQUEST, "US013", "지원하지 않는 계정 유형입니다."),
+    USER_MAP_API_NOT_SUPPORTED(HttpStatus.BAD_REQUEST, "US014", "지원하지 않는 지도 API 유형입니다."),
 
     // Social Connection
     SOCIAL_CONNECTION_NOT_FOUND(HttpStatus.NOT_FOUND, "SO001", "소셜 연동 정보를 찾을 수 없습니다."),
@@ -63,7 +67,15 @@ public enum ErrorCode {
     SOCIAL_CONNECTION_INVALID_TOKEN(HttpStatus.BAD_REQUEST, "SO009", "잘못되거나 만료된 소셜 인증 토큰입니다."),
     SOCIAL_CONNECTION_IDP_TOKEN_VALIDATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "SO010", "IDP 인증에 실패했습니다."),
     SOCIAL_CONNECTION_IDP_TOKEN_REFRESH_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "SO011", "IDP 인증 토큰 갱신에 실패했습니다."),
-    SOCIAL_CONNECTION_IDP_TOKEN_REVOKE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "SO012", "IDP 인증 토큰 폐기에 실패했습니다.");
+    SOCIAL_CONNECTION_IDP_TOKEN_REVOKE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "SO012", "IDP 인증 토큰 폐기에 실패했습니다."),
+
+    // Station
+    STATION_NOT_FOUND(HttpStatus.NOT_FOUND, "ST001", "역을 찾을 수 없습니다."),
+    STATION_NOT_ACTIVE(HttpStatus.BAD_REQUEST, "ST002", "현재 비활성화된 역입니다."),
+
+    // Place
+    PLACE_NOT_FOUND(HttpStatus.NOT_FOUND, "PL001", "장소를 찾을 수 없습니다."),
+    PLACE_INSUFFICIENT_REMAINING_TIME(HttpStatus.BAD_REQUEST, "PL002", "체류 가능한 시간이 부족합니다.");
 
     private final HttpStatus status;
     private final String     code;
