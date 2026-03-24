@@ -19,7 +19,7 @@ public class ApnsProperties {
     private String keyId;
 
     @NotBlank
-    private String p8FilePath;
+    private String privateKey;
 
     @NotBlank
     private String bundleId;

@@ -8,9 +8,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.io.ClassPathResource;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 
@@ -37,9 +38,13 @@ public class ApnsConfig {
         return new ApnsClientBuilder()
                 .setApnsServer(apnsProperties.getEndpoint())
                 .setSigningKey(ApnsSigningKey.loadFromInputStream(
-                        new ClassPathResource(apnsProperties.getP8FilePath()).getInputStream(),
+                        new ByteArrayInputStream(normalizePrivateKey(apnsProperties.getPrivateKey()).getBytes(StandardCharsets.UTF_8)),
                         apnsProperties.getTeamId(),
                         apnsProperties.getKeyId()))
                 .build();
+    }
+
+    private String normalizePrivateKey(final String privateKey) {
+        return privateKey.replace("\\n", "\n");
     }
 }

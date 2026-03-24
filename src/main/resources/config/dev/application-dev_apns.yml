@@ -1,7 +1,7 @@
 app:
   apns:
-    team-id: "YOUR_TEAM_ID" # Apple Developer Team ID
-    key-id: "YOUR_KEY_ID" # p8 파일의 Key ID
-    p8-file-path: "classpath:auth/AuthKey_YOUR_KEY_ID.p8" # p8 파일 경로
-    bundle-id: "com.your.bundle.id" # App Bundle ID
-    endpoint: "api.sandbox.push.apple.com" # 개발: api.sandbox.push.apple.com, 운영: api.push.apple.com
+    team-id: ${APPLE_TEAM_ID:APPLE_TEAM_ID}
+    key-id: ${APPLE_TEAM_ID:APPLE_TEAM_ID}
+    private-key: ${APPLE_PRIVATE_KEY:APPLE_PRIVATE_KEY}
+    bundle-id: ${APPLE_CLIENT_ID:APPLE_CLIENT_ID}
+    endpoint: ${APNS_ENDPOINT:APNS_ENDPOINT}
