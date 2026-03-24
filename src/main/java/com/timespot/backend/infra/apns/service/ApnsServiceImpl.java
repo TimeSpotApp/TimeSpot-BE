@@ -10,6 +10,7 @@ import com.timespot.backend.infra.apns.dto.ApnsRequestDto;
 import com.timespot.backend.infra.apns.model.ApnsPayload;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
 import java.util.concurrent.CompletableFuture;
@@ -17,6 +18,7 @@ import java.util.concurrent.CompletableFuture;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@ConditionalOnProperty(prefix = "app.apns", name = "private-key")
 public class ApnsServiceImpl implements ApnsService {
 
     private final ApnsClient apnsClient;
