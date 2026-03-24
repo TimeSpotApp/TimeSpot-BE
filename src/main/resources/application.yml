@@ -12,5 +12,5 @@ spring:
   profiles:
     group:
       dev: [ "dev_auth", "dev_db", "dev_docs", "dev_monitoring", "dev_server", "dev_apns" ]
-      prod: [ "prod_auth", "prod_db", "prod_docs", "prod_monitoring", "prod_server" ]
+      prod: [ "prod_auth", "prod_db", "prod_docs", "prod_monitoring", "prod_server", "prod_apns" ]
     active: dev
