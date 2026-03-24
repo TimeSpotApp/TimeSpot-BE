@@ -8,8 +8,9 @@ spring:
       - optional:classpath:config/${spring.profiles.active}/application-${spring.profiles.active}_docs.yml
       - optional:classpath:config/${spring.profiles.active}/application-${spring.profiles.active}_monitoring.yml
       - optional:classpath:config/${spring.profiles.active}/application-${spring.profiles.active}_server.yml
+      - optional:classpath:config/${spring.profiles.active}/application-${spring.profiles.active}_apns.yml
   profiles:
     group:
-      dev: [ "dev_auth", "dev_db", "dev_docs", "dev_monitoring", "dev_server" ]
-      prod: [ "prod_auth", "prod_db", "prod_docs", "prod_monitoring", "prod_server" ]
+      dev: [ "dev_auth", "dev_db", "dev_docs", "dev_monitoring", "dev_server", "dev_apns" ]
+      prod: [ "prod_auth", "prod_db", "prod_docs", "prod_monitoring", "prod_server", "prod_apns" ]
     active: dev

@@ -1,0 +1,7 @@
+app:
+  apns:
+    team-id: ${APPLE_TEAM_ID:APPLE_TEAM_ID}
+    key-id: ${APPLE_KEY_ID:APPLE_KEY_ID}
+    private-key: ${APPLE_PRIVATE_KEY:APPLE_PRIVATE_KEY}
+    bundle-id: ${APPLE_CLIENT_ID:APPLE_CLIENT_ID}
+    endpoint: ${APNS_ENDPOINT:APNS_ENDPOINT}

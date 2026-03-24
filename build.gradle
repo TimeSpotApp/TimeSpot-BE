@@ -52,6 +52,7 @@ dependencies {
     implementation libs.jackson.databind
     implementation libs.bucket4j.jdk17.lettuce
     implementation libs.springdoc.openapi.starter.webmvc.ui
+    implementation libs.pushy
     //runtimeOnly libs.micrometer.registry.graphite
     //runtimeOnly libs.micrometer.registry.prometheus
     annotationProcessor libs.jakarta.annotation.api
