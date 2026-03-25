@@ -74,7 +74,24 @@ public enum ErrorCode {
 
     // Place
     PLACE_NOT_FOUND(HttpStatus.NOT_FOUND, "PL001", "장소를 찾을 수 없습니다."),
-    PLACE_INSUFFICIENT_REMAINING_TIME(HttpStatus.BAD_REQUEST, "PL002", "체류 가능한 시간이 부족합니다.");
+    PLACE_INSUFFICIENT_REMAINING_TIME(HttpStatus.BAD_REQUEST, "PL002", "체류 가능한 시간이 부족합니다."),
+
+    // Visiting History
+    HISTORY_NOT_FOUND(HttpStatus.NOT_FOUND, "HI001", "방문 이력을 찾을 수 없습니다."),
+    HISTORY_INVALID_USER(HttpStatus.BAD_REQUEST, "HI002", "유효하지 않은 사용자입니다."),
+    HISTORY_INVALID_STATION(HttpStatus.BAD_REQUEST, "HI003", "유효하지 않은 역입니다."),
+    HISTORY_INVALID_PLACE(HttpStatus.BAD_REQUEST, "HI004", "유효하지 않은 장소입니다."),
+    HISTORY_INVALID_START_TIME(HttpStatus.BAD_REQUEST, "HI005", "유효하지 않은 시작 시간입니다."),
+    HISTORY_INVALID_END_TIME(HttpStatus.BAD_REQUEST, "HI006", "종료 시간은 시작 시간보다 이후여야 합니다."),
+    HISTORY_INVALID_VISIT_HISTORY(HttpStatus.BAD_REQUEST, "HI007", "유효하지 않은 방문 이력입니다."),
+    HISTORY_ALREADY_EXISTS(HttpStatus.CONFLICT, "HI008", "이미 등록된 방문 이력입니다."),
+    HISTORY_IN_PROGRESS(HttpStatus.BAD_REQUEST, "HI009", "진행 중인 방문 이력이 있습니다."),
+
+    // Favorite
+    FAVORITE_NOT_FOUND(HttpStatus.NOT_FOUND, "FA001", "즐겨찾기를 찾을 수 없습니다."),
+    FAVORITE_INVALID_USER(HttpStatus.BAD_REQUEST, "FA002", "유효하지 않은 사용자입니다."),
+    FAVORITE_INVALID_STATION(HttpStatus.BAD_REQUEST, "FA003", "유효하지 않은 역입니다."),
+    FAVORITE_DUPLICATE_STATION(HttpStatus.CONFLICT, "FA004", "이미 즐겨찾기에 등록된 역입니다.");
 
     private final HttpStatus status;
     private final String     code;

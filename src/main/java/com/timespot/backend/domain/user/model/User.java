@@ -68,6 +68,12 @@ public class User extends BaseAuditingEntity implements Persistable<UUID> {
     @Column(name = "role", nullable = false)
     private UserRole role;
 
+    @Column(name = "total_visit_count", nullable = false)
+    private Integer totalVisitCount;
+
+    @Column(name = "total_journey_minutes", nullable = false)
+    private Integer totalJourneyMinutes;
+
     @Builder(access = PRIVATE)
     private User(final String email, final String nickname, final MapApi mapApi, final UserRole role) {
         validateEmail(email);
@@ -77,6 +83,8 @@ public class User extends BaseAuditingEntity implements Persistable<UUID> {
         this.nickname = nickname;
         this.mapApi = mapApi;
         this.role = role != null ? role : USER;
+        this.totalVisitCount = 0;
+        this.totalJourneyMinutes = 0;
     }
 
     // ========================= 생성자 메서드 =========================
@@ -162,6 +170,51 @@ public class User extends BaseAuditingEntity implements Persistable<UUID> {
      */
     public void updateMapApi(final MapApi mapApi) {
         this.mapApi = mapApi;
+    }
+
+    /**
+     * 방문 이력 추가 (통계 업데이트)
+     *
+     * @param durationMinutes 여정 시간 (분)
+     * @param isSuccess       성공 여부
+     */
+    public void addVisitHistory(final int durationMinutes, final boolean isSuccess) {
+        this.totalVisitCount = this.totalVisitCount != null ? this.totalVisitCount + 1 : 1;
+        if (isSuccess)
+            this.totalJourneyMinutes = this.totalJourneyMinutes != null
+                                       ? this.totalJourneyMinutes + durationMinutes
+                                       : durationMinutes;
+    }
+
+    /**
+     * 방문 이력 제거 (통계 업데이트)
+     *
+     * @param durationMinutes 여정 시간 (분)
+     * @param isSuccess       성공 여부
+     */
+    public void removeVisitHistory(final int durationMinutes, final boolean isSuccess) {
+        if (this.totalVisitCount != null && this.totalVisitCount > 0)
+            this.totalVisitCount--;
+        if (isSuccess && this.totalJourneyMinutes != null && this.totalJourneyMinutes >= durationMinutes)
+            this.totalJourneyMinutes -= durationMinutes;
+    }
+
+    /**
+     * 총 방문 횟수 반환
+     *
+     * @return 총 방문 횟수
+     */
+    public int getTotalVisitCount() {
+        return this.totalVisitCount != null ? this.totalVisitCount : 0;
+    }
+
+    /**
+     * 총 여정 시간 (분) 반환
+     *
+     * @return 총 여정 시간 (분)
+     */
+    public int getTotalJourneyMinutes() {
+        return this.totalJourneyMinutes != null ? this.totalJourneyMinutes : 0;
     }
 
 }
