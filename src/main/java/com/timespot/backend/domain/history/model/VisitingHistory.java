@@ -1,7 +1,9 @@
 package com.timespot.backend.domain.history.model;
 
 import static com.timespot.backend.common.response.ErrorCode.HISTORY_INVALID_END_TIME;
+import static com.timespot.backend.common.response.ErrorCode.HISTORY_INVALID_PLACE;
 import static com.timespot.backend.common.response.ErrorCode.HISTORY_INVALID_START_TIME;
+import static com.timespot.backend.common.response.ErrorCode.HISTORY_INVALID_STATION;
 import static com.timespot.backend.common.response.ErrorCode.HISTORY_INVALID_USER;
 import static jakarta.persistence.FetchType.LAZY;
 import static jakarta.persistence.GenerationType.IDENTITY;
@@ -19,12 +21,9 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -61,8 +60,9 @@ public class VisitingHistory extends BaseAuditingEntity {
     @JoinColumn(name = "station_id", nullable = false)
     private Station station;
 
-    @OneToMany(mappedBy = "visitingHistory")
-    private List<Place> places = new ArrayList<>();
+    @ManyToOne(fetch = LAZY)
+    @JoinColumn(name = "place_id", nullable = false)
+    private Place place;
 
     @Column(name = "start_time", nullable = false)
     private LocalDateTime startTime;
@@ -82,17 +82,20 @@ public class VisitingHistory extends BaseAuditingEntity {
     @Builder(access = PRIVATE)
     private VisitingHistory(final User user,
                             final Station station,
+                            final Place place,
                             final LocalDateTime startTime,
                             final LocalDateTime trainDepartureTime,
                             final LocalDateTime endTime,
                             final Boolean isSuccess) {
         validateUser(user);
         validateStation(station);
+        validatePlace(place);
         validateStartTime(startTime);
         validateTrainDepartureTime(trainDepartureTime);
         validateEndTime(startTime, endTime);
         this.user = user;
         this.station = station;
+        this.place = place;
         this.startTime = startTime;
         this.trainDepartureTime = trainDepartureTime;
         this.endTime = endTime;
@@ -107,17 +110,20 @@ public class VisitingHistory extends BaseAuditingEntity {
      *
      * @param user               사용자
      * @param station            역
+     * @param place              장소
      * @param startTime          탐색 시작 시간 (현재 시간)
      * @param trainDepartureTime 열차 출발 시간
      * @return VisitingHistory 엔티티
      */
     public static VisitingHistory of(final User user,
                                      final Station station,
+                                     final Place place,
                                      final LocalDateTime startTime,
                                      final LocalDateTime trainDepartureTime) {
         return VisitingHistory.builder()
                               .user(user)
                               .station(station)
+                              .place(place)
                               .startTime(startTime)
                               .trainDepartureTime(trainDepartureTime)
                               .endTime(null)
@@ -130,6 +136,7 @@ public class VisitingHistory extends BaseAuditingEntity {
      *
      * @param user               사용자
      * @param station            역
+     * @param place              장소
      * @param startTime          탐색 시작 시간
      * @param endTime            탐색 종료 시간
      * @param trainDepartureTime 열차 출발 시간
@@ -137,12 +144,14 @@ public class VisitingHistory extends BaseAuditingEntity {
      */
     public static VisitingHistory of(final User user,
                                      final Station station,
+                                     final Place place,
                                      final LocalDateTime startTime,
                                      final LocalDateTime endTime,
                                      final LocalDateTime trainDepartureTime) {
         return VisitingHistory.builder()
                               .user(user)
                               .station(station)
+                              .place(place)
                               .startTime(startTime)
                               .trainDepartureTime(trainDepartureTime)
                               .endTime(endTime)
@@ -169,7 +178,17 @@ public class VisitingHistory extends BaseAuditingEntity {
      */
     private void validateStation(final Station station) {
         if (station == null || station.getId() == null)
-            throw new GlobalException(HISTORY_INVALID_START_TIME);
+            throw new GlobalException(HISTORY_INVALID_STATION);
+    }
+
+    /**
+     * 장소 검증
+     *
+     * @param place 장소
+     */
+    private void validatePlace(final Place place) {
+        if (place == null || place.getId() == null)
+            throw new GlobalException(HISTORY_INVALID_PLACE);
     }
 
     /**
@@ -241,7 +260,7 @@ public class VisitingHistory extends BaseAuditingEntity {
      * @return 진행 중이면 true
      */
     public boolean isInProgress() {
-        return this.endTime == null;
+        return this.endTime == null && (this.isSuccess == null || !this.isSuccess);
     }
 
     /**

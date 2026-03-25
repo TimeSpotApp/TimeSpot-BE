@@ -45,7 +45,12 @@ public enum SuccessCode {
     // Favorite
     FAVORITE_CREATE_SUCCESS(HttpStatus.CREATED, "즐겨찾기가 성공적으로 생성되었습니다."),
     FAVORITE_DELETE_SUCCESS(HttpStatus.NO_CONTENT, "즐겨찾기가 성공적으로 삭제되었습니다."),
-    FAVORITE_GET_SUCCESS(HttpStatus.OK, "즐겨찾기를 성공적으로 조회했습니다.");
+    FAVORITE_GET_SUCCESS(HttpStatus.OK, "즐겨찾기를 성공적으로 조회했습니다."),
+
+    // Visiting History
+    HISTORY_CREATE_SUCCESS(HttpStatus.CREATED, "새로운 여정이 시작되었습니다."),
+    HISTORY_END_SUCCESS(HttpStatus.OK, "여정이 종료되었습니다."),
+    HISTORY_GET_SUCCESS(HttpStatus.OK, "방문 이력 목록 조회가 완료되었습니다.");
 
     private final HttpStatus status;
     private final String     message;
