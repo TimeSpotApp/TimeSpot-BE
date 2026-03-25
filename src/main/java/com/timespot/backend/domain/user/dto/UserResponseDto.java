@@ -80,6 +80,20 @@ public abstract class UserResponseDto {
         private final String providerType;
 
         @Schema(
+                description = "총 방문 횟수 (여정 횟수)",
+                example = "15",
+                accessMode = READ_ONLY
+        )
+        private final Integer totalVisitCount;
+
+        @Schema(
+                description = "총 여정 누적 시간 (분)",
+                example = "450",
+                accessMode = READ_ONLY
+        )
+        private final Integer totalJourneyMinutes;
+
+        @Schema(
                 description = "가입 일시 (ISO-8601 형식)",
                 example = "2024-01-15T10:30:00",
                 accessMode = READ_ONLY
@@ -94,6 +108,8 @@ public abstract class UserResponseDto {
                                 final MapApi mapApi,
                                 final UserRole role,
                                 final ProviderType providerType,
+                                final Integer totalVisitCount,
+                                final Integer totalJourneyMinutes,
                                 final LocalDateTime createdAt) {
             this.userId = userId != null ? userId.toString() : null;
             this.email = email;
@@ -101,6 +117,8 @@ public abstract class UserResponseDto {
             this.mapApi = mapApi != null ? mapApi.name() : null;
             this.role = role != null ? role.name() : null;
             this.providerType = providerType != null ? providerType.name() : null;
+            this.totalVisitCount = totalVisitCount != null ? totalVisitCount : 0;
+            this.totalJourneyMinutes = totalJourneyMinutes != null ? totalJourneyMinutes : 0;
             this.createdAt = createdAt;
         }
 

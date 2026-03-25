@@ -66,15 +66,20 @@ public class VisitingHistoryServiceImpl implements VisitingHistoryService {
     public VisitingHistoryDetailResponse endJourney(final UUID userId,
                                                     final Long historyId,
                                                     final JourneyEndRequest dto) {
-        if (!userRepository.existsById(userId)) throw new GlobalException(USER_NOT_FOUND);
-
         VisitingHistory visitingHistory = visitingHistoryRepository.findById(historyId)
                                                                    .orElseThrow(
                                                                            () -> new GlobalException(HISTORY_NOT_FOUND)
                                                                    );
 
-        if (dto.getIsCompleted()) visitingHistory.endJourney(LocalDateTime.now());
-        else visitingHistory.abandonJourney();
+        if (!visitingHistory.getUser().getId().equals(userId)) throw new GlobalException(HISTORY_NOT_FOUND);
+
+        if (dto.getIsCompleted()) {
+            visitingHistory.endJourney(LocalDateTime.now());
+
+            User user = visitingHistory.getUser();
+            if (visitingHistory.isSuccess())
+                user.addVisitHistory(visitingHistory.getTotalDurationMinutes(), true);
+        } else visitingHistory.abandonJourney();
 
         return VisitingHistoryDetailResponse.from(visitingHistory);
     }
@@ -83,25 +88,23 @@ public class VisitingHistoryServiceImpl implements VisitingHistoryService {
     public Page<VisitingHistoryListResponse> getVisitingHistoryList(final UUID userId,
                                                                     final String keyword,
                                                                     final Pageable pageable) {
-        if (!userRepository.existsById(userId)) throw new GlobalException(USER_NOT_FOUND);
-
         return visitingHistoryRepository.findVisitingHistoryList(userId, keyword, pageable);
     }
 
     @Override
     @Transactional
     public void deleteJourney(final UUID userId, final Long historyId) {
-        if (!userRepository.existsById(userId)) throw new GlobalException(USER_NOT_FOUND);
-
         VisitingHistory visitingHistory = visitingHistoryRepository.findById(historyId)
                                                                    .orElseThrow(
                                                                            () -> new GlobalException(HISTORY_NOT_FOUND)
                                                                    );
 
-        // 본인 소유 방문 이력 검증 (보안)
-        if (!visitingHistory.getUser().getId().equals(userId)) {
-            throw new GlobalException(HISTORY_NOT_FOUND);
-        }
+        if (!visitingHistory.getUser().getId().equals(userId)) throw new GlobalException(HISTORY_NOT_FOUND);
+
+        User user = visitingHistory.getUser();
+        if (visitingHistory.isSuccess() && visitingHistory.getTotalDurationMinutes() > 0)
+            user.removeVisitHistory(visitingHistory.getTotalDurationMinutes(), true);
+        else if (!visitingHistory.isInProgress()) user.removeVisitHistory(0, false);
 
         visitingHistoryRepository.delete(visitingHistory);
     }

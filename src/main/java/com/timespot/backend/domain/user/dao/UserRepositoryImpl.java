@@ -45,6 +45,8 @@ public class UserRepositoryImpl implements UserRepositoryCustom {
                                                        USER.mapApi,
                                                        USER.role,
                                                        SOCIAL_CONNECTION.providerType,
+                                                       USER.totalVisitCount,
+                                                       USER.totalJourneyMinutes,
                                                        USER.createdAt
                                                ))
                                                .from(USER)

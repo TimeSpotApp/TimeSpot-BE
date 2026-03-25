@@ -63,6 +63,8 @@ public interface UserApiDocs {
                           - `mapApi`: 주사용 지도 API 유형 (APPLE, GOOGLE, NAVER)
                           - `role`: 계정 역할 (USER, ADMIN)
                           - `providerType`: 소셜 인증 제공자 (APPLE, GOOGLE)
+                          - `totalVisitCount`: 총 방문 횟수 (여정 횟수)
+                          - `totalJourneyMinutes`: 총 여정 누적 시간 (분)
                           - `createdAt`: 가입 일시 (ISO-8601 형식)
                           """
     )
@@ -86,6 +88,8 @@ public interface UserApiDocs {
                                                 "mapApi": "GOOGLE",
                                                 "role": "USER",
                                                 "providerType": "APPLE",
+                                                "totalVisitCount": 15,
+                                                "totalJourneyMinutes": 450,
                                                 "createdAt": "2024-01-15T10:30:00"
                                               }
                                             }
