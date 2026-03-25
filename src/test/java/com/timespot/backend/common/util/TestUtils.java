@@ -144,25 +144,24 @@ public final class TestUtils {
 
     public static List<VisitingHistory> createVisitingHistories(final User user,
                                                                 final List<Station> stations,
+                                                                final Place place,
                                                                 final LocalDateTime startTime) {
         final LocalDateTime trainDepartureTime = startTime.plusMinutes(30);
         return stations.stream()
                        .map(station -> VisitingHistory.of(user,
                                                           station,
+                                                          place,
                                                           startTime,
+                                                          trainDepartureTime,
                                                           trainDepartureTime))
                        .toList();
     }
 
     public static VisitingHistory createVisitingHistory(final User user,
                                                         final Station station,
+                                                        final Place place,
                                                         final LocalDateTime startTime) {
-        return createVisitingHistories(user, List.of(station), startTime).get(0);
-    }
-
-    public static VisitingHistoryPlace createVisitingHistoryPlace(final VisitingHistory visitingHistory,
-                                                                  final Place place) {
-        return VisitingHistoryPlace.of(visitingHistory, place);
+        return createVisitingHistories(user, List.of(station), place, startTime).get(0);
     }
 
 }
