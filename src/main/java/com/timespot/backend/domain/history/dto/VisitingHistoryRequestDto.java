@@ -27,6 +27,12 @@ import lombok.NoArgsConstructor;
 @Schema(description = "방문 이력 도메인 요청 페이로드")
 public abstract class VisitingHistoryRequestDto {
 
+    /**
+     * 여정 시작 요청 DTO
+     * <p>
+     * 사용자가 새로운 방문 이력을 시작할 때 사용하는 요청 페이로드입니다.
+     * </p>
+     */
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
@@ -48,6 +54,12 @@ public abstract class VisitingHistoryRequestDto {
 
     }
 
+    /**
+     * 여정 종료 요청 DTO
+     * <p>
+     * 사용자가 진행 중인 여정을 종료할 때 사용하는 요청 페이로드입니다.
+     * </p>
+     */
     @Data
     @NoArgsConstructor
     @AllArgsConstructor

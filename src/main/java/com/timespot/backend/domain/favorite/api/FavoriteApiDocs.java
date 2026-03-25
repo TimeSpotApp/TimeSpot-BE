@@ -382,18 +382,33 @@ public interface FavoriteApiDocs {
     ResponseEntity<BaseResponse<Page<FavoriteListResponse>>> getFavoriteStationList(
             @Parameter(hidden = true) CustomUserDetails userDetails,
             @Parameter(
-                    description = "검색어 (역 이름, 부분 일치)"
+                    description = "검색어 (역 이름, 부분 일치, 대소문자 구분 없음)",
+                    example = "서울",
+                    required = false
             ) String keyword,
             @Parameter(
-                    description = "페이지 번호 (1 부터 시작)"
+                    description = "페이지 번호 (1 부터 시작)",
+                    example = "1",
+                    required = false
             ) @Min(1) int page,
             @Parameter(
-                    description = "페이지 크기 (최소 10)"
+                    description = "페이지 크기 (한 페이지당 요소 개수, 최소 10)",
+                    example = "10",
+                    required = false
             ) @Min(10) int size,
             @Parameter(
-                    description = "정렬 기준 (프로퍼티,방향 - 쉼표로 여러 개 지정 가능)"
+                    description = """
+                                  정렬 기준 (프로퍼티,방향) - 쉼표로 여러 개 지정 가능
+                                  - 프로퍼티: createdAt, stationName, visitCount
+                                  - 방향: ASC, DESC (대소문자 구분 없음)
+                                  - 예시: `createdAt,DESC` 또는 `visitCount,DESC,stationName,ASC`
+                                  """,
+                    example = "createdAt,DESC",
+                    required = false
             ) @Pattern(
-                    regexp = "^(createdAt|stationName|visitCount),(ASC|DESC|asc|desc)(,\\s*(createdAt|stationName|visitCount),(ASC|DESC|asc|desc))*$") String sort
+                    regexp = "^(createdAt|stationName|visitCount),(ASC|DESC|asc|desc)(,\\s*(createdAt|stationName|visitCount),(ASC|DESC|asc|desc))*$",
+                    message = "정렬 형식이 올바르지 않습니다. (예: createdAt,DESC 또는 visitCount,DESC,stationName,ASC)"
+            ) String sort
     );
 
 }

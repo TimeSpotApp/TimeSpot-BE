@@ -83,7 +83,27 @@ public class VisitingHistoryServiceImpl implements VisitingHistoryService {
     public Page<VisitingHistoryListResponse> getVisitingHistoryList(final UUID userId,
                                                                     final String keyword,
                                                                     final Pageable pageable) {
+        if (!userRepository.existsById(userId)) throw new GlobalException(USER_NOT_FOUND);
+
         return visitingHistoryRepository.findVisitingHistoryList(userId, keyword, pageable);
+    }
+
+    @Override
+    @Transactional
+    public void deleteJourney(final UUID userId, final Long historyId) {
+        if (!userRepository.existsById(userId)) throw new GlobalException(USER_NOT_FOUND);
+
+        VisitingHistory visitingHistory = visitingHistoryRepository.findById(historyId)
+                                                                   .orElseThrow(
+                                                                           () -> new GlobalException(HISTORY_NOT_FOUND)
+                                                                   );
+
+        // 본인 소유 방문 이력 검증 (보안)
+        if (!visitingHistory.getUser().getId().equals(userId)) {
+            throw new GlobalException(HISTORY_NOT_FOUND);
+        }
+
+        visitingHistoryRepository.delete(visitingHistory);
     }
 
     // ========================= 내부 메서드 =========================

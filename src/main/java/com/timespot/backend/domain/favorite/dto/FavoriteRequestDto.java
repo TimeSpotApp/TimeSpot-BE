@@ -24,6 +24,12 @@ import lombok.NoArgsConstructor;
 @Schema(description = "즐겨찾기 도메인 요청 페이로드")
 public abstract class FavoriteRequestDto {
 
+    /**
+     * 즐겨찾기 역 생성 요청 DTO
+     * <p>
+     * 사용자가 특정 역을 즐겨찾기에 추가할 때 사용하는 요청 페이로드입니다.
+     * </p>
+     */
     @Data
     @NoArgsConstructor
     @AllArgsConstructor

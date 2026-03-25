@@ -27,4 +27,6 @@ public interface VisitingHistoryService {
 
     Page<VisitingHistoryListResponse> getVisitingHistoryList(UUID userId, String keyword, Pageable pageable);
 
+    void deleteJourney(UUID userId, Long historyId);
+
 }

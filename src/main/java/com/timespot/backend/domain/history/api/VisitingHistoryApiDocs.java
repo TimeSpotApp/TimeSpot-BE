@@ -51,7 +51,7 @@ import org.springframework.http.ResponseEntity;
                       ### 여정 기록 흐름
                       1. **여정 시작**: 역과 장소를 선택하여 여정 기록 시작
                       2. **여정 진행**: 실제 방문 활동 수행
-                      3. **여정 종료**: 
+                      3. **여정 종료**:
                          - 완료 (`isCompleted: true`): 열차 출발 전 도착 여부 자동 판별
                          - 포기 (`isCompleted: false`): 중도 포기 처리
                       """
@@ -533,17 +533,110 @@ public interface VisitingHistoryApiDocs {
     ResponseEntity<BaseResponse<Page<VisitingHistoryListResponse>>> getVisitingHistoryList(
             @Parameter(hidden = true) CustomUserDetails userDetails,
             @Parameter(
-                    description = "검색어 (역 이름, 주소, 장소 이름, 주소)"
+                    description = "검색어 (역 이름, 역 주소, 장소 이름, 장소 주소, 부분 일치, 대소문자 구분 없음)",
+                    example = "서울",
+                    required = false
             ) String keyword,
             @Parameter(
-                    description = "페이지 번호 (1 부터 시작)"
+                    description = "페이지 번호 (1 부터 시작)",
+                    example = "1",
+                    required = false
             ) @Min(1) int page,
             @Parameter(
-                    description = "페이지 크기 (최소 10)"
+                    description = "페이지 크기 (한 페이지당 요소 개수, 최소 10)",
+                    example = "10",
+                    required = false
             ) @Min(10) int size,
             @Parameter(
-                    description = "정렬 기준 (프로퍼티,방향 - 쉼표로 여러 개 지정 가능)"
-            ) @Pattern(regexp = "^(createdAt|duration),(ASC|DESC|asc|desc)(,\\s*(createdAt|duration),(ASC|DESC|asc|desc))*$") String sort
+                    description = """
+                                  정렬 기준 (프로퍼티,방향) - 쉼표로 여러 개 지정 가능
+                                  - 프로퍼티: createdAt, duration (소요 시간)
+                                  - 방향: ASC, DESC (대소문자 구분 없음)
+                                  - 예시: `createdAt,DESC` 또는 `duration,DESC,createdAt,ASC`
+                                  """,
+                    example = "createdAt,DESC",
+                    required = false
+            ) @Pattern(
+                    regexp = "^(createdAt|duration),(ASC|DESC|asc|desc)(,\\s*(createdAt|duration),(ASC|DESC|asc|desc))*$",
+                    message = "정렬 형식이 올바르지 않습니다. (예: createdAt,DESC 또는 duration,DESC)"
+            ) String sort
+    );
+
+    @Operation(
+            summary = "방문 이력 삭제",
+            description = """
+                          ### 특정 방문 이력을 삭제합니다.
+                          
+                          #### 요청 헤더
+                          - `Authorization: Bearer {accessToken}` - 필수
+                          
+                          #### 경로 변수
+                          - `historyId`: 삭제할 방문 이력 ID - 필수
+                          
+                          #### 처리 과정
+                          1. 사용자 존재 여부 확인
+                          2. 방문 이력 존재 여부 확인
+                          3. 본인 소유 검증 (보안)
+                          4. 방문 이력 삭제
+                          
+                          #### 중요
+                          - 본인의 방문 이력만 삭제할 수 있습니다.
+                          - 본인 소유가 아닌 경우 `404` 에러가 반환됩니다 (보안).
+                          - 삭제된 방문 이력은 복구할 수 없습니다.
+                          """
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "204",
+                    description = "방문 이력 삭제 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(
+                                    name = "삭제 성공",
+                                    value = """
+                                            {
+                                              "code": 204,
+                                              "message": "방문 이력이 성공적으로 삭제되었습니다."
+                                            }
+                                            """
+                            )
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "방문 이력을 찾을 수 없음 또는 권한 없음",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = {
+                                    @ExampleObject(
+                                            name = "방문 이력 없음",
+                                            value = """
+                                                    {
+                                                      "code": 404,
+                                                      "message": "방문 이력을 찾을 수 없습니다."
+                                                    }
+                                                    """
+                                    ),
+                                    @ExampleObject(
+                                            name = "권한 없음 (타인의 방문 이력)",
+                                            value = """
+                                                    {
+                                                      "code": 404,
+                                                      "message": "방문 이력을 찾을 수 없습니다."
+                                                    }
+                                                    """
+                                    )
+                            }
+                    )
+            )
+    })
+    ResponseEntity<BaseResponse<Void>> deleteJourney(
+            @Parameter(hidden = true) CustomUserDetails userDetails,
+            @Parameter(
+                    description = "방문 이력 ID",
+                    required = true,
+                    example = "1"
+            ) Long historyId
     );
 
 }

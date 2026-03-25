@@ -52,7 +52,10 @@ public abstract class SecurityConst {
             "/api/v1/place",
             "/api/v1/place/detail",
             // Favorite
-            "/api/v1/favorites"
+            "/api/v1/favorites",
+            // Visiting History
+            "/api/v1/histories",
+            "/api/v1/histories/{historyId}"
     };
     public static final String[] POST_AUTHENTICATED_URLS   = {
             // Auth
@@ -60,7 +63,10 @@ public abstract class SecurityConst {
             // User
             "/api/v1/users",
             // Favorite
-            "/api/v1/favorites"
+            "/api/v1/favorites",
+            // Visiting History
+            "/api/v1/histories",
+            "/api/v1/histories/{historyId}/end"
     };
     public static final String[] PUT_AUTHENTICATED_URLS    = {
             // User
@@ -71,7 +77,9 @@ public abstract class SecurityConst {
             // User
             "/api/v1/users",
             // Favorite
-            "/api/v1/favorites"
+            "/api/v1/favorites/{favoriteId}",
+            // Visiting History
+            "/api/v1/histories/{historyId}"
     };
 
     public static final String[] GET_ROLE_ADMIN_URLS    = {};
