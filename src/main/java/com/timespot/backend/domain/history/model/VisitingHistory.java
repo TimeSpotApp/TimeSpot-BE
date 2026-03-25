@@ -132,6 +132,31 @@ public class VisitingHistory extends BaseAuditingEntity {
      * @param startTime          탐색 시작 시간
      * @param endTime            탐색 종료 시간
      * @param trainDepartureTime 열차 출발 시간
+     * @return VisitingHistory 엔티티
+     */
+    public static VisitingHistory of(final User user,
+                                     final Station station,
+                                     final LocalDateTime startTime,
+                                     final LocalDateTime endTime,
+                                     final LocalDateTime trainDepartureTime) {
+        return VisitingHistory.builder()
+                              .user(user)
+                              .station(station)
+                              .startTime(startTime)
+                              .trainDepartureTime(trainDepartureTime)
+                              .endTime(endTime)
+                              .isSuccess(!endTime.isAfter(trainDepartureTime))
+                              .build();
+    }
+
+    /**
+     * 방문 이력 생성 (탐색 시작 및 종료 시간 모두 설정)
+     *
+     * @param user               사용자
+     * @param station            역
+     * @param startTime          탐색 시작 시간
+     * @param endTime            탐색 종료 시간
+     * @param trainDepartureTime 열차 출발 시간
      * @param memo               메모
      * @return VisitingHistory 엔티티
      */
