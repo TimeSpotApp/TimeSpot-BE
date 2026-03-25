@@ -280,8 +280,8 @@ public interface FavoriteApiDocs {
                           - `totalPages`: 전체 페이지 수
                           - `size`: 페이지 크기
                           - `number`: 현재 페이지 번호
-                          - `first`: 첫 페이지 여부
-                          - `last`: 마지막 페이지 여부
+                          - `sort`: 정렬 정보
+                          - `haxNext`: 다음 페이지 존재 여부
                           """
     )
     @ApiResponse(
