@@ -131,7 +131,6 @@ public class UserServiceImpl implements UserService {
 
         User user = userRepository.findById(id).orElseThrow(() -> new GlobalException(USER_NOT_FOUND));
 
-        user.updateNickname(dto.getNickname());
         user.updateMapApi(mapApi);
     }
 

@@ -1,12 +1,10 @@
 package com.timespot.backend.domain.user.dto;
 
-import static com.timespot.backend.domain.user.constant.UserConst.NICKNAME_REGEX;
 import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED;
 import static lombok.AccessLevel.PRIVATE;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -32,23 +30,6 @@ public abstract class UserRequestDto {
     @AllArgsConstructor
     @Schema(description = "회원 정보 수정 요청 페이로드")
     public static class UserInfoUpdateRequest {
-
-        @Pattern(
-                regexp = NICKNAME_REGEX,
-                message = "닉네임은 한글, 영문, 숫자, '-', '_'만 사용하여 2~15 자 이내로 입력해주세요."
-        )
-        @Schema(
-                description = """
-                              [필수] 닉네임
-                              
-                              - 2~15 자
-                              - 한글, 영문, 숫자, '-', '_'만 사용 가능
-                              - 대소문자 구분
-                              """,
-                example = "홍길동",
-                requiredMode = REQUIRED
-        )
-        private String nickname;
 
         @NotBlank(message = "주사용 지도 API 유형은 필수입니다.")
         @Schema(
