@@ -50,13 +50,17 @@ public abstract class SecurityConst {
             "/api/v1/users",
             // Place
             "/api/v1/place",
-            "/api/v1/place/detail"
+            "/api/v1/place/detail",
+            // Favorite
+            "/api/v1/favorites"
     };
     public static final String[] POST_AUTHENTICATED_URLS   = {
             // Auth
             "/api/v1/auth/logout",
             // User
-            "/api/v1/users/map"
+            "/api/v1/users",
+            // Favorite
+            "/api/v1/favorites"
     };
     public static final String[] PUT_AUTHENTICATED_URLS    = {
             // User
@@ -65,7 +69,9 @@ public abstract class SecurityConst {
     public static final String[] PATCH_AUTHENTICATED_URLS  = {};
     public static final String[] DELETE_AUTHENTICATED_URLS = {
             // User
-            "/api/v1/users"
+            "/api/v1/users",
+            // Favorite
+            "/api/v1/favorites"
     };
 
     public static final String[] GET_ROLE_ADMIN_URLS    = {};

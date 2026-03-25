@@ -40,7 +40,12 @@ public enum SuccessCode {
 
     // Place
     PLACE_GET_AVAILABLE_PLACES_SUCCESS(HttpStatus.OK, "방문 가능 장소 조회가 완료되었습니다."),
-    PLACE_GET_DETAIL_SUCCESS(HttpStatus.OK, "장소 상세 정보 조회가 완료되었습니다.");
+    PLACE_GET_DETAIL_SUCCESS(HttpStatus.OK, "장소 상세 정보 조회가 완료되었습니다."),
+
+    // Favorite
+    FAVORITE_CREATE_SUCCESS(HttpStatus.CREATED, "즐겨찾기가 성공적으로 생성되었습니다."),
+    FAVORITE_DELETE_SUCCESS(HttpStatus.NO_CONTENT, "즐겨찾기가 성공적으로 삭제되었습니다."),
+    FAVORITE_GET_SUCCESS(HttpStatus.OK, "즐겨찾기를 성공적으로 조회했습니다.");
 
     private final HttpStatus status;
     private final String     message;
