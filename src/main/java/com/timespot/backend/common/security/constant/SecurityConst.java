@@ -33,6 +33,13 @@ public abstract class SecurityConst {
             "/swagger-ui.html",
             "/swagger-resources/**",
             "/v3/api-docs/**",
+
+            // Place
+            "/api/v1/place",
+            "/api/v1/place/detail",
+
+            // Station
+            "/api/v1/stations"
             };
     public static final String[] POST_PERMIT_ALL_URLS   = {
             // Auth
@@ -47,15 +54,15 @@ public abstract class SecurityConst {
     public static final String[] GET_AUTHENTICATED_URLS    = {
             // User
             "/api/v1/users",
-            // Place
-            "/api/v1/place",
-            "/api/v1/place/detail"
     };
     public static final String[] POST_AUTHENTICATED_URLS   = {
             // Auth
             "/api/v1/auth/logout",
             // User
-            "/api/v1/users/map"
+            "/api/v1/users/map",
+
+            // Station
+            "/api/v1/stations/*/favorite"
     };
     public static final String[] PUT_AUTHENTICATED_URLS    = {
             // User
