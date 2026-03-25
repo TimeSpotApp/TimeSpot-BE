@@ -27,7 +27,6 @@ public final class OAuth2Properties {
     @Setter
     public static class Apple {
         private String clientId;
-        private String clientSecret;
         private String teamId;
         private String keyId;
         private String privateKey;
