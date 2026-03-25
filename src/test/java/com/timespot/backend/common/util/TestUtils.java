@@ -132,6 +132,17 @@ public final class TestUtils {
         return createPlaces(1).get(0);
     }
 
+    public static Place createPlace(final String name) {
+        return FIXTURE_MONKEY.giveMeBuilder(Place.class)
+                             .instantiate(Instantiator.constructor().field())
+                             .setNull("id")
+                             .set("name", name)
+                             .setLazy("googlePlaceId", () -> FAKER.internet().uuidv4())
+                             .setLazy("address", () -> FAKER.address().fullAddress())
+                             .setLazy("category", () -> FAKER.commerce().department())
+                             .sample();
+    }
+
     public static List<Favorite> createFavorites(final User user, final List<Station> stations) {
         return stations.stream()
                        .map(station -> Favorite.of(user, station))
@@ -152,7 +163,7 @@ public final class TestUtils {
                                                           station,
                                                           place,
                                                           startTime,
-                                                          trainDepartureTime,
+                                                          null,
                                                           trainDepartureTime))
                        .toList();
     }

@@ -36,9 +36,6 @@ public abstract class VisitingHistoryResponseDto {
         @Schema(description = "방문 이력 ID", example = "1", accessMode = READ_ONLY)
         private final Long visitingHistoryId;
 
-        @Schema(description = "사용자 ID (UUID)", example = "a1b2c3d4-e5f6-7890-abcd-ef1234567890", accessMode = READ_ONLY)
-        private final String userId;
-
         @Schema(description = "역 ID", example = "1", accessMode = READ_ONLY)
         private final Long stationId;
 
@@ -79,7 +76,6 @@ public abstract class VisitingHistoryResponseDto {
         @QueryProjection
         @JsonCreator
         public VisitingHistoryListResponse(final Long visitingHistoryId,
-                                           final String userId,
                                            final Long stationId,
                                            final String stationName,
                                            final Long placeId,
@@ -93,7 +89,6 @@ public abstract class VisitingHistoryResponseDto {
                                            final boolean isSuccess,
                                            final LocalDateTime createdAt) {
             this.visitingHistoryId = visitingHistoryId;
-            this.userId = userId;
             this.stationId = stationId;
             this.stationName = stationName;
             this.placeId = placeId;
@@ -117,9 +112,6 @@ public abstract class VisitingHistoryResponseDto {
 
         @Schema(description = "방문 이력 ID", example = "1", accessMode = READ_ONLY)
         private final Long visitingHistoryId;
-
-        @Schema(description = "사용자 ID (UUID)", example = "a1b2c3d4-e5f6-7890-abcd-ef1234567890", accessMode = READ_ONLY)
-        private final String userId;
 
         @Schema(description = "역 ID", example = "1", accessMode = READ_ONLY)
         private final Long stationId;
@@ -167,7 +159,6 @@ public abstract class VisitingHistoryResponseDto {
         @QueryProjection
         @JsonCreator
         public VisitingHistoryDetailResponse(final Long visitingHistoryId,
-                                             final String userId,
                                              final Long stationId,
                                              final String stationName,
                                              final String stationAddress,
@@ -183,7 +174,6 @@ public abstract class VisitingHistoryResponseDto {
                                              final boolean isSuccess,
                                              final LocalDateTime createdAt) {
             this.visitingHistoryId = visitingHistoryId;
-            this.userId = userId;
             this.stationId = stationId;
             this.stationName = stationName;
             this.stationAddress = stationAddress;
@@ -203,7 +193,6 @@ public abstract class VisitingHistoryResponseDto {
         public static VisitingHistoryDetailResponse from(final VisitingHistory visitingHistory) {
             return new VisitingHistoryDetailResponse(
                     visitingHistory.getId(),
-                    visitingHistory.getUser().getId().toString(),
                     visitingHistory.getStation().getId(),
                     visitingHistory.getStation().getName(),
                     visitingHistory.getStation().getAddress(),

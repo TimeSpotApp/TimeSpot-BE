@@ -57,7 +57,6 @@ public class VisitingHistoryRepositoryImpl implements VisitingHistoryRepositoryC
         final List<VisitingHistoryListResponse> content = queryFactory.select(
                                                                               new QVisitingHistoryResponseDto_VisitingHistoryListResponse(
                                                                                       VISITING_HISTORY.id,
-                                                                                      USER.id.isNotNull().stringValue(),
                                                                                       STATION.id,
                                                                                       STATION.name,
                                                                                       PLACE.id,
@@ -73,12 +72,8 @@ public class VisitingHistoryRepositoryImpl implements VisitingHistoryRepositoryC
                                                                               )
                                                                       )
                                                                       .from(VISITING_HISTORY)
-                                                                      .join(USER)
-                                                                      .on(VISITING_HISTORY.user.id.eq(USER.id))
-                                                                      .join(STATION)
-                                                                      .on(VISITING_HISTORY.station.id.eq(STATION.id))
-                                                                      .join(PLACE)
-                                                                      .on(VISITING_HISTORY.place.id.eq(PLACE.id))
+                                                                      .join(STATION).on(VISITING_HISTORY.station.id.eq(STATION.id))
+                                                                      .join(PLACE).on(VISITING_HISTORY.place.id.eq(PLACE.id))
                                                                       .where(VISITING_HISTORY.id.in(historyIds),
                                                                              stationOrPlaceContains(keyword))
                                                                       .orderBy(getSortCondition(pageable))
@@ -100,7 +95,8 @@ public class VisitingHistoryRepositoryImpl implements VisitingHistoryRepositoryC
     private List<Long> findVisitingHistoryIds(final UUID userId, final String keyword, final Pageable pageable) {
         return queryFactory.select(VISITING_HISTORY.id)
                            .from(VISITING_HISTORY)
-                           .where(VISITING_HISTORY.user.id.eq(userId))
+                           .where(VISITING_HISTORY.user.id.eq(userId),
+                                  stationOrPlaceContains(keyword))
                            .orderBy(getSortCondition(pageable))
                            .offset(pageable.getOffset())
                            .limit(pageable.getPageSize())
@@ -133,8 +129,14 @@ public class VisitingHistoryRepositoryImpl implements VisitingHistoryRepositoryC
                                                    VISITING_HISTORY.startTime,
                                                    VISITING_HISTORY.endTime)
                 ));
-                case "createdAt" -> orderSpecifiers.add(new OrderSpecifier<>(direction, VISITING_HISTORY.createdAt));
-                default -> orderSpecifiers.add(new OrderSpecifier<>(DESC, VISITING_HISTORY.createdAt));
+                case "createdAt" -> {
+                    orderSpecifiers.add(new OrderSpecifier<>(direction, VISITING_HISTORY.createdAt));
+                    orderSpecifiers.add(new OrderSpecifier<>(direction, VISITING_HISTORY.id));
+                }
+                default -> {
+                    orderSpecifiers.add(new OrderSpecifier<>(DESC, VISITING_HISTORY.createdAt));
+                    orderSpecifiers.add(new OrderSpecifier<>(DESC, VISITING_HISTORY.id));
+                }
             }
         });
 

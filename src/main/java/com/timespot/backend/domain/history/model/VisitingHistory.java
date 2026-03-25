@@ -155,7 +155,7 @@ public class VisitingHistory extends BaseAuditingEntity {
                               .startTime(startTime)
                               .trainDepartureTime(trainDepartureTime)
                               .endTime(endTime)
-                              .isSuccess(!endTime.isAfter(trainDepartureTime))
+                              .isSuccess(endTime != null && !endTime.isAfter(trainDepartureTime))
                               .build();
     }
 

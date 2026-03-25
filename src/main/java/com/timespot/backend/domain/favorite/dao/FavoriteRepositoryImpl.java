@@ -127,8 +127,14 @@ public class FavoriteRepositoryImpl implements FavoriteRepositoryCustom {
             switch (property) {
                 case "stationName" -> orderSpecifiers.add(new OrderSpecifier<>(direction, FAVORITE.station.name));
                 case "visitCount" -> orderSpecifiers.add(new OrderSpecifier<>(direction, FAVORITE.visitCount));
-                case "createdAt" -> orderSpecifiers.add(new OrderSpecifier<>(direction, FAVORITE.createdAt));
-                default -> orderSpecifiers.add(new OrderSpecifier<>(DESC, FAVORITE.createdAt));
+                case "createdAt" -> {
+                    orderSpecifiers.add(new OrderSpecifier<>(direction, FAVORITE.createdAt));
+                    orderSpecifiers.add(new OrderSpecifier<>(direction, FAVORITE.id));
+                }
+                default -> {
+                    orderSpecifiers.add(new OrderSpecifier<>(DESC, FAVORITE.createdAt));
+                    orderSpecifiers.add(new OrderSpecifier<>(DESC, FAVORITE.id));
+                }
             }
         });
 
