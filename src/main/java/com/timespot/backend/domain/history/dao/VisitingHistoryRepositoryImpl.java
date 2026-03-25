@@ -2,7 +2,6 @@ package com.timespot.backend.domain.history.dao;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.timespot.backend.domain.history.model.QVisitingHistory;
-import com.timespot.backend.domain.history.model.QVisitingHistoryPlace;
 import com.timespot.backend.domain.user.model.QUser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -18,9 +17,8 @@ import org.springframework.stereotype.Repository;
 @RequiredArgsConstructor
 public class VisitingHistoryRepositoryImpl implements VisitingHistoryRepositoryCustom {
 
-    private static final QUser                 USER                   = QUser.user;
-    private static final QVisitingHistory      VISITING_HISTORY       = QVisitingHistory.visitingHistory;
-    private static final QVisitingHistoryPlace VISITING_HISTORY_PLACE = QVisitingHistoryPlace.visitingHistoryPlace;
+    private static final QUser            USER             = QUser.user;
+    private static final QVisitingHistory VISITING_HISTORY = QVisitingHistory.visitingHistory;
 
     private final JPAQueryFactory queryFactory;
 

@@ -10,6 +10,7 @@ import static lombok.AccessLevel.PROTECTED;
 
 import com.timespot.backend.common.error.GlobalException;
 import com.timespot.backend.common.model.BaseAuditingEntity;
+import com.timespot.backend.domain.place.model.Place;
 import com.timespot.backend.domain.place.model.Station;
 import com.timespot.backend.domain.user.model.User;
 import jakarta.persistence.Column;
@@ -18,9 +19,12 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -56,6 +60,9 @@ public class VisitingHistory extends BaseAuditingEntity {
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "station_id", nullable = false)
     private Station station;
+
+    @OneToMany(mappedBy = "visitingHistory")
+    private List<Place> places = new ArrayList<>();
 
     @Column(name = "start_time", nullable = false)
     private LocalDateTime startTime;

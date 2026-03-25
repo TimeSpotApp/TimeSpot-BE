@@ -12,7 +12,6 @@ import com.navercorp.fixturemonkey.api.introspector.FieldReflectionArbitraryIntr
 import com.navercorp.fixturemonkey.jakarta.validation.plugin.JakartaValidationPlugin;
 import com.timespot.backend.domain.favorite.model.Favorite;
 import com.timespot.backend.domain.history.model.VisitingHistory;
-import com.timespot.backend.domain.history.model.VisitingHistoryPlace;
 import com.timespot.backend.domain.place.model.Place;
 import com.timespot.backend.domain.place.model.Station;
 import com.timespot.backend.domain.user.model.MapApi;

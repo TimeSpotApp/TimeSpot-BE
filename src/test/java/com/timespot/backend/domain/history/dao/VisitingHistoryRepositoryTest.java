@@ -13,7 +13,6 @@ import com.timespot.backend.common.config.P6SpyConfig;
 import com.timespot.backend.common.config.QuerydslConfig;
 import com.timespot.backend.common.util.TestUtils;
 import com.timespot.backend.domain.history.model.VisitingHistory;
-import com.timespot.backend.domain.history.model.VisitingHistoryPlace;
 import com.timespot.backend.domain.place.model.Place;
 import com.timespot.backend.domain.place.model.Station;
 import com.timespot.backend.domain.user.model.User;
