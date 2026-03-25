@@ -72,17 +72,13 @@ public class VisitingHistory extends BaseAuditingEntity {
     @Column(name = "is_success", nullable = false)
     private Boolean isSuccess;
 
-    @Column(name = "memo", length = 500)
-    private String memo;
-
     @Builder(access = PRIVATE)
     private VisitingHistory(final User user,
                             final Station station,
                             final LocalDateTime startTime,
                             final LocalDateTime trainDepartureTime,
                             final LocalDateTime endTime,
-                            final Boolean isSuccess,
-                            final String memo) {
+                            final Boolean isSuccess) {
         validateUser(user);
         validateStation(station);
         validateStartTime(startTime);
@@ -95,7 +91,6 @@ public class VisitingHistory extends BaseAuditingEntity {
         this.endTime = endTime;
         this.isSuccess = isSuccess != null ? isSuccess : false;
         this.totalDurationMinutes = calculateDurationMinutes(startTime, endTime);
-        this.memo = memo;
     }
 
     // ========================= 생성자 메서드 =========================
@@ -109,10 +104,10 @@ public class VisitingHistory extends BaseAuditingEntity {
      * @param trainDepartureTime 열차 출발 시간
      * @return VisitingHistory 엔티티
      */
-    public static VisitingHistory startJourney(final User user,
-                                               final Station station,
-                                               final LocalDateTime startTime,
-                                               final LocalDateTime trainDepartureTime) {
+    public static VisitingHistory of(final User user,
+                                     final Station station,
+                                     final LocalDateTime startTime,
+                                     final LocalDateTime trainDepartureTime) {
         return VisitingHistory.builder()
                               .user(user)
                               .station(station)
@@ -120,7 +115,6 @@ public class VisitingHistory extends BaseAuditingEntity {
                               .trainDepartureTime(trainDepartureTime)
                               .endTime(null)
                               .isSuccess(false)
-                              .memo(null)
                               .build();
     }
 
@@ -146,34 +140,6 @@ public class VisitingHistory extends BaseAuditingEntity {
                               .trainDepartureTime(trainDepartureTime)
                               .endTime(endTime)
                               .isSuccess(!endTime.isAfter(trainDepartureTime))
-                              .build();
-    }
-
-    /**
-     * 방문 이력 생성 (탐색 시작 및 종료 시간 모두 설정)
-     *
-     * @param user               사용자
-     * @param station            역
-     * @param startTime          탐색 시작 시간
-     * @param endTime            탐색 종료 시간
-     * @param trainDepartureTime 열차 출발 시간
-     * @param memo               메모
-     * @return VisitingHistory 엔티티
-     */
-    public static VisitingHistory of(final User user,
-                                     final Station station,
-                                     final LocalDateTime startTime,
-                                     final LocalDateTime endTime,
-                                     final LocalDateTime trainDepartureTime,
-                                     final String memo) {
-        return VisitingHistory.builder()
-                              .user(user)
-                              .station(station)
-                              .startTime(startTime)
-                              .trainDepartureTime(trainDepartureTime)
-                              .endTime(endTime)
-                              .isSuccess(!endTime.isAfter(trainDepartureTime))
-                              .memo(memo)
                               .build();
     }
 
@@ -248,15 +214,6 @@ public class VisitingHistory extends BaseAuditingEntity {
     public void abandonJourney() {
         this.endTime = null;
         this.isSuccess = false;
-    }
-
-    /**
-     * 메모 업데이트
-     *
-     * @param newMemo 새로운 메모
-     */
-    public void updateMemo(final String newMemo) {
-        this.memo = newMemo;
     }
 
     /**
