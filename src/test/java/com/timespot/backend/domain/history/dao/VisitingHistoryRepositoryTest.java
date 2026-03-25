@@ -102,7 +102,6 @@ class VisitingHistoryRepositoryTest {
             assertEquals(visitingHistory.getStation(), savedHistory.getStation(), "station 은 같아야 합니다.");
             assertEquals(visitingHistory.getStartTime(), savedHistory.getStartTime(), "startTime 은 같아야 합니다.");
             assertEquals(visitingHistory.getEndTime(), savedHistory.getEndTime(), "endTime 은 같아야 합니다.");
-            assertEquals(visitingHistory.getMemo(), savedHistory.getMemo(), "memo 는 같아야 합니다.");
             assertNotNull(savedHistory.getTotalDurationMinutes(), "totalDurationMinutes 는 null 이 아니어야 합니다.");
         }
 
@@ -245,14 +244,12 @@ class VisitingHistoryRepositoryTest {
         @DisplayName("endJourney() - 여정 종료 (성공)")
         void endJourney_success() {
             // given
-            User          user          = em.persistAndFlush(TestUtils.createUser());
-            Station       station       = em.persistAndFlush(TestUtils.createStation());
-            LocalDateTime startTime     = LocalDateTime.now();
-            LocalDateTime departureTime = startTime.plusMinutes(30);
-            LocalDateTime endTime       = startTime.plusMinutes(20);
-            VisitingHistory visitingHistory = VisitingHistory.startJourney(
-                    user, station, startTime, departureTime
-            );
+            User            user            = em.persistAndFlush(TestUtils.createUser());
+            Station         station         = em.persistAndFlush(TestUtils.createStation());
+            LocalDateTime   startTime       = LocalDateTime.now();
+            LocalDateTime   departureTime   = startTime.plusMinutes(30);
+            LocalDateTime   endTime         = startTime.plusMinutes(20);
+            VisitingHistory visitingHistory = VisitingHistory.of(user, station, startTime, departureTime);
             em.persistAndFlush(visitingHistory);
             Long id = visitingHistory.getId();
 
@@ -273,14 +270,12 @@ class VisitingHistoryRepositoryTest {
         @DisplayName("endJourney() - 여정 종료 (실패 - 지연)")
         void endJourney_fail() {
             // given
-            User          user          = em.persistAndFlush(TestUtils.createUser());
-            Station       station       = em.persistAndFlush(TestUtils.createStation());
-            LocalDateTime startTime     = LocalDateTime.now();
-            LocalDateTime departureTime = startTime.plusMinutes(30);
-            LocalDateTime endTime       = startTime.plusMinutes(35);
-            VisitingHistory visitingHistory = VisitingHistory.startJourney(
-                    user, station, startTime, departureTime
-            );
+            User            user            = em.persistAndFlush(TestUtils.createUser());
+            Station         station         = em.persistAndFlush(TestUtils.createStation());
+            LocalDateTime   startTime       = LocalDateTime.now();
+            LocalDateTime   departureTime   = startTime.plusMinutes(30);
+            LocalDateTime   endTime         = startTime.plusMinutes(35);
+            VisitingHistory visitingHistory = VisitingHistory.of(user, station, startTime, departureTime);
             em.persistAndFlush(visitingHistory);
             Long id = visitingHistory.getId();
 
@@ -331,7 +326,7 @@ class VisitingHistoryRepositoryTest {
             Station         station         = em.persistAndFlush(TestUtils.createStation());
             LocalDateTime   startTime       = LocalDateTime.now();
             LocalDateTime   departureTime   = startTime.plusMinutes(30);
-            VisitingHistory visitingHistory = VisitingHistory.startJourney(user, station, startTime, departureTime);
+            VisitingHistory visitingHistory = VisitingHistory.of(user, station, startTime, departureTime);
             em.persistAndFlush(visitingHistory);
 
             // when & then

@@ -148,10 +148,10 @@ public final class TestUtils {
                                                                 final LocalDateTime startTime) {
         final LocalDateTime trainDepartureTime = startTime.plusMinutes(30);
         return stations.stream()
-                       .map(station -> VisitingHistory.startJourney(user,
-                                                                    station,
-                                                                    startTime,
-                                                                    trainDepartureTime))
+                       .map(station -> VisitingHistory.of(user,
+                                                          station,
+                                                          startTime,
+                                                          trainDepartureTime))
                        .toList();
     }
 
