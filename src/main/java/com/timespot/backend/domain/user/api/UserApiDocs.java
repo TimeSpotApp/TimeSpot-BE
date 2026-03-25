@@ -136,14 +136,12 @@ public interface UserApiDocs {
                           ### 현재 사용자의 회원 정보를 수정합니다.
                           
                           #### 수정 가능 항목
-                          - **nickname**: 닉네임 (2~15 자, 한글/영문/숫자/-/_ 만 허용)
                           - **mapApi**: 주사용 지도 API 유형 (apple, google, naver)
                           
                           #### 요청 헤더
                           - `Authorization: Bearer {accessToken}` - 필수
                           
                           #### 요청 본문
-                          - `nickname`: 수정할 닉네임 (필수)
                           - `mapApi`: 수정할 지도 API 유형 (필수, 소문자)
                           
                           #### 응답 데이터
@@ -176,7 +174,7 @@ public interface UserApiDocs {
                                                 "newUser": false,
                                                 "userInfo": {
                                                   "email": "user@example.com",
-                                                  "nickname": "새로운닉네임"
+                                                  "nickname": "닉네임"
                                                 }
                                               }
                                             }
@@ -189,26 +187,15 @@ public interface UserApiDocs {
                     description = "잘못된 요청 - 유효성 검사 실패",
                     content = @Content(
                             mediaType = "application/json",
-                            examples = {
-                                    @ExampleObject(
-                                            name = "닉네임 형식 오류",
-                                            value = """
-                                                    {
-                                                      "code": 400,
-                                                      "message": "닉네임은 한글, 영문, 숫자, '-', '_'만 사용하여 2~15 자 이내로 입력해주세요."
-                                                    }
-                                                    """
-                                    ),
-                                    @ExampleObject(
-                                            name = "지도 API 유형 오류",
-                                            value = """
-                                                    {
-                                                      "code": 400,
-                                                      "message": "주사용 지도 API 유형은 필수입니다."
-                                                    }
-                                                    """
-                                    )
-                            }
+                            examples = @ExampleObject(
+                                    name = "지도 API 유형 오류",
+                                    value = """
+                                            {
+                                              "code": 400,
+                                              "message": "주사용 지도 API 유형은 필수입니다."
+                                            }
+                                            """
+                            )
                     )
             ),
             @ApiResponse(
