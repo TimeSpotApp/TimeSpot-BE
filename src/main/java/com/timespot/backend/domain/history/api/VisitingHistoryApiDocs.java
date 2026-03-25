@@ -47,6 +47,7 @@ import org.springframework.http.ResponseEntity;
                       - **여정 시작**: 특정 역에서 방문 기록을 시작합니다.
                       - **여정 종료**: 진행 중인 여정을 종료하고 성공/실패를 기록합니다.
                       - **여정 목록**: 사용자의 방문 이력 목록을 조회합니다 (페이징, 검색 지원).
+                      - **여정 삭제**: 특정 방문 이력을 삭제합니다 (통계 자동 조정).
                       
                       ### 여정 기록 흐름
                       1. **여정 시작**: 역과 장소를 선택하여 여정 기록 시작
@@ -54,6 +55,7 @@ import org.springframework.http.ResponseEntity;
                       3. **여정 종료**:
                          - 완료 (`isCompleted: true`): 열차 출발 전 도착 여부 자동 판별
                          - 포기 (`isCompleted: false`): 중도 포기 처리
+                      4. **여정 삭제** (선택): 방문 이력 삭제 (통계 자동 조정)
                       """
 )
 @SecurityRequirement(name = "BearerAuth")
