@@ -7,6 +7,7 @@ import static com.timespot.backend.common.response.SuccessCode.FAVORITE_GET_SUCC
 import com.timespot.backend.common.response.BaseResponse;
 import com.timespot.backend.common.response.annotation.CustomPageResponse;
 import com.timespot.backend.common.security.model.CustomUserDetails;
+import com.timespot.backend.common.util.SortUtils;
 import com.timespot.backend.domain.favorite.dto.FavoriteRequestDto.FavoriteStationCreateRequest;
 import com.timespot.backend.domain.favorite.dto.FavoriteResponseDto.FavoriteListResponse;
 import com.timespot.backend.domain.favorite.service.FavoriteService;
@@ -16,9 +17,7 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Pattern;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -112,51 +111,17 @@ public class FavoriteController implements FavoriteApiDocs {
                     required = false
             )
             @Pattern(
-                    regexp = "^(createdAt|stationName|visitCount),(ASC|DESC|asc|desc)(,\\s*(createdAt|stationName|visitCount),(ASC|DESC|asc|desc))*$",
+                    regexp = "^(createdAt|stationName|visitCount),(ASC|DESC|asc|desc)(,\\s*" +
+                             "(createdAt|stationName|visitCount),(ASC|DESC|asc|desc))*$",
                     message = "정렬 형식이 올바르지 않습니다. (예: createdAt,DESC 또는 visitCount,DESC,stationName,ASC)"
             )
             @RequestParam(required = false, defaultValue = "createdAt,DESC") final String sort
     ) {
-        Pageable pageable = createPageable(page, size, sort);
+        Pageable pageable = SortUtils.createPageable(page, size, sort);
         Page<FavoriteListResponse> responseData = favoriteService.getFavoriteStationList(
                 userDetails.getId(), keyword, pageable
         );
         return ResponseEntity.ok(BaseResponse.success(FAVORITE_GET_SUCCESS, responseData));
-    }
-
-    // ========================= 내부 메서드 =========================
-
-    /**
-     * Pageable 객체 생성 (다중 정렬 지원)
-     *
-     * @param page 페이지 번호 (1 부터 시작)
-     * @param size 페이지 크기
-     * @param sort 정렬 문자열 (프로퍼티,방향 - 쉼표로 여러 개 지정 가능)
-     * @return Pageable 객체
-     */
-    private Pageable createPageable(final int page, final int size, final String sort) {
-        return PageRequest.of(page - 1, size, createSort(sort));
-    }
-
-    /**
-     * 다중 정렬 Sort 객체 생성
-     *
-     * @param sort 정렬 문자열 (프로퍼티,방향 - 쉼표로 여러 개 지정 가능)
-     * @return Sort 객체
-     */
-    private Sort createSort(final String sort) {
-        String[] tokens   = sort.split(",");
-        Sort     sortSpec = Sort.unsorted();
-
-        for (int i = 0; i < tokens.length; i += 2) {
-            String property  = tokens[i].trim();
-            String direction = tokens[i + 1].trim().toUpperCase();
-
-            Sort.Direction sortDirection = Sort.Direction.fromString(direction);
-            sortSpec = sortSpec.and(Sort.by(sortDirection, property));
-        }
-
-        return sortSpec;
     }
 
 }

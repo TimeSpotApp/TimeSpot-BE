@@ -41,6 +41,12 @@ public class FavoriteServiceImpl implements FavoriteService {
     private final UserRepository     userRepository;
     private final StationRepository  stationRepository;
 
+    /**
+     * 즐겨찾기 역 생성
+     *
+     * @param userId    사용자 ID
+     * @param stationId 역 ID
+     */
     @Override
     @Transactional
     public void createFavoriteStation(final UUID userId, final Long stationId) {
@@ -54,6 +60,12 @@ public class FavoriteServiceImpl implements FavoriteService {
         favoriteRepository.save(favorite);
     }
 
+    /**
+     * 즐겨찾기 역 삭제
+     *
+     * @param userId     사용자 ID
+     * @param favoriteId 즐겨찾기 ID
+     */
     @Override
     @Transactional
     public void deleteFavoriteStation(final UUID userId, final Long favoriteId) {
@@ -68,6 +80,14 @@ public class FavoriteServiceImpl implements FavoriteService {
         favoriteRepository.delete(favorite);
     }
 
+    /**
+     * 즐겨찾기 역 목록 조회
+     *
+     * @param userId   사용자 ID
+     * @param keyword  검색어 (역 이름)
+     * @param pageable 페이지네이션 정보
+     * @return 즐겨찾기 역 목록
+     */
     @Override
     public Page<FavoriteListResponse> getFavoriteStationList(final UUID userId,
                                                              final String keyword,
