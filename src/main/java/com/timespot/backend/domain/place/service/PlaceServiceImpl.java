@@ -52,47 +52,23 @@ public class PlaceServiceImpl implements PlaceService {
      * @return 방문 가능한 장소 엔티티
      */
     @Override
-    public List<PlaceResponseDto.AvailablePlace> getAvailablePlaces(double userLat,
-                                                                    double userLon,
-                                                                    double mapLat,
-                                                                    double mapLon,
-                                                                    Long stationId,
-                                                                    int remainingMinutes) {
-        // 역 정보 조회
-        Station station = stationRepository.findById(stationId)
-                .orElseThrow(() -> new GlobalException(ErrorCode.STATION_NOT_FOUND));
+    public List<PlaceResponseDto.AvailablePlace> getAvailablePlaces(double userLat, double userLon, double mapLat, double mapLon, Long stationId, int remainingMinutes) {
 
-        if(!station.getIsActive()) {
-            throw new GlobalException(ErrorCode.STATION_NOT_ACTIVE);
-        }
+        Station station = getValidatedStation(stationId);
+        int walkableDistance = calculateWalkableDistance(remainingMinutes);
 
-        if (remainingMinutes <= PlaceConst.TOTAL_BUFFER_TIME) {
-            throw new GlobalException(ErrorCode.PLACE_INSUFFICIENT_REMAINING_TIME);
-        }
-
-        int walkableDistance = (remainingMinutes - PlaceConst.TOTAL_BUFFER_TIME) * PlaceConst.WALK_SPEED_PER_MINUTE;
-
-        // Pageable 제거, mapLat, mapLon 파라미터 추가
         return placeRepository.findAvailablePlacesOnRoute(
                 stationId, userLat, userLon, station.getLatitude(), station.getLongitude(), mapLat, mapLon, walkableDistance, PlaceConst.WALK_SPEED_PER_MINUTE
         );
     }
 
-    /**
-     * 장소 상세 정보 요청 -> 정제 -> 반환
-     *
-     * @param googleId   장소 구글id
-     * @param stationId  역 id
-     * @return 장소 세부 정보 엔티티
-     */
     @Override
     public PlaceResponseDto.PlaceDetail getPlaceDetail(String googleId, Long stationId) {
 
         PlaceResponseDto.PlaceDetailInDB dbResult = placeRepository.findPlaceDetail(
-                googleId, stationId, PlaceConst.WALK_SPEED_PER_MINUTE)
+                        googleId, stationId, PlaceConst.WALK_SPEED_PER_MINUTE)
                 .orElseThrow(() -> new GlobalException(ErrorCode.PLACE_NOT_FOUND));
 
-        // 구글 API 호출
         GooglePlaceDto.ParsedResult googleApiResult = googlePlaceApiService.getPlaceDetails(googleId);
 
         return PlaceResponseDto.PlaceDetail.builder()
@@ -111,18 +87,8 @@ public class PlaceServiceImpl implements PlaceService {
     @Override
     public Slice<PlaceResponseDto.AvailablePlace> searchPlaces(double userLat, double userLon, Long stationId, int remainingMinutes, String keyword, String category, String sortBy, Pageable pageable) {
 
-        Station station = stationRepository.findById(stationId)
-                .orElseThrow(() -> new GlobalException(ErrorCode.STATION_NOT_FOUND));
-
-        if(!station.getIsActive()) {
-            throw new GlobalException(ErrorCode.STATION_NOT_ACTIVE);
-        }
-
-        if (remainingMinutes <= PlaceConst.TOTAL_BUFFER_TIME) {
-            throw new GlobalException(ErrorCode.PLACE_INSUFFICIENT_REMAINING_TIME);
-        }
-
-        int walkableDistance = (remainingMinutes - PlaceConst.TOTAL_BUFFER_TIME) * PlaceConst.WALK_SPEED_PER_MINUTE;
+        Station station = getValidatedStation(stationId);
+        int walkableDistance = calculateWalkableDistance(remainingMinutes);
 
         Pageable unpaged = org.springframework.data.domain.PageRequest.of(
                 pageable.getPageNumber(), pageable.getPageSize());
@@ -133,5 +99,28 @@ public class PlaceServiceImpl implements PlaceService {
                 sortBy,
                 unpaged
         );
+    }
+
+    /**
+     * 역 정보 조회 및 활성화 상태 검증
+     */
+    private Station getValidatedStation(Long stationId) {
+        Station station = stationRepository.findById(stationId)
+                .orElseThrow(() -> new GlobalException(ErrorCode.STATION_NOT_FOUND));
+
+        if (!station.getIsActive()) {
+            throw new GlobalException(ErrorCode.STATION_NOT_ACTIVE);
+        }
+        return station;
+    }
+
+    /**
+     * 남은 시간 검증 및 도보 가능 거리 계산
+     */
+    private int calculateWalkableDistance(int remainingMinutes) {
+        if (remainingMinutes <= PlaceConst.TOTAL_BUFFER_TIME) {
+            throw new GlobalException(ErrorCode.PLACE_INSUFFICIENT_REMAINING_TIME);
+        }
+        return (remainingMinutes - PlaceConst.TOTAL_BUFFER_TIME) * PlaceConst.WALK_SPEED_PER_MINUTE;
     }
 }
