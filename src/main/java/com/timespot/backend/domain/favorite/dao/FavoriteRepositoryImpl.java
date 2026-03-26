@@ -116,7 +116,8 @@ public class FavoriteRepositoryImpl implements FavoriteRepositoryCustom {
      * @return 정렬 조건 배열
      */
     private OrderSpecifier<?>[] getSortCondition(final Pageable pageable) {
-        if (pageable.getSort().isEmpty()) return new OrderSpecifier[]{new OrderSpecifier<>(DESC, FAVORITE.createdAt)};
+        if (pageable.getSort().isEmpty()) return new OrderSpecifier[]{new OrderSpecifier<>(DESC, FAVORITE.createdAt),
+                                                                      new OrderSpecifier<>(DESC, FAVORITE.id)};
 
         List<OrderSpecifier<?>> orderSpecifiers = new ArrayList<>();
 
