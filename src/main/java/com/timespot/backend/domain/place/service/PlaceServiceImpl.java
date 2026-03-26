@@ -73,6 +73,8 @@ public class PlaceServiceImpl implements PlaceService {
     @Override
     public PlaceResponseDto.PlaceDetail getPlaceDetail(String googleId, Long stationId) {
 
+        Station station = getValidatedStation(stationId);
+
         PlaceResponseDto.PlaceDetailInDB dbResult = placeRepository.findPlaceDetail(
                         googleId, stationId, PlaceConst.WALK_SPEED_PER_MINUTE)
                 .orElseThrow(() -> new GlobalException(ErrorCode.PLACE_NOT_FOUND));
@@ -85,6 +87,8 @@ public class PlaceServiceImpl implements PlaceService {
                 .address(dbResult.getAddress())
                 .distanceToStation(dbResult.getDistanceToStation())
                 .timeToStation(dbResult.getTimeToStation())
+                .stationLat(station.getLatitude())
+                .stationLon(station.getLongitude())
                 .imageUrl(googleApiResult.getImageUrl())
                 .weekday(googleApiResult.getWeekdayHours())
                 .weekend(googleApiResult.getWeekendHours())
