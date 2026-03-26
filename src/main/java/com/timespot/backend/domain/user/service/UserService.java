@@ -2,6 +2,7 @@ package com.timespot.backend.domain.user.service;
 
 import com.timespot.backend.common.security.dto.AuthRequestDto;
 import com.timespot.backend.domain.user.dto.UserRequestDto;
+import com.timespot.backend.domain.user.dto.UserResponseDto;
 import com.timespot.backend.domain.user.dto.UserResponseDto.UserInfoResponse;
 import com.timespot.backend.domain.user.model.ProviderType;
 import com.timespot.backend.domain.user.model.SocialConnection;
@@ -31,6 +32,10 @@ public interface UserService {
     UserInfoResponse findUserInfoById(UUID id);
 
     void updateUserInfo(UUID id, UserRequestDto.UserInfoUpdateRequest dto);
+
+    UserResponseDto.UserNotificationResponse findUserNotificationSettings(UUID id);
+
+    void updateUserNotificationSettings(UUID id, UserRequestDto.UserNotificationUpdateRequest dto);
 
     void withdraw(UUID id);
 

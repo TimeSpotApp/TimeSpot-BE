@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -57,6 +58,26 @@ public class UserController implements UserApiDocs {
         AuthInfoResponse responseData = userAuthFacade.updateUserInfoAndReissueToken(userDetails.getId(), dto);
         return ResponseEntity.ok(BaseResponse.success(SuccessCode.USER_UPDATE_SUCCESS, responseData));
     }
+
+    @GetMapping("/notifications")
+    @Override
+    public ResponseEntity<BaseResponse<UserResponseDto.UserNotificationResponse>> getUserNotificationSettings(
+            @AuthenticationPrincipal final CustomUserDetails userDetails
+    ) {
+        UserResponseDto.UserNotificationResponse responseData = userService.findUserNotificationSettings(userDetails.getId());
+        return ResponseEntity.ok(BaseResponse.success(SuccessCode.USER_NOTIFICATION_GET_SUCCESS, responseData));
+    }
+
+    @PatchMapping("/notifications")
+    @Override
+    public ResponseEntity<BaseResponse<Void>> updateUserNotificationSettings(
+            @AuthenticationPrincipal final CustomUserDetails userDetails,
+            @RequestBody @Valid final UserRequestDto.UserNotificationUpdateRequest dto
+    ) {
+        userService.updateUserNotificationSettings(userDetails.getId(), dto);
+        return ResponseEntity.ok(BaseResponse.success(SuccessCode.USER_NOTIFICATION_UPDATE_SUCCESS));
+    }
+
 
     @DeleteMapping
     @Override
