@@ -3,7 +3,6 @@ package com.timespot.backend.common.response.advice;
 import com.timespot.backend.common.response.BaseResponse;
 import com.timespot.backend.common.response.annotation.CustomPageResponse;
 import com.timespot.backend.common.response.util.PageResponseConverter;
-import java.util.Map;
 import org.springframework.core.MethodParameter;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -24,6 +23,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------
  * 26. 3. 5.     loadingKKamo21       Initial creation
+ * 26. 3. 26.    loadingKKamo21       재귀적 Page 변환 로직 추가
  */
 @RestControllerAdvice
 public class PageResponseAdvice implements ResponseBodyAdvice<Object> {
@@ -43,23 +43,20 @@ public class PageResponseAdvice implements ResponseBodyAdvice<Object> {
         CustomPageResponse annotation = returnType.getMethodAnnotation(CustomPageResponse.class);
         if (annotation == null) return body;
 
-        Page<?>         page         = null;
-        BaseResponse<?> baseResponse = null;
+        if (body instanceof Page) return PageResponseConverter.convertPageToCustomMap((Page<?>) body, annotation);
 
-        if (body instanceof Page) page = (Page<?>) body;
-        else if (body instanceof BaseResponse) {
-            baseResponse = (BaseResponse<?>) body;
-            if (baseResponse.getData() instanceof Page) page = (Page<?>) baseResponse.getData();
+        if (body instanceof BaseResponse) {
+            BaseResponse<?> baseResponse = (BaseResponse<?>) body;
+            Object          data         = baseResponse.getData();
+
+            Object convertedData = PageResponseConverter.convertNestedPageToObject(data, annotation);
+
+            return BaseResponse.of(HttpStatus.valueOf(baseResponse.getCode()),
+                                   baseResponse.getMessage(),
+                                   convertedData);
         }
 
-        if (page == null) return body;
-
-        Map<String, Object> customPageResponse = PageResponseConverter.convertPageToCustomMap(page, annotation);
-
-        if (body instanceof Page) return customPageResponse;
-        else return BaseResponse.of(HttpStatus.valueOf(baseResponse.getCode()),
-                                    baseResponse.getMessage(),
-                                    customPageResponse);
+        return body;
     }
 
 }
