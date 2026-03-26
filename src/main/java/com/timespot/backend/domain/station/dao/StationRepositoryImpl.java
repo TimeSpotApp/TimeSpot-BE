@@ -1,5 +1,10 @@
 package com.timespot.backend.domain.station.dao;
 
+import static com.querydsl.core.types.Order.ASC;
+import static com.querydsl.core.types.Order.DESC;
+
+import com.querydsl.core.types.Order;
+import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberTemplate;
@@ -9,6 +14,7 @@ import com.timespot.backend.domain.station.dto.QStationResponseDto_StationListRe
 import com.timespot.backend.domain.station.dto.StationResponseDto.StationListResponse;
 import com.timespot.backend.domain.station.model.QStation;
 import com.timespot.backend.domain.user.model.QUser;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -169,6 +175,32 @@ public class StationRepositoryImpl implements StationRepositoryCustom {
         if (!StringUtils.hasText(keyword)) return null;
         return STATION.name.containsIgnoreCase(keyword.trim())
                            .or(STATION.address.containsIgnoreCase(keyword.trim()));
+    }
+
+    private OrderSpecifier<?>[] getSortCondition(final Pageable pageable) {
+        if (pageable.getSort().isEmpty()) return new OrderSpecifier[]{
+                new OrderSpecifier<>(ASC, STATION.name), new OrderSpecifier<>(ASC, STATION.id)
+        };
+
+        List<OrderSpecifier<?>> orderSpecifiers = new ArrayList<>();
+
+        pageable.getSort().forEach(order -> {
+            Order  direction = order.getDirection().isAscending() ? ASC : DESC;
+            String property  = order.getProperty();
+
+            switch (property) {
+                case "stationName" -> {
+                    orderSpecifiers.add(new OrderSpecifier<>(direction, STATION.name));
+                    orderSpecifiers.add(new OrderSpecifier<>(direction, STATION.id));
+                }
+                default -> {
+                    orderSpecifiers.add(new OrderSpecifier<>(ASC, STATION.name));
+                    orderSpecifiers.add(new OrderSpecifier<>(ASC, STATION.id));
+                }
+            }
+        });
+
+        return orderSpecifiers.toArray(new OrderSpecifier[0]);
     }
 
 }
