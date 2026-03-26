@@ -1,18 +1,23 @@
 package com.timespot.backend.domain.user.service;
 
+import static com.timespot.backend.common.response.ErrorCode.SOCIAL_CONNECTION_NOT_FOUND;
+import static com.timespot.backend.common.response.ErrorCode.SOCIAL_CONNECTION_PROVIDER_NOT_SUPPORTED;
+import static com.timespot.backend.common.response.ErrorCode.USER_EMAIL_DUPLICATED;
+import static com.timespot.backend.common.response.ErrorCode.USER_EMAIL_REQUIRED;
+import static com.timespot.backend.common.response.ErrorCode.USER_NOT_FOUND;
+import static com.timespot.backend.infra.security.oauth.constant.TokenType.REFRESH_TOKEN;
+
 import com.timespot.backend.common.error.GlobalException;
-import com.timespot.backend.common.response.ErrorCode;
-import com.timespot.backend.common.security.dto.AuthRequestDto;
+import com.timespot.backend.common.security.dto.AuthRequestDto.OAuth2SignupRequest;
 import com.timespot.backend.domain.user.dao.SocialConnectionRepository;
 import com.timespot.backend.domain.user.dao.UserRepository;
-import com.timespot.backend.domain.user.dto.UserRequestDto;
+import com.timespot.backend.domain.user.dto.UserRequestDto.UserInfoUpdateRequest;
 import com.timespot.backend.domain.user.dto.UserResponseDto.UserInfoResponse;
 import com.timespot.backend.domain.user.model.MapApi;
 import com.timespot.backend.domain.user.model.ProviderType;
 import com.timespot.backend.domain.user.model.SocialConnection;
 import com.timespot.backend.domain.user.model.User;
 import com.timespot.backend.infra.security.oauth.client.IdpTokenExchangeClient;
-import com.timespot.backend.infra.security.oauth.constant.TokenType;
 import com.timespot.backend.infra.security.oauth.dto.OAuthResponseDto.AppleTokenValidationResponse;
 import com.timespot.backend.infra.security.oauth.dto.OAuthResponseDto.GoogleTokenValidationResponse;
 import com.timespot.backend.infra.security.oauth.model.OAuthProfile;
@@ -21,6 +26,7 @@ import com.timespot.backend.infra.security.oauth.validator.CustomOAuth2TokenVali
 import io.jsonwebtoken.Claims;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Function;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,11 +36,12 @@ import org.springframework.transaction.annotation.Transactional;
  * FileName    : UserServiceImpl
  * Author      : loadingKKamo21
  * Date        : 26. 3. 8.
- * Description :
+ * Description : 사용자 도메인 서비스 구현체
  * =====================================================================================================================
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------
  * 26. 3. 8.     loadingKKamo21       Initial creation
+ * 26. 3. 24.    loadingKKamo21       중복 로직 제거 및 최적화 (전략 패턴 활용)
  */
 @Service
 @Transactional(readOnly = true)
@@ -55,10 +62,8 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public Optional<User> findUserForSocialConnection(final ProviderType providerType, final String providerUserId) {
-        Optional<SocialConnection> opSocialConnection = socialConnectionRepository.findByProviderTypeAndProviderId(
-                providerType, providerUserId
-        );
-        return opSocialConnection.map(SocialConnection::getUser);
+        return socialConnectionRepository.findByProviderTypeAndProviderId(providerType, providerUserId)
+                                         .map(SocialConnection::getUser);
     }
 
     /**
@@ -69,35 +74,25 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     @Transactional
-    public User createUserForSocialConnection(final AuthRequestDto.OAuth2SignupRequest dto) {
+    public User createUserForSocialConnection(final OAuth2SignupRequest dto) {
         final ProviderType providerType = ProviderType.from(dto.getProvider());
         final MapApi       mapApi       = MapApi.from(dto.getMapApi());
 
-        switch (providerType) {
+        return switch (providerType) {
             case APPLE -> {
-                AppleTokenValidationResponse tokenValidationResponse = idpTokenExchangeClient.validationAppleAuthCode(
-                        dto.getAuthCode()
-                );
-                return createNewUser(providerType,
-                                     tokenValidationResponse.idToken(),
-                                     tokenValidationResponse.refreshToken(),
-                                     dto.getEmail(),
-                                     dto.getNickname(),
-                                     mapApi);
+                AppleTokenValidationResponse response =
+                        idpTokenExchangeClient.validationAppleAuthCode(dto.getAuthCode());
+                yield createNewUser(providerType, response.idToken(), response.refreshToken(),
+                                    dto.getEmail(), dto.getNickname(), mapApi);
             }
             case GOOGLE -> {
-                GoogleTokenValidationResponse tokenValidationResponse = idpTokenExchangeClient.validationGoogleAuthCode(
-                        dto.getAuthCode()
-                );
-                return createNewUser(providerType,
-                                     tokenValidationResponse.idToken(),
-                                     tokenValidationResponse.refreshToken(),
-                                     dto.getEmail(),
-                                     dto.getNickname(),
-                                     mapApi);
+                GoogleTokenValidationResponse response =
+                        idpTokenExchangeClient.validationGoogleAuthCode(dto.getAuthCode());
+                yield createNewUser(providerType, response.idToken(), response.refreshToken(),
+                                    dto.getEmail(), dto.getNickname(), mapApi);
             }
-            default -> throw new GlobalException(ErrorCode.SOCIAL_CONNECTION_PROVIDER_NOT_SUPPORTED);
-        }
+            default -> throw new GlobalException(SOCIAL_CONNECTION_PROVIDER_NOT_SUPPORTED);
+        };
     }
 
     /**
@@ -109,7 +104,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public SocialConnection findByUserId(final UUID userId) {
         return socialConnectionRepository.findByUserId(userId)
-                                         .orElseThrow(() -> new GlobalException(ErrorCode.SOCIAL_CONNECTION_NOT_FOUND));
+                                         .orElseThrow(() -> new GlobalException(SOCIAL_CONNECTION_NOT_FOUND));
     }
 
     /**
@@ -120,7 +115,7 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public UserInfoResponse findUserInfoById(final UUID id) {
-        return userRepository.findUserInfoById(id).orElseThrow(() -> new GlobalException(ErrorCode.USER_NOT_FOUND));
+        return userRepository.findUserInfoById(id).orElseThrow(() -> new GlobalException(USER_NOT_FOUND));
     }
 
     /**
@@ -131,12 +126,11 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     @Transactional
-    public void updateUserInfo(final UUID id, final UserRequestDto.UserInfoUpdateRequest dto) {
+    public void updateUserInfo(final UUID id, final UserInfoUpdateRequest dto) {
         final MapApi mapApi = MapApi.from(dto.getMapApi());
 
-        User user = userRepository.findById(id).orElseThrow(() -> new GlobalException(ErrorCode.USER_NOT_FOUND));
+        User user = userRepository.findById(id).orElseThrow(() -> new GlobalException(USER_NOT_FOUND));
 
-        user.updateNickname(dto.getNickname());
         user.updateMapApi(mapApi);
     }
 
@@ -148,19 +142,11 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void withdraw(final UUID id) {
-        User user = userRepository.findById(id).orElseThrow(() -> new GlobalException(ErrorCode.USER_NOT_FOUND));
+        User user = userRepository.findById(id).orElseThrow(() -> new GlobalException(USER_NOT_FOUND));
         SocialConnection socialConnection = socialConnectionRepository.findByUserId(id)
-                                                                      .orElseThrow(() -> new GlobalException(
-                                                                              ErrorCode.SOCIAL_CONNECTION_NOT_FOUND
-                                                                      ));
+                                                                      .orElseThrow(() -> new GlobalException(SOCIAL_CONNECTION_NOT_FOUND));
 
-        switch (socialConnection.getProviderType()) {
-            case APPLE -> idpTokenExchangeClient.revokeAppleToken(TokenType.REFRESH_TOKEN,
-                                                                  socialConnection.getIdpRefreshToken());
-            case GOOGLE -> idpTokenExchangeClient.revokeGoogleToken(socialConnection.getIdpRefreshToken());
-            default -> throw new GlobalException(ErrorCode.SOCIAL_CONNECTION_PROVIDER_NOT_SUPPORTED);
-        }
-
+        revokeIdpToken(socialConnection);
         socialConnectionRepository.delete(socialConnection);
         userRepository.delete(user);
     }
@@ -168,11 +154,33 @@ public class UserServiceImpl implements UserService {
     // ========================= 내부 메서드 =========================
 
     /**
+     * IDP 토큰 폐기 (전략 패턴)
+     *
+     * @param socialConnection 소셜 연결 정보
+     */
+    private void revokeIdpToken(final SocialConnection socialConnection) {
+        Function<String, Void> revokeAction = switch (socialConnection.getProviderType()) {
+            case APPLE -> token -> {
+                idpTokenExchangeClient.revokeAppleToken(REFRESH_TOKEN, token);
+                return null;
+            };
+            case GOOGLE -> token -> {
+                idpTokenExchangeClient.revokeGoogleToken(token);
+                return null;
+            };
+            default -> throw new GlobalException(SOCIAL_CONNECTION_PROVIDER_NOT_SUPPORTED);
+        };
+
+        revokeAction.apply(socialConnection.getIdpRefreshToken());
+    }
+
+    /**
      * 신규 회원 엔티티 생성
      *
      * @param providerType 소셜 인증 제공자 유형
      * @param idToken      소셜 ID 토큰
      * @param refreshToken 소셜 Refresh Token
+     * @param email        이메일
      * @param nickname     닉네임
      * @param mapApi       지도 API 유형
      * @return 신규 회원 엔티티
@@ -186,6 +194,7 @@ public class UserServiceImpl implements UserService {
         Claims claims = tokenValidator.verifyAndParse(providerType.name(), idToken);
 
         OAuthProfile oAuthProfile = OAuthProfileFactory.getOAuthProfile(providerType.name(), claims);
+
         validateEmail(email);
 
         User user = userRepository.save(User.of(email, nickname, mapApi));
@@ -197,13 +206,14 @@ public class UserServiceImpl implements UserService {
     }
 
     /**
-     * 이메일 검증
+     * 이메일 중복 검증
      *
      * @param email 이메일
+     * @throws GlobalException USER_EMAIL_REQUIRED 또는 USER_EMAIL_DUPLICATED
      */
     private void validateEmail(final String email) {
-        if (email == null || email.isBlank()) throw new GlobalException(ErrorCode.USER_EMAIL_REQUIRED);
-        if (userRepository.existsByEmail(email)) throw new GlobalException(ErrorCode.USER_EMAIL_DUPLICATED);
+        if (email == null || email.isBlank()) throw new GlobalException(USER_EMAIL_REQUIRED);
+        if (userRepository.existsByEmail(email)) throw new GlobalException(USER_EMAIL_DUPLICATED);
     }
 
 }

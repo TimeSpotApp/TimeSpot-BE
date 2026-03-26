@@ -1,6 +1,7 @@
 package com.timespot.backend.common.ratelimit.properties;
 
-import com.timespot.backend.common.ratelimit.constant.RateLimitConst;
+import static com.timespot.backend.common.ratelimit.constant.RateLimitConst.REFILL_STRATEGY_GREEDY;
+
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -13,7 +14,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * FileName    : RateLimitProperties
  * Author      : loadingKKamo21
  * Date        : 26. 3. 14.
- * Description :
+ * Description : Rate Limiting 설정 속성 (엔드포인트별 토큰 버킷 설정)
  * =====================================================================================================================
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------
@@ -42,7 +43,7 @@ public final class RateLimitProperties {
 
         private long   capacity        = 100L;
         private long   durationMinutes = 1L;
-        private String refillStrategy  = RateLimitConst.REFILL_STRATEGY_GREEDY;
+        private String refillStrategy  = REFILL_STRATEGY_GREEDY;
         private String description     = "";
 
     }

@@ -21,7 +21,7 @@ import org.springframework.stereotype.Repository;
  * FileName    : RedisRepositoryImpl
  * Author      : loadingKKamo21
  * Date        : 26. 3. 9.
- * Description :
+ * Description : Redis 저장소 구현체 (RedisTemplate 래퍼)
  * =====================================================================================================================
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------

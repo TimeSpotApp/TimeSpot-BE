@@ -16,7 +16,7 @@ import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
  * FileName    : RedisRepository
  * Author      : loadingKKamo21
  * Date        : 26. 3. 9.
- * Description :
+ * Description : Redis 저장소 인터페이스 (Key, String, Hash, Set, List, ZSet 연산)
  * =====================================================================================================================
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------

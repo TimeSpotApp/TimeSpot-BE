@@ -21,7 +21,7 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
  * FileName    : CustomUserDetails
  * Author      : loadingKKamo21
  * Date        : 26. 3. 9.
- * Description :
+ * Description : 사용자 인증 정보 (Spring Security UserDetails, OAuth2User 구현)
  * =====================================================================================================================
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------

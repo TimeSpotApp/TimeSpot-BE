@@ -8,7 +8,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
  * FileName    : EnableJpaAuditingConfig
  * Author      : loadingKKamo21
  * Date        : 26. 2. 26.
- * Description :
+ * Description : JPA Auditing 활성화 설정 (@CreatedDate, @LastModifiedDate 자동 관리)
  * =====================================================================================================================
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------

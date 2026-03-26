@@ -12,7 +12,7 @@ import org.springframework.data.domain.Page;
  * FileName    : PageResponseConverter
  * Author      : loadingKKamo21
  * Date        : 26. 3. 5.
- * Description :
+ * Description : Page 객체를 커스텀 응답 형식으로 변환하는 유틸리티
  * =====================================================================================================================
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------

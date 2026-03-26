@@ -1,8 +1,8 @@
 package com.timespot.backend.domain.user.facade;
 
-import com.timespot.backend.common.security.dto.AuthResponseDto;
+import com.timespot.backend.common.security.dto.AuthResponseDto.AuthInfoResponse;
 import com.timespot.backend.common.security.service.AuthService;
-import com.timespot.backend.domain.user.dto.UserRequestDto;
+import com.timespot.backend.domain.user.dto.UserRequestDto.UserInfoUpdateRequest;
 import com.timespot.backend.domain.user.service.UserService;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
  * FileName    : UserAuthFacade
  * Author      : loadingKKamo21
  * Date        : 26. 3. 21.
- * Description :
+ * Description : 사용자 인증 퍼사드 (회원 정보 수정 및 토큰 재발급 통합)
  * =====================================================================================================================
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------
@@ -36,8 +36,8 @@ public class UserAuthFacade {
      * @return 재발급된 인증 정보 응답 DTO
      */
     @Transactional
-    public AuthResponseDto.AuthInfoResponse updateUserInfoAndReissueToken(
-            final UUID id, final UserRequestDto.UserInfoUpdateRequest dto
+    public AuthInfoResponse updateUserInfoAndReissueToken(
+            final UUID id, final UserInfoUpdateRequest dto
     ) {
         userService.updateUserInfo(id, dto);
         return authService.reissueTokenByUserId(id);

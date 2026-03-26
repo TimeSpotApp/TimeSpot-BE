@@ -12,7 +12,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * FileName    : JwtProperties
  * Author      : loadingKKamo21
  * Date        : 26. 3. 9.
- * Description :
+ * Description : JWT 토큰 설정 속성 (Issuer, Secret, 만료시간)
  * =====================================================================================================================
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------

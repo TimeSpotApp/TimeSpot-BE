@@ -11,7 +11,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
  * FileName    : SocialConnectionRepository
  * Author      : loadingKKamo21
  * Date        : 26. 3. 8.
- * Description :
+ * Description : 소셜 연결 리포지토리 인터페이스
  * =====================================================================================================================
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------
