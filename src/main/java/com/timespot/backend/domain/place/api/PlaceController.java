@@ -33,6 +33,7 @@ import java.util.List;
  * 26. 3. 22.     whitecity01       ADD place details
  * 26. 3. 26.     whitecity01       MODIFY findAvailablePlacesOnRoute logic
  * 26. 3. 27.     whitecity01       ADD place search
+ * 26. 3. 27.     whitecity01       MODIFY getPlaceDetail response
  */
 @RestController
 @RequestMapping("/api/v1/place")
@@ -60,9 +61,13 @@ public class PlaceController implements PlaceApiDocs {
     @GetMapping("/detail")
     public ResponseEntity<BaseResponse<PlaceResponseDto.PlaceDetail>> getPlaceDetail(
             @RequestParam String googleId,
-            @RequestParam Long stationId) {
+            @RequestParam Long stationId,
+            @RequestParam double userLat,
+            @RequestParam double userLon,
+            @RequestParam int remainingMinutes) {
 
-        PlaceResponseDto.PlaceDetail placeDetail = placeService.getPlaceDetail(googleId, stationId);
+        PlaceResponseDto.PlaceDetail placeDetail = placeService.getPlaceDetail(
+                googleId, stationId, userLat, userLon, remainingMinutes);
 
         return ResponseEntity.ok(BaseResponse.success(SuccessCode.PLACE_GET_DETAIL_SUCCESS, placeDetail));
     }

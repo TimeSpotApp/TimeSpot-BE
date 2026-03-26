@@ -28,6 +28,7 @@ import java.util.List;
  * 26. 3. 22.     whitecity01       ADD pagenation
  * 26. 3. 22.     whitecity01       ADD place details
  * 26. 3. 26.     whitecity01       MODIFY findAvailablePlacesOnRoute logic
+ * 26. 3. 27.     whitecity01       MODIFY getPlaceDetail response
  */
 @Tag(name = "Place API", description = "방문 가능 장소 조회 API")
 public interface PlaceApiDocs {
@@ -46,7 +47,10 @@ public interface PlaceApiDocs {
     @ApiResponse(responseCode = "200", description = "장소 상세 정보 조회 성공")
     ResponseEntity<BaseResponse<PlaceResponseDto.PlaceDetail>> getPlaceDetail(
             @RequestParam String googleId,
-            @RequestParam Long stationId
+            @RequestParam Long stationId,
+            @RequestParam double userLat,
+            @RequestParam double userLon,
+            @RequestParam int remainingMinutes
     );
 
     @Operation(summary = "장소 검색", description = "검색어와 필터에 맞는 장소를 검색합니다.")

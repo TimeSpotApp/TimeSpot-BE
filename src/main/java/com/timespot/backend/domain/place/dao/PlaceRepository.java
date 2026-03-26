@@ -25,6 +25,7 @@ import java.util.Optional;
  * 26. 3. 22.     whitecity01       ADD pagenation
  * 26. 3. 26.     whitecity01       MODIFY findAvailablePlacesOnRoute logic
  * 26. 3. 27.     whitecity01       ADD place search
+ * 26. 3. 27.     whitecity01       MODIFY getPlaceDetail response
  */
 public interface PlaceRepository extends JpaRepository<Place, Long> {
 
@@ -75,7 +76,15 @@ public interface PlaceRepository extends JpaRepository<Place, Long> {
                 p.category AS category,
                 p.address AS address,
                 ST_Distance_Sphere(p.location, s.location) AS distanceToStation,
-                FLOOR(ST_Distance_Sphere(p.location, s.location) / :walkSpeed) AS timeToStation
+                FLOOR(ST_Distance_Sphere(p.location, s.location) / :walkSpeed) AS timeToStation,
+                FLOOR(
+                    (
+                        :walkableDistance - (
+                            ST_Distance_Sphere(p.location, ST_GeomFromText(CONCAT('POINT(', :userLat, ' ', :userLon, ')'), 4326)) +
+                            ST_Distance_Sphere(p.location, s.location)
+                        )
+                    ) / :walkSpeed
+                ) AS stayableMinutes
             FROM places p
             INNER JOIN station_place_map spm ON p.place_id = spm.place_id
             INNER JOIN stations s ON spm.station_id = s.station_id 
@@ -86,6 +95,9 @@ public interface PlaceRepository extends JpaRepository<Place, Long> {
     Optional<PlaceResponseDto.PlaceDetailInDB> findPlaceDetail(
             @Param("googleId") String googleId,
             @Param("stationId") Long stationId,
+            @Param("userLat") double userLat,
+            @Param("userLon") double userLon,
+            @Param("walkableDistance") int walkableDistance,
             @Param("walkSpeed") int walkSpeed
     );
 

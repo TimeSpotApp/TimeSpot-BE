@@ -33,6 +33,7 @@ import java.util.List;
  * 26. 3. 26.     whitecity01       DIVIDE station domain
  * 26. 3. 26.     whitecity01       MODIFY findAvailablePlacesOnRoute logic
  * 26. 3. 27.     whitecity01       ADD place search
+ * 26. 3. 27.     whitecity01       MODIFY getPlaceDetail response
  */
 @Service
 @RequiredArgsConstructor
@@ -71,22 +72,27 @@ public class PlaceServiceImpl implements PlaceService {
      * @return 장소 상세 정보 엔티티
      */
     @Override
-    public PlaceResponseDto.PlaceDetail getPlaceDetail(String googleId, Long stationId) {
+    public PlaceResponseDto.PlaceDetail getPlaceDetail(String googleId, Long stationId, double userLat, double userLon, int remainingMinutes){
 
         Station station = getValidatedStation(stationId);
 
+        int walkableDistance = calculateWalkableDistance(remainingMinutes);
+
         PlaceResponseDto.PlaceDetailInDB dbResult = placeRepository.findPlaceDetail(
-                        googleId, stationId, PlaceConst.WALK_SPEED_PER_MINUTE)
+                        googleId, stationId, userLat, userLon, walkableDistance, PlaceConst.WALK_SPEED_PER_MINUTE)
                 .orElseThrow(() -> new GlobalException(ErrorCode.PLACE_NOT_FOUND));
 
+        // 4. 구글 API 호출
         GooglePlaceDto.ParsedResult googleApiResult = googlePlaceApiService.getPlaceDetails(googleId);
 
+        // 5. 응답 DTO 조립
         return PlaceResponseDto.PlaceDetail.builder()
                 .name(dbResult.getName())
                 .category(dbResult.getCategory())
                 .address(dbResult.getAddress())
                 .distanceToStation(dbResult.getDistanceToStation())
                 .timeToStation(dbResult.getTimeToStation())
+                .stayableMinutes(dbResult.getStayableMinutes())
                 .stationLat(station.getLatitude())
                 .stationLon(station.getLongitude())
                 .imageUrl(googleApiResult.getImageUrl())

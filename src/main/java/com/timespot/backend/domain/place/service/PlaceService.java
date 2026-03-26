@@ -22,6 +22,7 @@ import java.util.List;
  * 26. 3. 22.     whitecity01       ADD place detail
  * 26. 3. 26.     whitecity01       MODIFY findAvailablePlacesOnRoute logic
  * 26. 3. 27.     whitecity01       ADD place search
+ * 26. 3. 27.     whitecity01       MODIFY getPlaceDetail response
  */
 public interface PlaceService {
     List<PlaceResponseDto.AvailablePlace> getAvailablePlaces(double userLat,
@@ -31,7 +32,7 @@ public interface PlaceService {
                                                              Long stationId,
                                                              int remainingMinutes);
 
-    PlaceResponseDto.PlaceDetail getPlaceDetail(String googleId, Long stationId);
+    PlaceResponseDto.PlaceDetail getPlaceDetail(String googleId, Long stationId, double userLat, double userLon, int remainingMinutes);
 
     Slice<PlaceResponseDto.AvailablePlace> searchPlaces(double userLat,
                                                         double userLon,
