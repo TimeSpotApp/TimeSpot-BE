@@ -1,9 +1,15 @@
 package com.timespot.backend.domain.station.model;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.locationtech.jts.geom.Point;
 
 /**
  * PackageName : com.timespot.backend.domain.station.model
@@ -40,6 +46,9 @@ public class Station {
 
     @Column(nullable = false)
     private Double longitude;
+
+    @Column(columnDefinition = "POINT SRID 4326", nullable = false)
+    private Point location;
 
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
