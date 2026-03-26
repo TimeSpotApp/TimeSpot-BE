@@ -54,22 +54,17 @@ public class Favorite extends BaseAuditingEntity {
     @JoinColumn(name = "station_id", nullable = false)
     private Station station;
 
-    @Column(name = "memo", length = 500)
-    private String memo;
-
     @Column(name = "visit_count", nullable = false)
     private Integer visitCount;
 
     @Builder(access = PRIVATE)
     private Favorite(final User user,
                      final Station station,
-                     final String memo,
                      final Integer visitCount) {
         validateUser(user);
         validateStation(station);
         this.user = user;
         this.station = station;
-        this.memo = memo;
         this.visitCount = visitCount != null ? visitCount : 0;
     }
 
@@ -87,25 +82,6 @@ public class Favorite extends BaseAuditingEntity {
         return Favorite.builder()
                        .user(user)
                        .station(station)
-                       .visitCount(0)
-                       .build();
-    }
-
-    /**
-     * 즐겨찾기 생성 (메모 포함)
-     *
-     * @param user    사용자
-     * @param station 역
-     * @param memo    메모
-     * @return Favorite 엔티티
-     */
-    public static Favorite of(final User user,
-                              final Station station,
-                              final String memo) {
-        return Favorite.builder()
-                       .user(user)
-                       .station(station)
-                       .memo(memo)
                        .visitCount(0)
                        .build();
     }
@@ -133,15 +109,6 @@ public class Favorite extends BaseAuditingEntity {
     }
 
     // ========================= 비즈니스 메서드 =========================
-
-    /**
-     * 메모 업데이트
-     *
-     * @param newMemo 새로운 메모
-     */
-    public void updateMemo(final String newMemo) {
-        this.memo = newMemo;
-    }
 
     /**
      * 방문 횟수 증가
