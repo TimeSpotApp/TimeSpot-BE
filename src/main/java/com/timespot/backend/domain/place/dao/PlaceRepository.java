@@ -2,7 +2,6 @@ package com.timespot.backend.domain.place.dao;
 
 import com.timespot.backend.domain.place.dto.PlaceResponseDto;
 import com.timespot.backend.domain.place.model.Place;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -22,9 +21,11 @@ import java.util.Optional;
  * ---------------------------------------------------------------------------------------------------------------------
  * 26. 3. 19.     whitecity01       Initial creation
  * 26. 3. 22.     whitecity01       ADD pagenation
+ * 26. 3. 26.     whitecity01       MODIFY findAvailablePlacesOnRoute logic
  */
 public interface PlaceRepository extends JpaRepository<Place, Long> {
 
+    // 화면 기준 300m 내의 장소 중 사용자 체류 가능 장소 조회
     @Query(value = """
             SELECT 
                 p.name AS name,
@@ -40,25 +41,18 @@ public interface PlaceRepository extends JpaRepository<Place, Long> {
                             ST_Distance_Sphere(p.location, ST_GeomFromText(CONCAT('POINT(', :stationLat, ' ', :stationLon, ')'), 4326))
                         )
                     ) / :walkSpeed
-                ) AS stayableMinutes,
-                COUNT(*) OVER() AS totalCount
+                ) AS stayableMinutes
             FROM places p
-            -- 1. 출발 역 근처 장소만 추출
             INNER JOIN station_place_map spm ON p.place_id = spm.place_id
             WHERE spm.station_id = :stationId
-              AND 
-            -- 2. 추출된 장소들에 대해서만 동선 거리 계산 (사용자->장소 + 장소->역) <= 남은 시간
-                (
-                    ST_Distance_Sphere(
-                        p.location, 
-                        ST_GeomFromText(CONCAT('POINT(', :userLat, ' ', :userLon, ')'), 4326)
-                    ) 
+              -- 1차 필터링: 화면 중심 좌표(mapLon, mapLat) 반경 300m 이내
+              AND ST_Distance_Sphere(p.location, ST_GeomFromText(CONCAT('POINT(', :mapLat, ' ', :mapLon, ')'), 4326)) <= 300
+              -- 2차 필터링: 남은 시간 내 방문 가능 여부 (사용자->장소 + 장소->역 거리)
+              AND (
+                    ST_Distance_Sphere(p.location, ST_GeomFromText(CONCAT('POINT(', :userLat, ' ', :userLon, ')'), 4326)) 
                     + 
-                    ST_Distance_Sphere(
-                        p.location, 
-                        ST_GeomFromText(CONCAT('POINT(', :stationLat, ' ', :stationLon, ')'), 4326)
-                    )
-                ) <= :walkableDistance
+                    ST_Distance_Sphere(p.location, ST_GeomFromText(CONCAT('POINT(', :stationLat, ' ', :stationLon, ')'), 4326))
+              ) <= :walkableDistance
             """, nativeQuery = true)
     List<PlaceResponseDto.AvailablePlace> findAvailablePlacesOnRoute(
             @Param("stationId") Long stationId,
@@ -66,9 +60,10 @@ public interface PlaceRepository extends JpaRepository<Place, Long> {
             @Param("userLon") double userLon,
             @Param("stationLat") double stationLat,
             @Param("stationLon") double stationLon,
+            @Param("mapLat") double mapLat,
+            @Param("mapLon") double mapLon,
             @Param("walkableDistance") int walkableDistance,
-            @Param("walkSpeed") int walkSpeed,
-            Pageable pageable
+            @Param("walkSpeed") int walkSpeed
     );
 
     @Query(value = """

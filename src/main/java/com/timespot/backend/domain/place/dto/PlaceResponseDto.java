@@ -1,6 +1,5 @@
 package com.timespot.backend.domain.place.dto;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -21,6 +20,7 @@ import java.util.List;
  * 26. 3. 19.     whitecity01       Initial creation
  * 26. 3. 22.     whitecity01       ADD pagenation
  * 26. 3. 22.     whitecity01       ADD place detail
+ * 26. 3. 26.     whitecity01       MODIFY findAvailablePlacesOnRoute logic
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 @Schema(description = "장소 도메인 응답 페이로드")
@@ -49,9 +49,6 @@ public abstract class PlaceResponseDto {
 
         @Schema(description = "체류 가능 시간 (분)", example = "25")
         Integer getStayableMinutes();
-
-        @JsonIgnore
-        Integer getTotalCount();
     }
 
     public interface PlaceDetailInDB {
