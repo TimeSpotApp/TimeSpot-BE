@@ -36,7 +36,7 @@ public class Station {
     private String name;
 
     @Column(name = "line_name", nullable = false)
-    private String lineName;
+    private String lineName;    // HACK: 추후 테이블 분리 필요
 
     @Column(nullable = false)
     private String address;
