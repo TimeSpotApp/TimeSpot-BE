@@ -5,6 +5,9 @@ import com.timespot.backend.domain.place.dto.PlaceResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -45,4 +48,16 @@ public interface PlaceApiDocs {
             @RequestParam Long stationId
     );
 
+    @Operation(summary = "장소 검색", description = "검색어와 필터에 맞는 장소를 검색합니다.")
+    @ApiResponse(responseCode = "200", description = "장소 검색 성공")
+    ResponseEntity<BaseResponse<Slice<PlaceResponseDto.AvailablePlace>>> searchPlaces(
+            @RequestParam double userLat,
+            @RequestParam double userLon,
+            @RequestParam Long stationId,
+            @RequestParam int remainingMinutes,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String category,
+            @RequestParam(defaultValue = "STATION_NEAREST") String sortBy,
+            @PageableDefault(size = 10) Pageable pageable
+    );
 }

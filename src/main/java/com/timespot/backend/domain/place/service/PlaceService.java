@@ -1,6 +1,8 @@
 package com.timespot.backend.domain.place.service;
 
 import com.timespot.backend.domain.place.dto.PlaceResponseDto;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 
 import java.util.List;
 
@@ -18,6 +20,7 @@ import java.util.List;
  * 26. 3. 22.     whitecity01       ADD pagenation
  * 26. 3. 22.     whitecity01       ADD place detail
  * 26. 3. 26.     whitecity01       MODIFY findAvailablePlacesOnRoute logic
+ * 26. 3. 27.     whitecity01       ADD place search
  */
 public interface PlaceService {
     List<PlaceResponseDto.AvailablePlace> getAvailablePlaces(double userLat,
@@ -28,4 +31,13 @@ public interface PlaceService {
                                                              int remainingMinutes);
 
     PlaceResponseDto.PlaceDetail getPlaceDetail(String googleId, Long stationId);
+
+    Slice<PlaceResponseDto.AvailablePlace> searchPlaces(double userLat,
+                                                        double userLon,
+                                                        Long stationId,
+                                                        int remainingMinutes,
+                                                        String keyword,
+                                                        String category,
+                                                        String sortBy,
+                                                        Pageable pageable);
 }

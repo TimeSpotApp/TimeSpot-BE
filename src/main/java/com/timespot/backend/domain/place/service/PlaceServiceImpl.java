@@ -9,6 +9,9 @@ import com.timespot.backend.domain.place.dto.PlaceResponseDto;
 import com.timespot.backend.domain.station.dao.StationRepository;
 import com.timespot.backend.domain.station.model.Station;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -28,6 +31,7 @@ import java.util.List;
  * 26. 3. 22.     whitecity01       ADD place detail
  * 26. 3. 26.     whitecity01       DIVIDE station domain
  * 26. 3. 26.     whitecity01       MODIFY findAvailablePlacesOnRoute logic
+ * 26. 3. 27.     whitecity01       ADD place search
  */
 @Service
 @RequiredArgsConstructor
@@ -102,5 +106,32 @@ public class PlaceServiceImpl implements PlaceService {
                 .weekend(googleApiResult.getWeekendHours())
                 .phoneNumber(googleApiResult.getPhoneNumber())
                 .build();
+    }
+
+    @Override
+    public Slice<PlaceResponseDto.AvailablePlace> searchPlaces(double userLat, double userLon, Long stationId, int remainingMinutes, String keyword, String category, String sortBy, Pageable pageable) {
+
+        Station station = stationRepository.findById(stationId)
+                .orElseThrow(() -> new GlobalException(ErrorCode.STATION_NOT_FOUND));
+
+        if(!station.getIsActive()) {
+            throw new GlobalException(ErrorCode.STATION_NOT_ACTIVE);
+        }
+
+        if (remainingMinutes <= PlaceConst.TOTAL_BUFFER_TIME) {
+            throw new GlobalException(ErrorCode.PLACE_INSUFFICIENT_REMAINING_TIME);
+        }
+
+        int walkableDistance = (remainingMinutes - PlaceConst.TOTAL_BUFFER_TIME) * PlaceConst.WALK_SPEED_PER_MINUTE;
+
+        Pageable unpaged = org.springframework.data.domain.PageRequest.of(
+                pageable.getPageNumber(), pageable.getPageSize());
+
+        return placeRepository.searchAvailablePlaces(
+                stationId, userLat, userLon, station.getLatitude(), station.getLongitude(),
+                walkableDistance, PlaceConst.WALK_SPEED_PER_MINUTE, keyword, category,
+                sortBy,
+                unpaged
+        );
     }
 }
