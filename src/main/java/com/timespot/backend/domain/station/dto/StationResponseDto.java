@@ -70,9 +70,16 @@ public class StationResponseDto {
     @JsonInclude(NON_NULL)
     @Schema(description = "역 전체 목록 응답 페이로드")
     public static class StationSearchResponse {
+
+        @Schema(description = "즐겨찾기한 역 목록 (인증 시에만 populated)", accessMode = READ_ONLY)
         private final List<StationListResponse> favoriteStations;
+
+        @Schema(description = "근처 역 목록 (거리 기준 오름차순, 최대 5 개)", accessMode = READ_ONLY)
         private final List<StationListResponse> nearbyStations;
+
+        @Schema(description = "역 목록 (페이징 적용, @CustomPageResponse 에 의해 자동 변환)", accessMode = READ_ONLY)
         private final Page<StationListResponse> stations;
+
     }
 
     @Getter
