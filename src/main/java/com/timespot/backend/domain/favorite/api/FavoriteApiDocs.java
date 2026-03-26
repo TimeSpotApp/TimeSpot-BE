@@ -246,7 +246,7 @@ public interface FavoriteApiDocs {
                     description = "즐겨찾기 ID",
                     required = true,
                     example = "1"
-            ) Long favoriteId
+            ) @Min(1) Long favoriteId
     );
 
     @Operation(
@@ -406,7 +406,8 @@ public interface FavoriteApiDocs {
                     example = "createdAt,DESC",
                     required = false
             ) @Pattern(
-                    regexp = "^(createdAt|stationName|visitCount),(ASC|DESC|asc|desc)(,\\s*(createdAt|stationName|visitCount),(ASC|DESC|asc|desc))*$",
+                    regexp = "^(createdAt|stationName|visitCount),(ASC|DESC|asc|desc)(,\\s*" +
+                             "(createdAt|stationName|visitCount),(ASC|DESC|asc|desc))*$",
                     message = "정렬 형식이 올바르지 않습니다. (예: createdAt,DESC 또는 visitCount,DESC,stationName,ASC)"
             ) String sort
     );

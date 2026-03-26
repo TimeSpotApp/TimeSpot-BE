@@ -11,8 +11,6 @@ import com.timespot.backend.common.util.SortUtils;
 import com.timespot.backend.domain.favorite.dto.FavoriteRequestDto.FavoriteStationCreateRequest;
 import com.timespot.backend.domain.favorite.dto.FavoriteResponseDto.FavoriteListResponse;
 import com.timespot.backend.domain.favorite.service.FavoriteService;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -50,7 +48,7 @@ public class FavoriteController implements FavoriteApiDocs {
     @Override
     public ResponseEntity<BaseResponse<Void>> createFavoriteStation(
             @AuthenticationPrincipal final CustomUserDetails userDetails,
-            @RequestBody @Valid final FavoriteStationCreateRequest dto
+            @RequestBody final FavoriteStationCreateRequest dto
     ) {
         favoriteService.createFavoriteStation(userDetails.getId(), dto.getStationId());
         return ResponseEntity.status(HttpStatus.CREATED).body(BaseResponse.success(FAVORITE_CREATE_SUCCESS));
@@ -60,7 +58,7 @@ public class FavoriteController implements FavoriteApiDocs {
     @Override
     public ResponseEntity<BaseResponse<Void>> deleteFavoriteStation(
             @AuthenticationPrincipal final CustomUserDetails userDetails,
-            @PathVariable @Min(1) final Long favoriteId
+            @PathVariable final Long favoriteId
     ) {
         favoriteService.deleteFavoriteStation(userDetails.getId(), favoriteId);
         return ResponseEntity.ok(BaseResponse.success(FAVORITE_DELETE_SUCCESS));
