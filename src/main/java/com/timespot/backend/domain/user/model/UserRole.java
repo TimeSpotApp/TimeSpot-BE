@@ -1,7 +1,8 @@
 package com.timespot.backend.domain.user.model;
 
+import static com.timespot.backend.common.response.ErrorCode.USER_ROLE_NOT_SUPPORTED;
+
 import com.timespot.backend.common.error.GlobalException;
-import com.timespot.backend.common.response.ErrorCode;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
@@ -16,7 +17,7 @@ import lombok.RequiredArgsConstructor;
  * FileName    : UserRole
  * Author      : loadingKKamo21
  * Date        : 26. 3. 8.
- * Description :
+ * Description : 사용자 역할 열거형 (USER, ADMIN)
  * =====================================================================================================================
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------
@@ -46,7 +47,7 @@ public enum UserRole {
         return Optional.ofNullable(authority)
                        .map(String::toUpperCase)
                        .map(USER_ROLE_MAP::get)
-                       .orElseThrow(() -> new GlobalException(ErrorCode.USER_ROLE_NOT_SUPPORTED));
+                       .orElseThrow(() -> new GlobalException(USER_ROLE_NOT_SUPPORTED));
     }
 
 }

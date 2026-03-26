@@ -10,7 +10,7 @@ import org.springframework.http.HttpStatus;
  * FileName    : ErrorCode
  * Author      : loadingKKamo21
  * Date        : 26. 2. 26.
- * Description :
+ * Description : 에러 코드 열거형 (공통, 사용자, 소셜 연결, 역, 장소)
  * =====================================================================================================================
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------
@@ -56,6 +56,8 @@ public enum ErrorCode {
     USER_MAP_API_NOT_SUPPORTED(HttpStatus.BAD_REQUEST, "US014", "지원하지 않는 지도 API 유형입니다."),
     USER_NOTIFICATION_TIMING_NOT_SUPPORTED(HttpStatus.BAD_REQUEST, "US015", "지원하지 않는 알림 시간 설정입니다."),
     USER_NOTIFICATION_TIMING_INVALID_COMBINATION(HttpStatus.BAD_REQUEST, "US016", "알림 미설정은 다른 알림 시간과 함께 선택할 수 없습니다."),
+    USER_ROLE_NOT_SUPPORTED(HttpStatus.BAD_REQUEST, "US017", "지원하지 않는 계정 유형입니다."),
+    USER_MAP_API_NOT_SUPPORTED(HttpStatus.BAD_REQUEST, "US018", "지원하지 않는 지도 API 유형입니다."),
 
     // Social Connection
     SOCIAL_CONNECTION_NOT_FOUND(HttpStatus.NOT_FOUND, "SO001", "소셜 연동 정보를 찾을 수 없습니다."),
@@ -63,7 +65,7 @@ public enum ErrorCode {
     SOCIAL_CONNECTION_USER_MUST_NOT_BE_NULL(HttpStatus.BAD_REQUEST, "SO003", "회원 정보는 필수입니다."),
     SOCIAL_CONNECTION_INVALID_PROVIDER_TYPE(HttpStatus.BAD_REQUEST, "SO004", "소셜 인증 제공자 유형이 올바르지 않습니다."),
     SOCIAL_CONNECTION_INVALID_PROVIDER_ID(HttpStatus.BAD_REQUEST, "SO005", "소셜 인증 제공자 ID가 올바르지 않습니다."),
-    SOCIAL_CONNECTION_INVALID_IDP_REFRESH_TOKEN(HttpStatus.BAD_REQUEST, "SO006", "소셜 인증 제공자 Refresh Token가 올바르지 않습니다."),
+    SOCIAL_CONNECTION_INVALID_IDP_REFRESH_TOKEN(HttpStatus.BAD_REQUEST, "SO006", "소셜 인증 제공자 Refresh Token이 올바르지 않습니다."),
     SOCIAL_CONNECTION_PROVIDER_NOT_SUPPORTED(HttpStatus.INTERNAL_SERVER_ERROR, "SO007", "지원하지 않는 소셜 인증 제공자 유형입니다."),
     SOCIAL_CONNECTION_TOKEN_PARSE_FAILED(HttpStatus.BAD_REQUEST, "SO008", "소셜 인증 토큰 파싱에 실패했습니다."),
     SOCIAL_CONNECTION_INVALID_TOKEN(HttpStatus.BAD_REQUEST, "SO009", "잘못되거나 만료된 소셜 인증 토큰입니다."),
@@ -77,7 +79,24 @@ public enum ErrorCode {
 
     // Place
     PLACE_NOT_FOUND(HttpStatus.NOT_FOUND, "PL001", "장소를 찾을 수 없습니다."),
-    PLACE_INSUFFICIENT_REMAINING_TIME(HttpStatus.BAD_REQUEST, "PL002", "체류 가능한 시간이 부족합니다.");
+    PLACE_INSUFFICIENT_REMAINING_TIME(HttpStatus.BAD_REQUEST, "PL002", "체류 가능한 시간이 부족합니다."),
+
+    // Visiting History
+    HISTORY_NOT_FOUND(HttpStatus.NOT_FOUND, "HI001", "방문 이력을 찾을 수 없습니다."),
+    HISTORY_INVALID_USER(HttpStatus.BAD_REQUEST, "HI002", "유효하지 않은 사용자입니다."),
+    HISTORY_INVALID_STATION(HttpStatus.BAD_REQUEST, "HI003", "유효하지 않은 역입니다."),
+    HISTORY_INVALID_PLACE(HttpStatus.BAD_REQUEST, "HI004", "유효하지 않은 장소입니다."),
+    HISTORY_INVALID_START_TIME(HttpStatus.BAD_REQUEST, "HI005", "유효하지 않은 시작 시간입니다."),
+    HISTORY_INVALID_END_TIME(HttpStatus.BAD_REQUEST, "HI006", "종료 시간은 시작 시간보다 이후여야 합니다."),
+    HISTORY_INVALID_VISIT_HISTORY(HttpStatus.BAD_REQUEST, "HI007", "유효하지 않은 방문 이력입니다."),
+    HISTORY_ALREADY_EXISTS(HttpStatus.CONFLICT, "HI008", "이미 등록된 방문 이력입니다."),
+    HISTORY_IN_PROGRESS(HttpStatus.BAD_REQUEST, "HI009", "진행 중인 방문 이력이 있습니다."),
+
+    // Favorite
+    FAVORITE_NOT_FOUND(HttpStatus.NOT_FOUND, "FA001", "즐겨찾기를 찾을 수 없습니다."),
+    FAVORITE_INVALID_USER(HttpStatus.BAD_REQUEST, "FA002", "유효하지 않은 사용자입니다."),
+    FAVORITE_INVALID_STATION(HttpStatus.BAD_REQUEST, "FA003", "유효하지 않은 역입니다."),
+    FAVORITE_DUPLICATE_STATION(HttpStatus.CONFLICT, "FA004", "이미 즐겨찾기에 등록된 역입니다.");
 
     private final HttpStatus status;
     private final String     code;

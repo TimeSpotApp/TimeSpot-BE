@@ -1,6 +1,7 @@
 package com.timespot.backend.infra.security.oauth.model;
 
-import com.timespot.backend.domain.user.model.ProviderType;
+import static com.timespot.backend.domain.user.model.ProviderType.GOOGLE;
+
 import java.util.Map;
 
 /**
@@ -8,7 +9,7 @@ import java.util.Map;
  * FileName    : GoogleProfile
  * Author      : loadingKKamo21
  * Date        : 26. 3. 9.
- * Description :
+ * Description : Google OAuth 프로필 (Google 인증 사용자 정보)
  * =====================================================================================================================
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------
@@ -22,7 +23,7 @@ public class GoogleProfile extends OAuthProfile {
 
     @Override
     public String getProvider() {
-        return ProviderType.GOOGLE.name();
+        return GOOGLE.name();
     }
 
     @Override

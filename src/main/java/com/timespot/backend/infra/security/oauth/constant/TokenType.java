@@ -9,7 +9,7 @@ import lombok.RequiredArgsConstructor;
  * FileName    : TokenType
  * Author      : loadingKKamo21
  * Date        : 26. 3. 12.
- * Description :
+ * Description : 토큰 유형 열거형 (access_token, refresh_token)
  * =====================================================================================================================
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------

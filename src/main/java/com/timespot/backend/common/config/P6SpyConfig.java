@@ -11,7 +11,7 @@ import org.springframework.context.annotation.Profile;
  * FileName    : P6SpyConfig
  * Author      : loadingKKamo21
  * Date        : 26. 3. 7.
- * Description :
+ * Description : P6Spy SQL 로깅 설정 (개발 환경 SQL 모니터링)
  * =====================================================================================================================
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------

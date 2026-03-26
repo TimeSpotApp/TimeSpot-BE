@@ -1,12 +1,14 @@
 package com.timespot.backend.domain.user.api;
 
+import static com.timespot.backend.common.response.SuccessCode.USER_GET_INFO_SUCCESS;
+import static com.timespot.backend.common.response.SuccessCode.USER_UPDATE_SUCCESS;
+import static com.timespot.backend.common.response.SuccessCode.USER_WITHDRAW_SUCCESS;
+
 import com.timespot.backend.common.response.BaseResponse;
-import com.timespot.backend.common.response.SuccessCode;
-import com.timespot.backend.common.security.dto.AuthResponseDto;
 import com.timespot.backend.common.security.dto.AuthResponseDto.AuthInfoResponse;
 import com.timespot.backend.common.security.model.CustomUserDetails;
-import com.timespot.backend.domain.user.dto.UserRequestDto;
-import com.timespot.backend.domain.user.dto.UserResponseDto;
+import com.timespot.backend.domain.user.dto.UserRequestDto.UserInfoUpdateRequest;
+import com.timespot.backend.domain.user.dto.UserResponseDto.UserInfoResponse;
 import com.timespot.backend.domain.user.facade.UserAuthFacade;
 import com.timespot.backend.domain.user.service.UserService;
 import jakarta.validation.Valid;
@@ -26,7 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
  * FileName    : UserController
  * Author      : loadingKKamo21
  * Date        : 26. 3. 8.
- * Description :
+ * Description : 사용자 API 컨트롤러 (회원 정보 조회, 수정, 탈퇴)
  * =====================================================================================================================
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------
@@ -42,21 +44,21 @@ public class UserController implements UserApiDocs {
 
     @GetMapping
     @Override
-    public ResponseEntity<BaseResponse<UserResponseDto.UserInfoResponse>> getUserInfo(
+    public ResponseEntity<BaseResponse<UserInfoResponse>> getUserInfo(
             @AuthenticationPrincipal final CustomUserDetails userDetails
     ) {
-        UserResponseDto.UserInfoResponse responseData = userService.findUserInfoById(userDetails.getId());
-        return ResponseEntity.ok(BaseResponse.success(SuccessCode.USER_GET_INFO_SUCCESS, responseData));
+        UserInfoResponse responseData = userService.findUserInfoById(userDetails.getId());
+        return ResponseEntity.ok(BaseResponse.success(USER_GET_INFO_SUCCESS, responseData));
     }
 
     @PostMapping
     @Override
-    public ResponseEntity<BaseResponse<AuthResponseDto.AuthInfoResponse>> updateUserInfo(
+    public ResponseEntity<BaseResponse<AuthInfoResponse>> updateUserInfo(
             @AuthenticationPrincipal final CustomUserDetails userDetails,
-            @RequestBody @Valid final UserRequestDto.UserInfoUpdateRequest dto
+            @RequestBody @Valid final UserInfoUpdateRequest dto
     ) {
         AuthInfoResponse responseData = userAuthFacade.updateUserInfoAndReissueToken(userDetails.getId(), dto);
-        return ResponseEntity.ok(BaseResponse.success(SuccessCode.USER_UPDATE_SUCCESS, responseData));
+        return ResponseEntity.ok(BaseResponse.success(USER_UPDATE_SUCCESS, responseData));
     }
 
     @GetMapping("/notifications")
@@ -85,7 +87,7 @@ public class UserController implements UserApiDocs {
             @AuthenticationPrincipal final CustomUserDetails userDetails
     ) {
         userService.withdraw(userDetails.getId());
-        return ResponseEntity.ok(BaseResponse.success(SuccessCode.USER_WITHDRAW_SUCCESS));
+        return ResponseEntity.ok(BaseResponse.success(USER_WITHDRAW_SUCCESS));
     }
 
 }

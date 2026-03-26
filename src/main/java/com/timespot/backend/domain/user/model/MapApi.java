@@ -1,7 +1,8 @@
 package com.timespot.backend.domain.user.model;
 
+import static com.timespot.backend.common.response.ErrorCode.USER_MAP_API_NOT_SUPPORTED;
+
 import com.timespot.backend.common.error.GlobalException;
-import com.timespot.backend.common.response.ErrorCode;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
@@ -16,7 +17,7 @@ import lombok.RequiredArgsConstructor;
  * FileName    : MapApi
  * Author      : loadingKKamo21
  * Date        : 26. 3. 21.
- * Description :
+ * Description : 지도 API 유형 열거형 (APPLE, GOOGLE, NAVER)
  * =====================================================================================================================
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------
@@ -34,6 +35,7 @@ public enum MapApi {
                                                                  .collect(Collectors.toUnmodifiableMap(
                                                                          Enum::name, Function.identity())
                                                                  );
+
     private final String name;
     private final String urlScheme;
 
@@ -47,7 +49,7 @@ public enum MapApi {
         return Optional.ofNullable(mapApi)
                        .map(String::toUpperCase)
                        .map(MAP_API_MAP::get)
-                       .orElseThrow(() -> new GlobalException(ErrorCode.USER_MAP_API_NOT_SUPPORTED));
+                       .orElseThrow(() -> new GlobalException(USER_MAP_API_NOT_SUPPORTED));
     }
 
 }

@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
  * FileName    : RateLimitConst
  * Author      : loadingKKamo21
  * Date        : 26. 3. 15.
- * Description :
+ * Description : Rate Limiting 상수 정의 (리필 전략, 키 접두사, 제외 경로)
  * =====================================================================================================================
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------
