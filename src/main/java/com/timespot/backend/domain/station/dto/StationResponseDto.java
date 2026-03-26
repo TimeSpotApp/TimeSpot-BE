@@ -13,6 +13,7 @@ import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.locationtech.jts.geom.Point;
 import org.springframework.data.domain.Page;
 
 /**
@@ -93,14 +94,22 @@ public class StationResponseDto {
         @Schema(description = "역 이름", example = "서울역", accessMode = READ_ONLY)
         private final String name;
 
+        @Schema(description = "역 위도", example = "37.5665", accessMode = READ_ONLY)
+        private final Double lat;
+
+        @Schema(description = "역 경도", example = "126.9680", accessMode = READ_ONLY)
+        private final Double lng;
+
         @Schema(description = "노선명", example = "[경부선, 호남선, 전라선]", accessMode = READ_ONLY)
         private final List<String> lines;
 
         @QueryProjection
         @JsonCreator
-        public StationListResponse(final Long stationId, final String name, final String lines) {
+        public StationListResponse(final Long stationId, final String name, final Point location, final String lines) {
             this.stationId = stationId;
             this.name = name;
+            this.lat = location.getY();
+            this.lng = location.getX();
             this.lines = (lines != null && !lines.isBlank())
                          ? Arrays.stream(lines.split(",")).map(String::trim).toList()
                          : Collections.emptyList();

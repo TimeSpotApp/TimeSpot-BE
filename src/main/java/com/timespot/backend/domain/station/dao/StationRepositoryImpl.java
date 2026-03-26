@@ -55,6 +55,7 @@ public class StationRepositoryImpl implements StationRepositoryCustom {
                                    new QStationResponseDto_StationListResponse(
                                            STATION.id,
                                            STATION.name,
+                                           STATION.location,
                                            STATION.lineName
                                    )
                            )
@@ -77,6 +78,7 @@ public class StationRepositoryImpl implements StationRepositoryCustom {
                                    new QStationResponseDto_StationListResponse(
                                            STATION.id,
                                            STATION.name,
+                                           STATION.location,
                                            STATION.lineName
                                    )
                            )
@@ -99,6 +101,7 @@ public class StationRepositoryImpl implements StationRepositoryCustom {
                                                                       new QStationResponseDto_StationListResponse(
                                                                               STATION.id,
                                                                               STATION.name,
+                                                                              STATION.location,
                                                                               STATION.lineName
                                                                       )
                                                               )
