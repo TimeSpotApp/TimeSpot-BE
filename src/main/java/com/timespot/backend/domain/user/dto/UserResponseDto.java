@@ -7,6 +7,7 @@ import com.timespot.backend.domain.user.model.ProviderType;
 import com.timespot.backend.domain.user.model.UserRole;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -66,4 +67,15 @@ public abstract class UserResponseDto {
 
     }
 
+    @Getter
+    @Schema(description = "알림 설정 응답 페이로드")
+    public static class UserNotificationResponse {
+
+        @Schema(description = "선택된 알림 시간 설정 목록")
+        private final List<String> notificationTimings;
+
+        public UserNotificationResponse(final List<String> notificationTimings) {
+            this.notificationTimings = notificationTimings;
+        }
+    }
 }
