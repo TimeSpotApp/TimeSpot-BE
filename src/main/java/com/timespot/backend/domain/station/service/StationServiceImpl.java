@@ -1,18 +1,15 @@
 package com.timespot.backend.domain.station.service;
 
-import com.timespot.backend.domain.station.dao.FavoriteStationRepository;
 import com.timespot.backend.domain.station.dao.StationRepository;
-import com.timespot.backend.domain.station.dto.FavoriteStation;
 import com.timespot.backend.domain.station.dto.StationResponseDto.StationDto;
 import com.timespot.backend.domain.station.dto.StationResponseDto.StationList;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * PackageName : com.timespot.backend.domain.station.service
@@ -30,7 +27,6 @@ import java.util.stream.Collectors;
 public class StationServiceImpl implements StationService {
 
     private final StationRepository stationRepository;
-    private final FavoriteStationRepository favoriteStationRepository;
 
     @Transactional(readOnly = true)
     @Override
@@ -46,20 +42,10 @@ public class StationServiceImpl implements StationService {
                 .stream().map(StationDto::new).collect(Collectors.toList());
 
         List<StationDto> favoriteStations = allStations.stream()
-                .filter(StationDto::isFavorite)
-                .collect(Collectors.toList());
+                                                       .filter(StationDto::isFavorite)
+                                                       .collect(Collectors.toList());
 
         return new StationList(favoriteStations, nearbyStations, allStations);
-    }
-
-    @Transactional
-    @Override
-    public void toggleFavorite(UUID userId, Long stationId) {
-        if (favoriteStationRepository.existsByUserIdAndStationId(userId, stationId)) {
-            favoriteStationRepository.deleteByUserIdAndStationId(userId, stationId);
-        } else {
-            favoriteStationRepository.save(new FavoriteStation(userId, stationId));
-        }
     }
 
     // UUID를 MySQL BINARY(16) Native Query 파라미터용 byte 배열로 변환

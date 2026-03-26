@@ -2,16 +2,12 @@ package com.timespot.backend.domain.station.api;
 
 import com.timespot.backend.common.response.BaseResponse;
 import com.timespot.backend.common.security.model.CustomUserDetails;
-import com.timespot.backend.domain.place.dto.PlaceResponseDto;
 import com.timespot.backend.domain.station.dto.StationResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 
 /**
@@ -34,12 +30,4 @@ public interface StationApiDocs {
             @RequestParam("lng") double lng,
             @AuthenticationPrincipal CustomUserDetails userDetails
     );
-
-    @Operation(summary = "역 즐겨찾기 추가/삭제", description = "해당 역의 즐겨찾기를 추가하거나 삭제합니다.")
-    @ApiResponse(responseCode = "200", description = "역 즐겨찾기 추가/삭제")
-    ResponseEntity<BaseResponse<Void>> toggleFavorite(
-            @PathVariable("stationId") Long stationId,
-            @AuthenticationPrincipal CustomUserDetails userDetails
-    );
-
 }

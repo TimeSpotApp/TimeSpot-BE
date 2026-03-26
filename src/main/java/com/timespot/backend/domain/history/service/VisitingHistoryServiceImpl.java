@@ -13,9 +13,9 @@ import com.timespot.backend.domain.history.dto.VisitingHistoryResponseDto.Visiti
 import com.timespot.backend.domain.history.dto.VisitingHistoryResponseDto.VisitingHistoryListResponse;
 import com.timespot.backend.domain.history.model.VisitingHistory;
 import com.timespot.backend.domain.place.dao.PlaceRepository;
-import com.timespot.backend.domain.place.dao.StationRepository;
 import com.timespot.backend.domain.place.model.Place;
-import com.timespot.backend.domain.place.model.Station;
+import com.timespot.backend.domain.station.dao.StationRepository;
+import com.timespot.backend.domain.station.model.Station;
 import com.timespot.backend.domain.user.dao.UserRepository;
 import com.timespot.backend.domain.user.model.User;
 import java.time.LocalDateTime;

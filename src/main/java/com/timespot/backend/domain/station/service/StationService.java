@@ -1,7 +1,6 @@
 package com.timespot.backend.domain.station.service;
 
 import com.timespot.backend.domain.station.dto.StationResponseDto.StationList;
-
 import java.util.UUID;
 
 /**
@@ -17,6 +16,4 @@ import java.util.UUID;
  */
 public interface StationService {
     StationList getStationLists(UUID userId, double lat, double lng);
-
-    void toggleFavorite(UUID userId, Long stationId);
 }
