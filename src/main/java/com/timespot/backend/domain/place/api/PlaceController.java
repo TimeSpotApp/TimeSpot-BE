@@ -6,14 +6,13 @@ import com.timespot.backend.common.response.annotation.CustomPageResponse;
 import com.timespot.backend.domain.place.dto.PlaceResponseDto;
 import com.timespot.backend.domain.place.service.PlaceService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 /**
  * PackageName : com.timespot.backend.domain.place.api
@@ -28,6 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
  * 26. 3. 20.     whitecity01       FIX getAvailablePlaces api url
  * 26. 3. 22.     whitecity01       ADD pagenation
  * 26. 3. 22.     whitecity01       ADD place details
+ * 26. 3. 26.     whitecity01       MODIFY findAvailablePlacesOnRoute logic
  */
 @RestController
 @RequestMapping("/api/v1/place")
@@ -38,15 +38,16 @@ public class PlaceController implements PlaceApiDocs {
     @Override
     @CustomPageResponse(totalPages = false, first = false, last = false)
     @GetMapping()
-    public ResponseEntity<BaseResponse<Page<PlaceResponseDto.AvailablePlace>>> getAvailablePlaces(
+    public ResponseEntity<BaseResponse<List<PlaceResponseDto.AvailablePlace>>> getAvailablePlaces(
             @RequestParam double userLat,
             @RequestParam double userLon,
+            @RequestParam double mapLat,
+            @RequestParam double mapLon,
             @RequestParam Long stationId,
-            @RequestParam int remainingMinutes,
-            @PageableDefault(size = 10) Pageable pageable) {
+            @RequestParam int remainingMinutes) {
 
-        Page<PlaceResponseDto.AvailablePlace> places = placeService.getAvailablePlaces(
-                userLat, userLon, stationId, remainingMinutes, pageable);
+        List<PlaceResponseDto.AvailablePlace> places = placeService.getAvailablePlaces(
+                userLat, userLon, mapLat, mapLon, stationId, remainingMinutes);
 
         return ResponseEntity.ok(BaseResponse.success(SuccessCode.PLACE_GET_AVAILABLE_PLACES_SUCCESS, places));
     }

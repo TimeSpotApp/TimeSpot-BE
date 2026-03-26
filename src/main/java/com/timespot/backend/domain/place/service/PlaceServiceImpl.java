@@ -9,9 +9,6 @@ import com.timespot.backend.domain.place.dto.PlaceResponseDto;
 import com.timespot.backend.domain.station.dao.StationRepository;
 import com.timespot.backend.domain.station.model.Station;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -30,6 +27,7 @@ import java.util.List;
  * 26. 3. 22.     whitecity01       ADD pagenation
  * 26. 3. 22.     whitecity01       ADD place detail
  * 26. 3. 26.     whitecity01       DIVIDE station domain
+ * 26. 3. 26.     whitecity01       MODIFY findAvailablePlacesOnRoute logic
  */
 @Service
 @RequiredArgsConstructor
@@ -50,12 +48,13 @@ public class PlaceServiceImpl implements PlaceService {
      * @return 방문 가능한 장소 엔티티
      */
     @Override
-    public Page<PlaceResponseDto.AvailablePlace> getAvailablePlaces(double userLat,
+    public List<PlaceResponseDto.AvailablePlace> getAvailablePlaces(double userLat,
                                                                     double userLon,
+                                                                    double mapLat,
+                                                                    double mapLon,
                                                                     Long stationId,
-                                                                    int remainingMinutes,
-                                                                    Pageable pageable) {
-        // 역 정보 조회 (역의 위경도 조회)
+                                                                    int remainingMinutes) {
+        // 역 정보 조회
         Station station = stationRepository.findById(stationId)
                 .orElseThrow(() -> new GlobalException(ErrorCode.STATION_NOT_FOUND));
 
@@ -64,20 +63,15 @@ public class PlaceServiceImpl implements PlaceService {
         }
 
         if (remainingMinutes <= PlaceConst.TOTAL_BUFFER_TIME) {
-            // 시간이 부족해서 어디도 갈 수 없는 상황
             throw new GlobalException(ErrorCode.PLACE_INSUFFICIENT_REMAINING_TIME);
         }
 
-        // 남은 시간을 '이동 가능 거리(m)'로 환산
-        int walkableDistance = (remainingMinutes- PlaceConst.TOTAL_BUFFER_TIME) * PlaceConst.WALK_SPEED_PER_MINUTE;
+        int walkableDistance = (remainingMinutes - PlaceConst.TOTAL_BUFFER_TIME) * PlaceConst.WALK_SPEED_PER_MINUTE;
 
-        List<PlaceResponseDto.AvailablePlace> places = placeRepository.findAvailablePlacesOnRoute(
-                stationId, userLat, userLon, station.getLatitude(), station.getLongitude(), walkableDistance, PlaceConst.WALK_SPEED_PER_MINUTE, pageable
+        // Pageable 제거, mapLat, mapLon 파라미터 추가
+        return placeRepository.findAvailablePlacesOnRoute(
+                stationId, userLat, userLon, station.getLatitude(), station.getLongitude(), mapLat, mapLon, walkableDistance, PlaceConst.WALK_SPEED_PER_MINUTE
         );
-
-        int totalCount = places.isEmpty() ? 0 : places.get(0).getTotalCount();
-
-        return new PageImpl<>(places, pageable, totalCount);
     }
 
     /**
