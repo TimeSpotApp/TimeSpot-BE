@@ -13,7 +13,7 @@ import com.navercorp.fixturemonkey.jakarta.validation.plugin.JakartaValidationPl
 import com.timespot.backend.domain.favorite.model.Favorite;
 import com.timespot.backend.domain.history.model.VisitingHistory;
 import com.timespot.backend.domain.place.model.Place;
-import com.timespot.backend.domain.place.model.Station;
+import com.timespot.backend.domain.station.model.Station;
 import com.timespot.backend.domain.user.model.MapApi;
 import com.timespot.backend.domain.user.model.ProviderType;
 import com.timespot.backend.domain.user.model.SocialConnection;
@@ -25,6 +25,8 @@ import java.util.Locale;
 import java.util.Random;
 import lombok.NoArgsConstructor;
 import net.datafaker.Faker;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.PrecisionModel;
 
 /**
  * PackageName : com.timespot.backend.common.util
@@ -58,6 +60,8 @@ public final class TestUtils {
 
     public static final Faker FAKER = new Faker(new Locale.Builder().setLanguage("en").build(), new Random());
 
+    public static final GeometryFactory GEOMETRY_FACTORY = new GeometryFactory(new PrecisionModel(), 4326);
+
     public static List<User> createUsers(final int size) {
         return FIXTURE_MONKEY.giveMeBuilder(User.class)
                              .instantiate(Instantiator.factoryMethod("of")
@@ -89,33 +93,39 @@ public final class TestUtils {
         return createSocialConnections(List.of(user)).get(0);
     }
 
-    public static List<Station> createStations(final int size) {
-        return FIXTURE_MONKEY.giveMeBuilder(Station.class)
-                             .instantiate(Instantiator.constructor().field())
-                             .setNull("id")
-                             .setLazy("name", () -> String.format("%s Station", FAKER.address().cityName()))
-                             .setLazy("address", () -> FAKER.address().fullAddress())
-                             .setLazy("latitude", () -> Double.parseDouble(FAKER.address().latitude()))
-                             .setLazy("longitude", () -> Double.parseDouble(FAKER.address().longitude()))
-                             .set("isActive", true)
-                             .sampleList(size);
-    }
+//    public static List<Station> createStations(final int size) {
+//        return IntStream.range(0, size).mapToObj(i -> {
+//            double lat   = Double.parseDouble(FAKER.address().latitude());
+//            double lng   = Double.parseDouble(FAKER.address().longitude());
+//            Point  point = GEOMETRY_FACTORY.createPoint(new Coordinate(lng, lat));
+//            return Station.builder()
+//                          .name(String.format("%s Station", FAKER.address().cityName()))
+//                          .address(FAKER.address().fullAddress())
+//                          .latitude(lat)
+//                          .longitude(lng)
+//                          .location(point)
+//                          .isActive(true)
+//                          .build();
+//        }).toList();
+//    }
 
-    public static Station createStation() {
-        return createStations(1).get(0);
-    }
+//    public static Station createStation() {
+//        return createStations(1).get(0);
+//    }
 
-    public static Station createStation(final String name) {
-        return FIXTURE_MONKEY.giveMeBuilder(Station.class)
-                             .instantiate(Instantiator.constructor().field())
-                             .setNull("id")
-                             .set("name", name)
-                             .setLazy("address", () -> FAKER.address().fullAddress())
-                             .setLazy("latitude", () -> Double.parseDouble(FAKER.address().latitude()))
-                             .setLazy("longitude", () -> Double.parseDouble(FAKER.address().longitude()))
-                             .set("isActive", true)
-                             .sample();
-    }
+//    public static Station createStation(final String name) {
+//        double lat   = Double.parseDouble(FAKER.address().latitude());
+//        double lng   = Double.parseDouble(FAKER.address().longitude());
+//        Point  point = GEOMETRY_FACTORY.createPoint(new Coordinate(lng, lat));
+//        return Station.builder()
+//                      .name(name)
+//                      .address(FAKER.address().fullAddress())
+//                      .latitude(lat)
+//                      .longitude(lng)
+//                      .location(point)
+//                      .isActive(true)
+//                      .build();
+//    }
 
     public static List<Place> createPlaces(final int size) {
         return FIXTURE_MONKEY.giveMeBuilder(Place.class)
