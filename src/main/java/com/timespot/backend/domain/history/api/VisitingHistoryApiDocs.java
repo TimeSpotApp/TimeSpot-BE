@@ -37,7 +37,7 @@ import org.springframework.http.ResponseEntity;
         description = """
                       ## 방문 이력 (여정) 관리 API
                       
-                      사용자의 지하철 역 방문 여정을 기록하고 관리하는 기능을 제공합니다.
+                      사용자의 기차 역 방문 여정을 기록하고 관리하는 기능을 제공합니다.
                       
                       ### 인증 방식
                       - 모든 API 는 `Bearer Token` 인증이 필요합니다.
