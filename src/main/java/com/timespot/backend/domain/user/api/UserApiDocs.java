@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 
 /**
@@ -240,7 +241,7 @@ public interface UserApiDocs {
             @Parameter(
                     description = "회원 정보 수정 요청 페이로드",
                     required = true
-            ) UserInfoUpdateRequest dto
+            ) @Valid UserInfoUpdateRequest dto
     );
 
     @Operation(
