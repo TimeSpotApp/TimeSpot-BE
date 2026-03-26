@@ -19,7 +19,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
  * FileName    : PageResponseAdvice
  * Author      : loadingKKamo21
  * Date        : 26. 3. 5.
- * Description :
+ * Description : 페이지 응답 자동 변환 Advice (@CustomPageResponse 처리)
  * =====================================================================================================================
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------

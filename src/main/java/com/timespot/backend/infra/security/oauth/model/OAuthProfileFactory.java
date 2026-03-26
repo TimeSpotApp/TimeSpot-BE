@@ -1,8 +1,9 @@
 package com.timespot.backend.infra.security.oauth.model;
 
+import static lombok.AccessLevel.PRIVATE;
+
 import com.timespot.backend.domain.user.model.ProviderType;
 import java.util.Map;
-import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
 /**
@@ -10,13 +11,13 @@ import lombok.NoArgsConstructor;
  * FileName    : OAuthProfileFactory
  * Author      : loadingKKamo21
  * Date        : 26. 3. 9.
- * Description :
+ * Description : OAuth 프로필 팩토리 (제공자별 프로필 생성)
  * =====================================================================================================================
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------
  * 26. 3. 9.     loadingKKamo21       Initial creation
  */
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = PRIVATE)
 public final class OAuthProfileFactory {
 
     public static OAuthProfile getOAuthProfile(final String registrationId, final Map<String, Object> attributes) {

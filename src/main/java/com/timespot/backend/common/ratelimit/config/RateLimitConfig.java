@@ -1,5 +1,7 @@
 package com.timespot.backend.common.ratelimit.config;
 
+import static org.springframework.core.Ordered.HIGHEST_PRECEDENCE;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.timespot.backend.common.ratelimit.builder.RateLimitBucketBuilder;
 import com.timespot.backend.common.ratelimit.filter.RateLimitFilter;
@@ -8,14 +10,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.Ordered;
 
 /**
  * PackageName : com.timespot.backend.common.ratelimit.config
  * FileName    : RateLimitConfig
  * Author      : loadingKKamo21
  * Date        : 26. 3. 15.
- * Description :
+ * Description : Rate Limiting 필터 등록 설정
  * =====================================================================================================================
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------
@@ -35,7 +36,7 @@ public class RateLimitConfig {
 
         registration.setFilter(new RateLimitFilter(objectMapper, proxyManager, rateLimitBucketBuilder));
         registration.addUrlPatterns("/*");
-        registration.setOrder(Ordered.HIGHEST_PRECEDENCE);
+        registration.setOrder(HIGHEST_PRECEDENCE);
 
         return registration;
     }

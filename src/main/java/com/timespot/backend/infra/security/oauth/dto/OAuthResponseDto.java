@@ -1,7 +1,8 @@
 package com.timespot.backend.infra.security.oauth.dto;
 
+import static lombok.AccessLevel.PRIVATE;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
 /**
@@ -9,13 +10,13 @@ import lombok.NoArgsConstructor;
  * FileName    : OAuthResponseDto
  * Author      : loadingKKamo21
  * Date        : 26. 3. 12.
- * Description :
+ * Description : OAuth2 인증 제공자 응답 DTO (Token 교환 및 갱신)
  * =====================================================================================================================
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------
  * 26. 3. 12.    loadingKKamo21       Initial creation
  */
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = PRIVATE)
 public abstract class OAuthResponseDto {
 
     public record AppleTokenValidationResponse(

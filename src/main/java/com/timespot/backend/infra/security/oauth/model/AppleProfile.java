@@ -1,6 +1,7 @@
 package com.timespot.backend.infra.security.oauth.model;
 
-import com.timespot.backend.domain.user.model.ProviderType;
+import static com.timespot.backend.domain.user.model.ProviderType.APPLE;
+
 import java.util.Map;
 
 /**
@@ -8,7 +9,7 @@ import java.util.Map;
  * FileName    : AppleProfile
  * Author      : loadingKKamo21
  * Date        : 26. 3. 9.
- * Description :
+ * Description : Apple OAuth 프로필 (Apple 인증 사용자 정보)
  * =====================================================================================================================
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------
@@ -22,7 +23,7 @@ public class AppleProfile extends OAuthProfile {
 
     @Override
     public String getProvider() {
-        return ProviderType.APPLE.name();
+        return APPLE.name();
     }
 
     @Override
@@ -37,7 +38,6 @@ public class AppleProfile extends OAuthProfile {
 
     @Override
     public String getNickname() {
-        // TODO: 애플은 토큰 안에 이름이 없고, 최초 가입 시 클라이언트에게 텍스트로 이름을 전달하기 때문에 별도로 처리해야 함
         return null;
     }
 

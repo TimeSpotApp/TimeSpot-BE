@@ -1,5 +1,10 @@
 package com.timespot.backend.common.security.jwt.filter;
 
+import static com.timespot.backend.common.response.ErrorCode.USER_AUTH_ACCESS_TOKEN_EXPIRED;
+import static com.timespot.backend.common.response.ErrorCode.USER_AUTH_INVALID_ACCESS_TOKEN;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.timespot.backend.common.response.BaseResponse;
 import com.timespot.backend.common.response.ErrorCode;
@@ -13,10 +18,8 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.MediaType;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 /**
@@ -24,7 +27,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
  * FileName    : JwtExceptionFilter
  * Author      : loadingKKamo21
  * Date        : 26. 3. 9.
- * Description :
+ * Description : JWT 예외 처리 및 에러 응답 변환 필터
  * =====================================================================================================================
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------
@@ -43,16 +46,16 @@ public class JwtExceptionFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
         } catch (SecurityException | MalformedJwtException e) {
             log.error("잘못된 JWT 서명", e);
-            sendErrorResponse(response, ErrorCode.USER_AUTH_INVALID_ACCESS_TOKEN);
+            sendErrorResponse(response, USER_AUTH_INVALID_ACCESS_TOKEN);
         } catch (ExpiredJwtException e) {
             log.error("만료된 JWT", e);
-            sendErrorResponse(response, ErrorCode.USER_AUTH_ACCESS_TOKEN_EXPIRED);
+            sendErrorResponse(response, USER_AUTH_ACCESS_TOKEN_EXPIRED);
         } catch (UnsupportedJwtException e) {
             log.error("지원하지 않는 JWT 형식", e);
-            sendErrorResponse(response, ErrorCode.USER_AUTH_INVALID_ACCESS_TOKEN);
+            sendErrorResponse(response, USER_AUTH_INVALID_ACCESS_TOKEN);
         } catch (JwtException e) {
             log.error("알 수 없는 JWT 에러", e);
-            sendErrorResponse(response, ErrorCode.USER_AUTH_INVALID_ACCESS_TOKEN);
+            sendErrorResponse(response, USER_AUTH_INVALID_ACCESS_TOKEN);
         }
     }
 
@@ -69,8 +72,8 @@ public class JwtExceptionFilter extends OncePerRequestFilter {
         BaseResponse<Void> baseResponse = BaseResponse.error(errorCode);
 
         response.setStatus(baseResponse.getCode());
-        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+        response.setContentType(APPLICATION_JSON_VALUE);
+        response.setCharacterEncoding(UTF_8.name());
 
         objectMapper.writeValue(response.getWriter(), baseResponse);
     }

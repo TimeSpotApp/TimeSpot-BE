@@ -1,15 +1,16 @@
 package com.timespot.backend.common.security.constant;
 
+import static org.springframework.http.HttpHeaders.AUTHORIZATION;
+
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
-import org.springframework.http.HttpHeaders;
 
 /**
  * PackageName : com.timespot.backend.common.security.constant
  * FileName    : SecurityConst
  * Author      : loadingKKamo21
  * Date        : 26. 3. 9.
- * Description :
+ * Description : Spring Security 관련 상수 정의 (JWT, URL 패턴)
  * =====================================================================================================================
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------
@@ -19,7 +20,7 @@ import org.springframework.http.HttpHeaders;
 public abstract class SecurityConst {
 
     public static final String JWT_ACCESS_TOKEN_PREFIX = "Bearer ";
-    public static final String JWT_ACCESS_TOKEN_HEADER = HttpHeaders.AUTHORIZATION;
+    public static final String JWT_ACCESS_TOKEN_HEADER = AUTHORIZATION;
 
     public static final String JWT_USERNAME_KEY    = "username";
     public static final String JWT_AUTHORITIES_KEY = "authorities";
@@ -33,11 +34,9 @@ public abstract class SecurityConst {
             "/swagger-ui.html",
             "/swagger-resources/**",
             "/v3/api-docs/**",
-
             // Place
             "/api/v1/place",
             "/api/v1/place/detail",
-
             // Station
             "/api/v1/stations"
             };
@@ -54,15 +53,25 @@ public abstract class SecurityConst {
     public static final String[] GET_AUTHENTICATED_URLS    = {
             // User
             "/api/v1/users",
+            // Place
+            "/api/v1/place",
+            "/api/v1/place/detail",
+            // Favorite
+            "/api/v1/favorites",
+            // Visiting History
+            "/api/v1/histories",
+            "/api/v1/histories/{historyId}"
     };
     public static final String[] POST_AUTHENTICATED_URLS   = {
             // Auth
             "/api/v1/auth/logout",
             // User
-            "/api/v1/users/map",
-
-            // Station
-            "/api/v1/stations/*/favorite"
+            "/api/v1/users",
+            // Favorite
+            "/api/v1/favorites",
+            // Visiting History
+            "/api/v1/histories",
+            "/api/v1/histories/{historyId}/end"
     };
     public static final String[] PUT_AUTHENTICATED_URLS    = {
             // User
@@ -71,7 +80,11 @@ public abstract class SecurityConst {
     public static final String[] PATCH_AUTHENTICATED_URLS  = {};
     public static final String[] DELETE_AUTHENTICATED_URLS = {
             // User
-            "/api/v1/users"
+            "/api/v1/users",
+            // Favorite
+            "/api/v1/favorites/{favoriteId}",
+            // Visiting History
+            "/api/v1/histories/{historyId}"
     };
 
     public static final String[] GET_ROLE_ADMIN_URLS    = {};

@@ -11,7 +11,7 @@ import org.springframework.context.annotation.Configuration;
  * FileName    : SwaggerConfig
  * Author      : loadingKKamo21
  * Date        : 26. 3. 9.
- * Description :
+ * Description : OpenAPI (Swagger) 설정 및 Bearer 인증 스키마 정의
  * =====================================================================================================================
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------

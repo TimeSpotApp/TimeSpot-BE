@@ -1,5 +1,6 @@
 package com.timespot.backend.domain.user.dao;
 
+import static com.timespot.backend.common.util.TestUtils.FAKER;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -136,7 +137,7 @@ class UserRepositoryTest {
         @DisplayName("존재하지 않는 email로 User 엔티티 단 건 조회 시도")
         void findByEmail_unknownEmail() {
             //give
-            String unknownEmail = TestUtils.FAKER.internet().safeEmailAddress();
+            String unknownEmail = FAKER.internet().safeEmailAddress();
 
             // when
             Optional<User> opUser = userRepository.findByEmail(unknownEmail);
@@ -169,7 +170,7 @@ class UserRepositoryTest {
         @DisplayName("존재하지 않는 email로 User 엔티티 존재 여부 확인")
         void existsByEmail_unknownEmail() {
             //give
-            String unknownEmail = TestUtils.FAKER.internet().safeEmailAddress();
+            String unknownEmail = FAKER.internet().safeEmailAddress();
 
             // when
             boolean exists = userRepository.existsByEmail(unknownEmail);

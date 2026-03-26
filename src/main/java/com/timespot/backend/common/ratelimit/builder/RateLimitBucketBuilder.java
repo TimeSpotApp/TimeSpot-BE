@@ -1,6 +1,8 @@
 package com.timespot.backend.common.ratelimit.builder;
 
-import com.timespot.backend.common.ratelimit.constant.RateLimitConst;
+import static com.timespot.backend.common.ratelimit.constant.RateLimitConst.REFILL_STRATEGY_FIXED;
+import static com.timespot.backend.common.ratelimit.constant.RateLimitConst.REFILL_STRATEGY_GREEDY;
+
 import com.timespot.backend.common.ratelimit.properties.RateLimitProperties;
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.BucketConfiguration;
@@ -18,7 +20,7 @@ import org.springframework.stereotype.Component;
  * FileName    : RateLimitBucketBuilder
  * Author      : loadingKKamo21
  * Date        : 26. 3. 14.
- * Description :
+ * Description : Rate Limiting 버킷 설정 빌더 (엔드포인트별 BucketConfiguration 생성)
  * =====================================================================================================================
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------
@@ -51,16 +53,14 @@ public class RateLimitBucketBuilder {
      */
     private static Bandwidth createBandwidth(long capacity, long durationMinutes, final String refillStrategy) {
         return switch (refillStrategy) {
-            case RateLimitConst.REFILL_STRATEGY_GREEDY -> Bandwidth.builder()
-                                                                   .capacity(capacity)
-                                                                   .refillGreedy(capacity,
-                                                                                 Duration.ofMinutes(durationMinutes))
-                                                                   .build();
-            case RateLimitConst.REFILL_STRATEGY_FIXED -> Bandwidth.builder()
-                                                                  .capacity(capacity)
-                                                                  .refillIntervally(capacity,
-                                                                                    Duration.ofMinutes(durationMinutes))
-                                                                  .build();
+            case REFILL_STRATEGY_GREEDY -> Bandwidth.builder()
+                                                    .capacity(capacity)
+                                                    .refillGreedy(capacity, Duration.ofMinutes(durationMinutes))
+                                                    .build();
+            case REFILL_STRATEGY_FIXED -> Bandwidth.builder()
+                                                   .capacity(capacity)
+                                                   .refillIntervally(capacity, Duration.ofMinutes(durationMinutes))
+                                                   .build();
             default -> throw new IllegalArgumentException("Invalid refill strategy: " + refillStrategy);
         };
     }
