@@ -51,7 +51,10 @@ public enum SuccessCode {
     HISTORY_CREATE_SUCCESS(HttpStatus.CREATED, "새로운 여정이 시작되었습니다."),
     HISTORY_END_SUCCESS(HttpStatus.OK, "여정이 종료되었습니다."),
     HISTORY_GET_SUCCESS(HttpStatus.OK, "방문 이력 목록 조회가 완료되었습니다."),
-    HISTORY_DELETE_SUCCESS(HttpStatus.NO_CONTENT, "방문 이력이 성공적으로 삭제되었습니다.");
+    HISTORY_DELETE_SUCCESS(HttpStatus.NO_CONTENT, "방문 이력이 성공적으로 삭제되었습니다."),
+
+    // Station
+    STATION_GET_SUCCESS(HttpStatus.OK, "역 조회가 완료되었습니다.");
 
     private final HttpStatus status;
     private final String     message;

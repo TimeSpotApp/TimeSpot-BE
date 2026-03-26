@@ -6,8 +6,8 @@ import com.timespot.backend.domain.place.constant.PlaceConst;
 import com.timespot.backend.domain.place.dao.PlaceRepository;
 import com.timespot.backend.domain.place.dto.GooglePlaceDto;
 import com.timespot.backend.domain.place.dto.PlaceResponseDto;
-import com.timespot.backend.domain.place.model.Station;
-import com.timespot.backend.domain.place.dao.StationRepository;
+import com.timespot.backend.domain.station.dao.StationRepository;
+import com.timespot.backend.domain.station.model.Station;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -29,6 +29,7 @@ import java.util.List;
  * 26. 3. 19.     whitecity01       Initial creation
  * 26. 3. 22.     whitecity01       ADD pagenation
  * 26. 3. 22.     whitecity01       ADD place detail
+ * 26. 3. 26.     whitecity01       DIVIDE station domain
  */
 @Service
 @RequiredArgsConstructor

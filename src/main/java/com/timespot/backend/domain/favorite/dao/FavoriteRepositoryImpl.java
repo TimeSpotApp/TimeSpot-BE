@@ -10,7 +10,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.timespot.backend.domain.favorite.dto.FavoriteResponseDto.FavoriteListResponse;
 import com.timespot.backend.domain.favorite.dto.QFavoriteResponseDto_FavoriteListResponse;
 import com.timespot.backend.domain.favorite.model.QFavorite;
-import com.timespot.backend.domain.place.model.QStation;
+import com.timespot.backend.domain.station.model.QStation;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;

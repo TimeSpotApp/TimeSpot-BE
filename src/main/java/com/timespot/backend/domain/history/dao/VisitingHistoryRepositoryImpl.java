@@ -12,7 +12,7 @@ import com.timespot.backend.domain.history.dto.QVisitingHistoryResponseDto_Visit
 import com.timespot.backend.domain.history.dto.VisitingHistoryResponseDto.VisitingHistoryListResponse;
 import com.timespot.backend.domain.history.model.QVisitingHistory;
 import com.timespot.backend.domain.place.model.QPlace;
-import com.timespot.backend.domain.place.model.QStation;
+import com.timespot.backend.domain.station.model.QStation;
 import com.timespot.backend.domain.user.model.QUser;
 import java.util.ArrayList;
 import java.util.List;

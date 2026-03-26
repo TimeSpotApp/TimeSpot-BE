@@ -13,7 +13,7 @@ import static lombok.AccessLevel.PROTECTED;
 import com.timespot.backend.common.error.GlobalException;
 import com.timespot.backend.common.model.BaseAuditingEntity;
 import com.timespot.backend.domain.place.model.Place;
-import com.timespot.backend.domain.place.model.Station;
+import com.timespot.backend.domain.station.model.Station;
 import com.timespot.backend.domain.user.model.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
