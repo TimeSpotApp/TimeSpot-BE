@@ -8,6 +8,7 @@ import static com.timespot.backend.common.response.ErrorCode.USER_NOT_FOUND;
 import static com.timespot.backend.infra.security.oauth.constant.TokenType.REFRESH_TOKEN;
 
 import com.timespot.backend.common.error.GlobalException;
+import com.timespot.backend.common.response.ErrorCode;
 import com.timespot.backend.common.security.dto.AuthRequestDto.OAuth2SignupRequest;
 import com.timespot.backend.domain.user.dao.SocialConnectionRepository;
 import com.timespot.backend.domain.user.dao.UserRepository;

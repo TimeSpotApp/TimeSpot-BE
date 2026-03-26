@@ -22,6 +22,7 @@ import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
@@ -33,6 +34,8 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -83,16 +86,14 @@ public class User extends BaseAuditingEntity implements Persistable<UUID> {
     @Column(name = "notification_timing", nullable = false)
     private Set<NotificationTiming> notificationTimings = new HashSet<>();
 
-    @Builder(access = AccessLevel.PRIVATE)
-    private User(final String email, final String nickname, final MapApi mapApi, final UserRole role, final Set<NotificationTiming> notificationTimings) {
     @Column(name = "total_visit_count", nullable = false)
     private Integer totalVisitCount;
 
     @Column(name = "total_journey_minutes", nullable = false)
     private Integer totalJourneyMinutes;
 
-    @Builder(access = PRIVATE)
-    private User(final String email, final String nickname, final MapApi mapApi, final UserRole role) {
+    @Builder(access = AccessLevel.PRIVATE)
+    private User(final String email, final String nickname, final MapApi mapApi, final UserRole role, final Set<NotificationTiming> notificationTimings) {
         validateEmail(email);
         validateNickname(nickname);
         this.id = UlidCreator.getUlid().toUuid();

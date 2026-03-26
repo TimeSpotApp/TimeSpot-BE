@@ -3,7 +3,9 @@ package com.timespot.backend.domain.user.api;
 import com.timespot.backend.common.response.BaseResponse;
 import com.timespot.backend.common.security.dto.AuthResponseDto.AuthInfoResponse;
 import com.timespot.backend.common.security.model.CustomUserDetails;
+import com.timespot.backend.domain.user.dto.UserRequestDto;
 import com.timespot.backend.domain.user.dto.UserRequestDto.UserInfoUpdateRequest;
+import com.timespot.backend.domain.user.dto.UserResponseDto;
 import com.timespot.backend.domain.user.dto.UserResponseDto.UserInfoResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -269,7 +271,6 @@ public interface UserApiDocs {
             @Parameter(description = "회원 알림 설정 수정 요청 페이로드") UserRequestDto.UserNotificationUpdateRequest dto
     );
 
-    @Operation(summary = "회원 탈퇴", description = "현재 사용자를 회원 탈퇴 처리합니다.")
     @SecurityRequirement(name = "BearerAuth")
     @Operation(
             summary = "회원 탈퇴",

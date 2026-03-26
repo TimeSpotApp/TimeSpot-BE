@@ -5,9 +5,12 @@ import static com.timespot.backend.common.response.SuccessCode.USER_UPDATE_SUCCE
 import static com.timespot.backend.common.response.SuccessCode.USER_WITHDRAW_SUCCESS;
 
 import com.timespot.backend.common.response.BaseResponse;
+import com.timespot.backend.common.response.SuccessCode;
 import com.timespot.backend.common.security.dto.AuthResponseDto.AuthInfoResponse;
 import com.timespot.backend.common.security.model.CustomUserDetails;
+import com.timespot.backend.domain.user.dto.UserRequestDto;
 import com.timespot.backend.domain.user.dto.UserRequestDto.UserInfoUpdateRequest;
+import com.timespot.backend.domain.user.dto.UserResponseDto;
 import com.timespot.backend.domain.user.dto.UserResponseDto.UserInfoResponse;
 import com.timespot.backend.domain.user.facade.UserAuthFacade;
 import com.timespot.backend.domain.user.service.UserService;
