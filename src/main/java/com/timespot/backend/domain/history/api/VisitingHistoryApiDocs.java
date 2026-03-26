@@ -242,9 +242,11 @@ public interface VisitingHistoryApiDocs {
                           #### 처리 과정
                           1. 사용자 존재 여부 확인
                           2. 방문 이력 존재 여부 확인
-                          3. 현재 시간을 종료 시간으로 설정
-                          4. 성공 여부 자동 판별 (종료 시간 ≤ 열차 출발 시간)
-                          5. 소요 시간 계산 및 저장
+                          3. **이미 종료된 이력인지 검증** (진행 중인 이력만 종료 가능)
+                          4. 현재 시간을 종료 시간으로 설정
+                          5. 성공 여부 자동 판별 (종료 시간 ≤ 열차 출발 시간)
+                          6. 소요 시간 계산 및 저장
+                          7. **정상 완료된 경우 사용자 통계 및 즐겨찾기 업데이트**
                           
                           #### 응답 데이터
                           - `endTime`: 여정 종료 시간 (현재 시간)
@@ -255,6 +257,12 @@ public interface VisitingHistoryApiDocs {
                           #### 성공 판별 기준
                           - `endTime ≤ trainDepartureTime`: 성공 (true)
                           - `endTime > trainDepartureTime`: 실패 (false)
+                          
+                          #### 주의사항
+                          - **이미 종료된 여정 (완료 또는 포기) 에 대해서는 다시 종료할 수 없습니다.**
+                          - 종료 시도 시 `409 CONFLICT` 에러가 반환됩니다.
+                          - **여정이 정상 완료된 경우에만 사용자 통계와 즐겨찾기 방문 횟수가 업데이트됩니다.**
+                          - 여정을 포기한 경우 통계는 업데이트되지 않습니다.
                           """
     )
     @ApiResponses({
@@ -363,6 +371,22 @@ public interface VisitingHistoryApiDocs {
                                                     """
                                     )
                             }
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "409",
+                    description = "이미 종료된 방문 이력",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(
+                                    name = "이미 종료된 이력",
+                                    value = """
+                                            {
+                                              "code": 409,
+                                              "message": "이미 종료된 방문 이력입니다."
+                                            }
+                                            """
+                            )
                     )
             )
     })
@@ -559,7 +583,8 @@ public interface VisitingHistoryApiDocs {
                     example = "createdAt,DESC",
                     required = false
             ) @Pattern(
-                    regexp = "^(createdAt|duration),(ASC|DESC|asc|desc)(,\\s*(createdAt|duration),(ASC|DESC|asc|desc))*$",
+                    regexp = "^(createdAt|duration),(ASC|DESC|asc|desc)(,\\s*(createdAt|duration),(ASC|DESC|asc|desc)" +
+                             ")*$",
                     message = "정렬 형식이 올바르지 않습니다. (예: createdAt,DESC 또는 duration,DESC)"
             ) String sort
     );

@@ -86,6 +86,7 @@ public enum ErrorCode {
     HISTORY_INVALID_VISIT_HISTORY(HttpStatus.BAD_REQUEST, "HI007", "유효하지 않은 방문 이력입니다."),
     HISTORY_ALREADY_EXISTS(HttpStatus.CONFLICT, "HI008", "이미 등록된 방문 이력입니다."),
     HISTORY_IN_PROGRESS(HttpStatus.BAD_REQUEST, "HI009", "진행 중인 방문 이력이 있습니다."),
+    HISTORY_ALREADY_ENDED(HttpStatus.CONFLICT, "HI010", "이미 종료된 방문 이력입니다."),
 
     // Favorite
     FAVORITE_NOT_FOUND(HttpStatus.NOT_FOUND, "FA001", "즐겨찾기를 찾을 수 없습니다."),

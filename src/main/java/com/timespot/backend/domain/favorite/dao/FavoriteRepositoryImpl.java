@@ -56,6 +56,7 @@ public class FavoriteRepositoryImpl implements FavoriteRepositoryCustom {
                                                                                FAVORITE.station.id,
                                                                                FAVORITE.station.name,
                                                                                FAVORITE.visitCount,
+                                                                               FAVORITE.totalVisitMinutes,
                                                                                FAVORITE.createdAt
                                                                        )
                                                                )

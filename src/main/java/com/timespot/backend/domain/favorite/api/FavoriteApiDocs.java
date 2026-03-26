@@ -271,7 +271,8 @@ public interface FavoriteApiDocs {
                           - `favoriteId`: 즐겨찾기 ID
                           - `stationId`: 역 ID
                           - `stationName`: 역 이름
-                          - `visitCount`: 방문 횟수
+                          - `visitCount`: 방문 횟수 (정상 완료된 여정만 카운트)
+                          - `totalVisitMinutes`: 총 방문 시간 (분) (정상 완료된 여정의 소요 시간 합계)
                           - `createdAt`: 즐겨찾기 추가 일시
                           
                           #### 페이징 정보
@@ -303,6 +304,7 @@ public interface FavoriteApiDocs {
                                             "stationId": 10,
                                             "stationName": "서울역",
                                             "visitCount": 5,
+                                            "totalVisitMinutes": 150,
                                             "createdAt": "2024-03-24T16:00:00"
                                           },
                                           {
@@ -310,6 +312,7 @@ public interface FavoriteApiDocs {
                                             "stationId": 20,
                                             "stationName": "강남역",
                                             "visitCount": 3,
+                                            "totalVisitMinutes": 75,
                                             "createdAt": "2024-03-23T10:30:00"
                                           }
                                         ],
