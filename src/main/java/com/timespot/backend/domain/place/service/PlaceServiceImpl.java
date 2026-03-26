@@ -98,12 +98,18 @@ public class PlaceServiceImpl implements PlaceService {
         Station station = getValidatedStation(stationId);
         int walkableDistance = calculateWalkableDistance(remainingMinutes);
 
+        String filterCategory = (category == null || category.trim().isEmpty() || "전체".equals(category)) ? null : category;
+
+        String filterKeyword = (keyword == null || keyword.trim().isEmpty()) ? null : keyword;
+
         Pageable unpaged = org.springframework.data.domain.PageRequest.of(
                 pageable.getPageNumber(), pageable.getPageSize());
 
         return placeRepository.searchAvailablePlaces(
                 stationId, userLat, userLon, station.getLatitude(), station.getLongitude(),
-                walkableDistance, PlaceConst.WALK_SPEED_PER_MINUTE, keyword, category,
+                walkableDistance, PlaceConst.WALK_SPEED_PER_MINUTE,
+                filterKeyword,
+                filterCategory,
                 sortBy.name(),
                 unpaged
         );

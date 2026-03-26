@@ -74,8 +74,8 @@ public class PlaceController implements PlaceApiDocs {
             @RequestParam double userLon,
             @RequestParam Long stationId,
             @RequestParam int remainingMinutes,
-            @RequestParam(required = false) String keyword,
-            @RequestParam(required = false) String category,
+            @RequestParam(required = false, defaultValue = "") String keyword,
+            @RequestParam(required = false, defaultValue = "전체") String category,
             @RequestParam(defaultValue = "STATION_NEAREST") PlaceSortType sortBy,
             @PageableDefault(size = 10) Pageable pageable) {
 
