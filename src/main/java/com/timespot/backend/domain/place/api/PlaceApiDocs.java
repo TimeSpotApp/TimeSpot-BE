@@ -32,8 +32,8 @@ public interface PlaceApiDocs {
     ResponseEntity<BaseResponse<List<PlaceResponseDto.AvailablePlace>>> getAvailablePlaces(
             @RequestParam double userLat,
             @RequestParam double userLon,
-            @RequestParam double mapLat, // 추가: 화면 중심 위도
-            @RequestParam double mapLon, // 추가: 화면 중심 경도
+            @RequestParam double mapLat,
+            @RequestParam double mapLon,
             @RequestParam Long stationId,
             @RequestParam int remainingMinutes
     );
