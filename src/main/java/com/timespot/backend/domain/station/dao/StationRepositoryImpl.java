@@ -51,10 +51,6 @@ public class StationRepositoryImpl implements StationRepositoryCustom {
 
     @Override
     public List<StationListResponse> findFavoriteStationList(final UUID userId, final String keyword) {
-        final List<Long> stationIds = findFavoriteStationIds(userId, keyword);
-
-        if (stationIds.isEmpty()) return List.of();
-
         return queryFactory.select(
                                    new QStationResponseDto_StationListResponse(
                                            STATION.id,
@@ -64,8 +60,7 @@ public class StationRepositoryImpl implements StationRepositoryCustom {
                            )
                            .from(STATION)
                            .join(FAVORITE).on(STATION.id.eq(FAVORITE.station.id))
-                           .join(USER).on(FAVORITE.user.id.eq(USER.id))
-                           .where(STATION.id.in(stationIds),
+                           .where(FAVORITE.user.id.eq(userId),
                                   STATION.isActive.isTrue(),
                                   stationContains(keyword))
                            .orderBy(FAVORITE.visitCount.desc())
@@ -77,10 +72,7 @@ public class StationRepositoryImpl implements StationRepositoryCustom {
     public List<StationListResponse> findNearbyStationList(final Point point,
                                                            final double radius,
                                                            final String keyword) {
-        final List<Long> stationIds = findNearbyStationIds(getDistanceExpression(point), radius, keyword);
-
-        if (stationIds.isEmpty()) return List.of();
-
+        NumberTemplate<Double> distanceExpression = getDistanceExpression(point);
         return queryFactory.select(
                                    new QStationResponseDto_StationListResponse(
                                            STATION.id,
@@ -89,10 +81,10 @@ public class StationRepositoryImpl implements StationRepositoryCustom {
                                    )
                            )
                            .from(STATION)
-                           .where(STATION.id.in(stationIds),
+                           .where(distanceExpression.loe(radius),
                                   STATION.isActive.isTrue(),
                                   stationContains(keyword))
-                           .orderBy(STATION.location.asc())
+                           .orderBy(distanceExpression.asc())
                            .limit(NEARBY_LIST_LIMIT)
                            .fetch();
     }
@@ -114,6 +106,9 @@ public class StationRepositoryImpl implements StationRepositoryCustom {
                                                               .where(STATION.id.in(stationIds),
                                                                      STATION.isActive.isTrue(),
                                                                      stationContains(keyword))
+                                                              .orderBy(getSortCondition(pageable))
+                                                              .offset(pageable.getOffset())
+                                                              .limit(pageable.getPageSize())
                                                               .fetch();
 
         return PageableExecutionUtils.getPage(
@@ -129,31 +124,6 @@ public class StationRepositoryImpl implements StationRepositoryCustom {
 
     // ========================= 내부 메서드 =========================
 
-    private List<Long> findFavoriteStationIds(final UUID userId, final String keyword) {
-        return queryFactory.select(STATION.id)
-                           .from(STATION)
-                           .join(FAVORITE).on(STATION.id.eq(FAVORITE.station.id))
-                           .where(FAVORITE.user.id.eq(userId),
-                                  STATION.isActive.isTrue(),
-                                  stationContains(keyword))
-                           .orderBy(FAVORITE.visitCount.desc())
-                           .limit(FAVORITE_LIST_LIMIT)
-                           .fetch();
-    }
-
-    private List<Long> findNearbyStationIds(final NumberTemplate<Double> distanceExpression,
-                                            final double radius,
-                                            final String keyword) {
-        return queryFactory.select(STATION.id)
-                           .from(STATION)
-                           .where(distanceExpression.loe(radius),
-                                  STATION.isActive.isTrue(),
-                                  stationContains(keyword))
-                           .orderBy(STATION.location.asc())
-                           .limit(NEARBY_LIST_LIMIT)
-                           .fetch();
-    }
-
     private List<Long> findStationIds(final String keyword, final Pageable pageable) {
         return queryFactory.select(STATION.id)
                            .from(STATION)
@@ -166,9 +136,11 @@ public class StationRepositoryImpl implements StationRepositoryCustom {
 
     private NumberTemplate<Double> getDistanceExpression(final Point point) {
         return Expressions.numberTemplate(Double.class,
-                                          "ST_Distance_Sphere({0}, {1})",
+                                          "ST_Distance_Sphere({0}, ST_GeomFromText({1}, 4326))",
                                           STATION.location,
-                                          Expressions.constant(point));
+                                          Expressions.constant(
+                                                  String.format("POINT(%f %f)", point.getY(), point.getX())
+                                          ));
     }
 
     private BooleanExpression stationContains(final String keyword) {
