@@ -72,12 +72,13 @@ public abstract class SecurityConst {
             // Favorite
             "/api/v1/favorites",
             // Visiting History
-            "/api/v1/histories",
-            "/api/v1/histories/{historyId}/end"
+            "/api/v1/histories"
     };
     public static final String[] PUT_AUTHENTICATED_URLS    = {
             // User
-            "/api/v1/users"
+            "/api/v1/users",
+            // Visiting History
+            "/api/v1/histories/{historyId}"
     };
     public static final String[] PATCH_AUTHENTICATED_URLS  = {};
     public static final String[] DELETE_AUTHENTICATED_URLS = {

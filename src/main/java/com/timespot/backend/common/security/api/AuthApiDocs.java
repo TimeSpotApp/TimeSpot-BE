@@ -15,6 +15,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 
 /**
@@ -163,7 +164,7 @@ public interface AuthApiDocs {
             @Parameter(
                     description = "소셜 인증 제공자로부터 발급받은 인증 코드 페이로드",
                     required = true
-            ) OAuth2SignupRequest dto
+            ) @Valid OAuth2SignupRequest dto
     );
 
     @Operation(
@@ -296,7 +297,7 @@ public interface AuthApiDocs {
             @Parameter(
                     description = "소셜 인증 제공자로부터 발급받은 ID 토큰 페이로드",
                     required = true
-            ) OAuth2LoginRequest dto
+            ) @Valid OAuth2LoginRequest dto
     );
 
     @Operation(
@@ -435,7 +436,7 @@ public interface AuthApiDocs {
             @Parameter(
                     description = "리프레시 토큰 페이로드",
                     required = true
-            ) TokenRefreshRequest dto
+            ) @Valid TokenRefreshRequest dto
     );
 
 }

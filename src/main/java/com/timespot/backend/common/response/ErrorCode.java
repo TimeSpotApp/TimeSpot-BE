@@ -47,10 +47,10 @@ public enum ErrorCode {
     USER_NICKNAME_REQUIRED(HttpStatus.BAD_REQUEST, "US006", "닉네임은 필수입니다."),
     USER_INVALID_NICKNAME_FORMAT(HttpStatus.BAD_REQUEST, "US007",
                                  "닉네임 형식이 올바르지 않습니다. 2~15자 영문, 한글, 숫자, '-', '_'만 사용 가능합니다."),
-    USER_AUTH_INVALID_ACCESS_TOKEN(HttpStatus.BAD_REQUEST, "US008", "잘못된 AccessToken입니다."),
-    USER_AUTH_INVALID_REFRESH_TOKEN(HttpStatus.BAD_REQUEST, "US009", "잘못된 RefreshToken입니다."),
-    USER_AUTH_ACCESS_TOKEN_EXPIRED(HttpStatus.BAD_REQUEST, "US010", "AccessToken이 만료되었습니다."),
-    USER_AUTH_REFRESH_TOKEN_EXPIRED(HttpStatus.BAD_REQUEST, "US011", "RefreshToken이 만료되었습니다."),
+    USER_AUTH_INVALID_ACCESS_TOKEN(HttpStatus.UNAUTHORIZED, "US008", "잘못된 AccessToken입니다."),
+    USER_AUTH_INVALID_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, "US009", "잘못된 RefreshToken입니다."),
+    USER_AUTH_ACCESS_TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "US010", "AccessToken이 만료되었습니다."),
+    USER_AUTH_REFRESH_TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "US011", "RefreshToken이 만료되었습니다."),
     USER_ROLE_NOT_SUPPORTED(HttpStatus.BAD_REQUEST, "US012", "지원하지 않는 계정 유형입니다."),
     USER_MAP_API_NOT_SUPPORTED(HttpStatus.BAD_REQUEST, "US013", "지원하지 않는 지도 API 유형입니다."),
 
@@ -86,6 +86,7 @@ public enum ErrorCode {
     HISTORY_INVALID_VISIT_HISTORY(HttpStatus.BAD_REQUEST, "HI007", "유효하지 않은 방문 이력입니다."),
     HISTORY_ALREADY_EXISTS(HttpStatus.CONFLICT, "HI008", "이미 등록된 방문 이력입니다."),
     HISTORY_IN_PROGRESS(HttpStatus.BAD_REQUEST, "HI009", "진행 중인 방문 이력이 있습니다."),
+    HISTORY_ALREADY_ENDED(HttpStatus.CONFLICT, "HI010", "이미 종료된 방문 이력입니다."),
 
     // Favorite
     FAVORITE_NOT_FOUND(HttpStatus.NOT_FOUND, "FA001", "즐겨찾기를 찾을 수 없습니다."),

@@ -13,7 +13,6 @@ import com.timespot.backend.domain.history.dto.VisitingHistoryResponseDto.Visiti
 import com.timespot.backend.domain.history.model.QVisitingHistory;
 import com.timespot.backend.domain.place.model.QPlace;
 import com.timespot.backend.domain.station.model.QStation;
-import com.timespot.backend.domain.user.model.QUser;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -40,7 +39,6 @@ import org.springframework.util.StringUtils;
 public class VisitingHistoryRepositoryImpl implements VisitingHistoryRepositoryCustom {
 
     private static final QVisitingHistory VISITING_HISTORY = QVisitingHistory.visitingHistory;
-    private static final QUser            USER             = QUser.user;
     private static final QStation         STATION          = QStation.station;
     private static final QPlace           PLACE            = QPlace.place;
 
@@ -72,8 +70,10 @@ public class VisitingHistoryRepositoryImpl implements VisitingHistoryRepositoryC
                                                                               )
                                                                       )
                                                                       .from(VISITING_HISTORY)
-                                                                      .join(STATION).on(VISITING_HISTORY.station.id.eq(STATION.id))
-                                                                      .join(PLACE).on(VISITING_HISTORY.place.id.eq(PLACE.id))
+                                                                      .join(STATION)
+                                                                      .on(VISITING_HISTORY.station.id.eq(STATION.id))
+                                                                      .join(PLACE)
+                                                                      .on(VISITING_HISTORY.place.id.eq(PLACE.id))
                                                                       .where(VISITING_HISTORY.id.in(historyIds),
                                                                              stationOrPlaceContains(keyword))
                                                                       .orderBy(getSortCondition(pageable))
@@ -113,7 +113,8 @@ public class VisitingHistoryRepositoryImpl implements VisitingHistoryRepositoryC
 
     private OrderSpecifier<?>[] getSortCondition(final Pageable pageable) {
         if (pageable.getSort().isEmpty())
-            return new OrderSpecifier[]{new OrderSpecifier<>(DESC, VISITING_HISTORY.createdAt)};
+            return new OrderSpecifier[]{new OrderSpecifier<>(DESC, VISITING_HISTORY.createdAt),
+                                        new OrderSpecifier<>(DESC, VISITING_HISTORY.id)};
 
         List<OrderSpecifier<?>> orderSpecifiers = new ArrayList<>();
 

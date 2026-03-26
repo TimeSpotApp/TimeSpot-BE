@@ -14,8 +14,6 @@ import com.timespot.backend.domain.history.dto.VisitingHistoryRequestDto.Journey
 import com.timespot.backend.domain.history.dto.VisitingHistoryResponseDto.VisitingHistoryDetailResponse;
 import com.timespot.backend.domain.history.dto.VisitingHistoryResponseDto.VisitingHistoryListResponse;
 import com.timespot.backend.domain.history.service.VisitingHistoryService;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -26,6 +24,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -53,7 +52,7 @@ public class VisitingHistoryController implements VisitingHistoryApiDocs {
     @Override
     public ResponseEntity<BaseResponse<VisitingHistoryDetailResponse>> createNewJourney(
             @AuthenticationPrincipal final CustomUserDetails userDetails,
-            @RequestBody @Valid final JourneyStartRequest dto
+            @RequestBody final JourneyStartRequest dto
     ) {
         VisitingHistoryDetailResponse responseData = visitingHistoryService.createNewJourney(
                 userDetails.getId(), dto
@@ -62,12 +61,12 @@ public class VisitingHistoryController implements VisitingHistoryApiDocs {
                              .body(BaseResponse.success(HISTORY_CREATE_SUCCESS, responseData));
     }
 
-    @PostMapping("/{historyId}/end")
+    @PutMapping("/{historyId}")
     @Override
     public ResponseEntity<BaseResponse<VisitingHistoryDetailResponse>> endJourney(
             @AuthenticationPrincipal final CustomUserDetails userDetails,
-            @PathVariable @Min(1) final Long historyId,
-            @RequestBody @Valid final JourneyEndRequest dto
+            @PathVariable final Long historyId,
+            @RequestBody final JourneyEndRequest dto
     ) {
         VisitingHistoryDetailResponse responseData = visitingHistoryService.endJourney(
                 userDetails.getId(), historyId, dto
@@ -103,7 +102,7 @@ public class VisitingHistoryController implements VisitingHistoryApiDocs {
     @Override
     public ResponseEntity<BaseResponse<Void>> deleteJourney(
             @AuthenticationPrincipal final CustomUserDetails userDetails,
-            @PathVariable @Min(1) final Long historyId
+            @PathVariable final Long historyId
     ) {
         visitingHistoryService.deleteJourney(userDetails.getId(), historyId);
         return ResponseEntity.ok(BaseResponse.success(HISTORY_DELETE_SUCCESS));

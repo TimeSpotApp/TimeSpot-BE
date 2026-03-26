@@ -16,7 +16,6 @@ import com.timespot.backend.common.security.dto.AuthRequestDto.TokenRefreshReque
 import com.timespot.backend.common.security.dto.AuthResponseDto.AuthInfoResponse;
 import com.timespot.backend.common.security.dto.AuthResponseDto.TokenInfoResponse;
 import com.timespot.backend.common.security.service.AuthService;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -47,7 +46,7 @@ public class AuthController implements AuthApiDocs {
     @Override
     @PostMapping("/signup")
     public ResponseEntity<BaseResponse<AuthInfoResponse>> signup(
-            @RequestBody @Valid final OAuth2SignupRequest dto
+            @RequestBody final OAuth2SignupRequest dto
     ) {
         AuthInfoResponse responseData = authService.signup(dto);
         return ResponseEntity.status(CREATED).body(BaseResponse.success(USER_REGISTER_SUCCESS, responseData));
@@ -56,7 +55,7 @@ public class AuthController implements AuthApiDocs {
     @Override
     @PostMapping("/login")
     public ResponseEntity<BaseResponse<AuthInfoResponse>> login(
-            @RequestBody @Valid final OAuth2LoginRequest dto
+            @RequestBody final OAuth2LoginRequest dto
     ) {
         AuthInfoResponse responseData = authService.login(dto);
         final boolean    isNewUser    = responseData.getNewUser() != null && responseData.getNewUser();
@@ -80,7 +79,7 @@ public class AuthController implements AuthApiDocs {
     @Override
     @PostMapping("/refresh")
     public ResponseEntity<BaseResponse<TokenInfoResponse>> refresh(
-            @RequestBody @Valid final TokenRefreshRequest dto
+            @RequestBody final TokenRefreshRequest dto
     ) {
         TokenInfoResponse responseData = authService.refresh(dto.getRefreshToken());
         return ResponseEntity.ok(BaseResponse.success(USER_AUTH_TOKEN_REFRESH_SUCCESS, responseData));

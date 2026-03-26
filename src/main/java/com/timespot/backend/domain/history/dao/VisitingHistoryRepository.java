@@ -1,6 +1,7 @@
 package com.timespot.backend.domain.history.dao;
 
 import com.timespot.backend.domain.history.model.VisitingHistory;
+import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 /**
@@ -15,4 +16,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
  * 26. 3. 24.    loadingKKamo21       Initial creation
  */
 public interface VisitingHistoryRepository extends JpaRepository<VisitingHistory, Long>, VisitingHistoryRepositoryCustom {
+
+    Optional<VisitingHistory> findByIdAndIsSuccessFalse(Long id);
+
 }
