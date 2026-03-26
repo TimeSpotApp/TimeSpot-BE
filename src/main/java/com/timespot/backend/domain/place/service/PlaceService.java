@@ -1,5 +1,6 @@
 package com.timespot.backend.domain.place.service;
 
+import com.timespot.backend.domain.place.constant.PlaceSortType;
 import com.timespot.backend.domain.place.dto.PlaceResponseDto;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
@@ -38,6 +39,6 @@ public interface PlaceService {
                                                         int remainingMinutes,
                                                         String keyword,
                                                         String category,
-                                                        String sortBy,
+                                                        PlaceSortType sortBy,
                                                         Pageable pageable);
 }

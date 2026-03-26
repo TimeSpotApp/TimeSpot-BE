@@ -3,6 +3,7 @@ package com.timespot.backend.domain.place.api;
 import com.timespot.backend.common.response.BaseResponse;
 import com.timespot.backend.common.response.SuccessCode;
 import com.timespot.backend.common.response.annotation.CustomPageResponse;
+import com.timespot.backend.domain.place.constant.PlaceSortType;
 import com.timespot.backend.domain.place.dto.PlaceResponseDto;
 import com.timespot.backend.domain.place.service.PlaceService;
 import lombok.RequiredArgsConstructor;
@@ -75,7 +76,7 @@ public class PlaceController implements PlaceApiDocs {
             @RequestParam int remainingMinutes,
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String category,
-            @RequestParam(defaultValue = "STATION_NEAREST") String sortBy,
+            @RequestParam(defaultValue = "STATION_NEAREST") PlaceSortType sortBy,
             @PageableDefault(size = 10) Pageable pageable) {
 
         Slice<PlaceResponseDto.AvailablePlace> places = placeService.searchPlaces(

@@ -3,6 +3,7 @@ package com.timespot.backend.domain.place.service;
 import com.timespot.backend.common.error.GlobalException;
 import com.timespot.backend.common.response.ErrorCode;
 import com.timespot.backend.domain.place.constant.PlaceConst;
+import com.timespot.backend.domain.place.constant.PlaceSortType;
 import com.timespot.backend.domain.place.dao.PlaceRepository;
 import com.timespot.backend.domain.place.dto.GooglePlaceDto;
 import com.timespot.backend.domain.place.dto.PlaceResponseDto;
@@ -62,6 +63,13 @@ public class PlaceServiceImpl implements PlaceService {
         );
     }
 
+    /**
+     * 장소 상세 정보 제공
+     *
+     * @param googleId         구글 place ID
+     * @param stationId        출발 역 ID
+     * @return 장소 상세 정보 엔티티
+     */
     @Override
     public PlaceResponseDto.PlaceDetail getPlaceDetail(String googleId, Long stationId) {
 
@@ -85,7 +93,7 @@ public class PlaceServiceImpl implements PlaceService {
     }
 
     @Override
-    public Slice<PlaceResponseDto.AvailablePlace> searchPlaces(double userLat, double userLon, Long stationId, int remainingMinutes, String keyword, String category, String sortBy, Pageable pageable) {
+    public Slice<PlaceResponseDto.AvailablePlace> searchPlaces(double userLat, double userLon, Long stationId, int remainingMinutes, String keyword, String category, PlaceSortType sortBy, Pageable pageable) {
 
         Station station = getValidatedStation(stationId);
         int walkableDistance = calculateWalkableDistance(remainingMinutes);
@@ -96,7 +104,7 @@ public class PlaceServiceImpl implements PlaceService {
         return placeRepository.searchAvailablePlaces(
                 stationId, userLat, userLon, station.getLatitude(), station.getLongitude(),
                 walkableDistance, PlaceConst.WALK_SPEED_PER_MINUTE, keyword, category,
-                sortBy,
+                sortBy.name(),
                 unpaged
         );
     }

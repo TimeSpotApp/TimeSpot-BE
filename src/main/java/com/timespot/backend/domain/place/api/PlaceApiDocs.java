@@ -1,6 +1,7 @@
 package com.timespot.backend.domain.place.api;
 
 import com.timespot.backend.common.response.BaseResponse;
+import com.timespot.backend.domain.place.constant.PlaceSortType;
 import com.timespot.backend.domain.place.dto.PlaceResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -57,7 +58,7 @@ public interface PlaceApiDocs {
             @RequestParam int remainingMinutes,
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String category,
-            @RequestParam(defaultValue = "STATION_NEAREST") String sortBy,
+            @RequestParam(defaultValue = "STATION_NEAREST") PlaceSortType sortBy,
             @PageableDefault(size = 10) Pageable pageable
     );
 }
