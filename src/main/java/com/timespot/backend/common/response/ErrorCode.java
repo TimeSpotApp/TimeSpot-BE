@@ -54,6 +54,8 @@ public enum ErrorCode {
     USER_AUTH_ACCESS_DENIED(HttpStatus.FORBIDDEN, "US012", "해당 회원은 접근 권한이 없습니다."),
     USER_ROLE_NOT_SUPPORTED(HttpStatus.BAD_REQUEST, "US013", "지원하지 않는 계정 유형입니다."),
     USER_MAP_API_NOT_SUPPORTED(HttpStatus.BAD_REQUEST, "US014", "지원하지 않는 지도 API 유형입니다."),
+    USER_NOTIFICATION_TIMING_NOT_SUPPORTED(HttpStatus.BAD_REQUEST, "US015", "지원하지 않는 알림 시간 설정입니다."),
+    USER_NOTIFICATION_TIMING_INVALID_COMBINATION(HttpStatus.BAD_REQUEST, "US016", "알림 미설정은 다른 알림 시간과 함께 선택할 수 없습니다."),
 
     // Social Connection
     SOCIAL_CONNECTION_NOT_FOUND(HttpStatus.NOT_FOUND, "SO001", "소셜 연동 정보를 찾을 수 없습니다."),
