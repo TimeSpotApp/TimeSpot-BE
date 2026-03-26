@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Pattern;
 import org.springframework.http.ResponseEntity;
@@ -192,11 +193,11 @@ public interface StationApiDocs {
                     example = "126.9780"
             ) double lng,
             @Parameter(
-                    description = "검색 반경 (미터 단위)",
+                    description = "검색 반경 (미터 단위, 기본값: 2000, 범위: 1~10000)",
                     example = "2000",
                     required = false
             ) @Min(value = 1, message = "검색 반경은 1m 이상이어야 합니다.")
-            @Min(value = 10000, message = "검색 반경은 최대 10000m 입니다.") double radius,
+            @Max(value = 10000, message = "검색 반경은 최대 10000m 입니다.") double radius,
             @Parameter(
                     description = "검색어 (역 이름 또는 주소, 부분 일치)",
                     example = "서울",

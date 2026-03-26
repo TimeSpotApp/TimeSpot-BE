@@ -39,7 +39,7 @@ public abstract class SecurityConst {
             "/api/v1/place/detail",
             // Station
             "/api/v1/stations"
-            };
+    };
     public static final String[] POST_PERMIT_ALL_URLS   = {
             // Auth
             "/api/v1/auth/signup",
@@ -60,7 +60,9 @@ public abstract class SecurityConst {
             "/api/v1/favorites",
             // Visiting History
             "/api/v1/histories",
-            "/api/v1/histories/{historyId}"
+            "/api/v1/histories/{historyId}",
+            // Station
+            "/api/v1/stations"
     };
     public static final String[] POST_AUTHENTICATED_URLS   = {
             // Auth

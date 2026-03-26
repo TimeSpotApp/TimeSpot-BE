@@ -9,9 +9,6 @@ import com.timespot.backend.common.util.SortUtils;
 import com.timespot.backend.domain.station.dto.StationResponseDto.StationListResponse;
 import com.timespot.backend.domain.station.dto.StationResponseDto.StationSearchResponse;
 import com.timespot.backend.domain.station.service.StationService;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.Pattern;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -72,18 +69,11 @@ public class StationController implements StationApiDocs {
     public ResponseEntity<BaseResponse<StationSearchResponse>> getStations(
             @RequestParam("lat") final double lat,
             @RequestParam("lng") final double lng,
-            @RequestParam(required = false, defaultValue = "2000") @Min(
-                    value = 1, message = "검색 반경은 1m 이상이어야 합니다."
-            ) @Max(
-                    value = 10000, message = "검색 반경은 최대 10000m 입니다."
-            ) final double radius,
+            @RequestParam(required = false, defaultValue = "2000") final double radius,
             @RequestParam(required = false, defaultValue = "") final String keyword,
-            @RequestParam(required = false, defaultValue = "1") @Min(1) final int page,
-            @RequestParam(required = false, defaultValue = "10") @Min(10) final int size,
-            @RequestParam(required = false, defaultValue = "stationName,ASC") @Pattern(
-                    regexp = "^stationName,(ASC|DESC|asc|desc)(,\\s*stationName,(ASC|DESC|asc|desc))*$",
-                    message = "정렬 형식이 올바르지 않습니다. (예: stationName,ASC)"
-            ) final String sort,
+            @RequestParam(required = false, defaultValue = "1") final int page,
+            @RequestParam(required = false, defaultValue = "10") final int size,
+            @RequestParam(required = false, defaultValue = "stationName,ASC") final String sort,
             @AuthenticationPrincipal final CustomUserDetails userDetails
     ) {
         UUID userId = (userDetails != null) ? userDetails.getId() : null;
