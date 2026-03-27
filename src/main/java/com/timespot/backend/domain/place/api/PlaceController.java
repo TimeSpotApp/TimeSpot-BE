@@ -60,14 +60,14 @@ public class PlaceController implements PlaceApiDocs {
     @Override
     @GetMapping("/detail")
     public ResponseEntity<BaseResponse<PlaceResponseDto.PlaceDetail>> getPlaceDetail(
-            @RequestParam String googleId,
+            @RequestParam Long placeId,
             @RequestParam Long stationId,
             @RequestParam double userLat,
             @RequestParam double userLon,
             @RequestParam int remainingMinutes) {
 
         PlaceResponseDto.PlaceDetail placeDetail = placeService.getPlaceDetail(
-                googleId, stationId, userLat, userLon, remainingMinutes);
+                placeId, stationId, userLat, userLon, remainingMinutes);
 
         return ResponseEntity.ok(BaseResponse.success(SuccessCode.PLACE_GET_DETAIL_SUCCESS, placeDetail));
     }
