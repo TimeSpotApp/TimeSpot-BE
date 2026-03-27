@@ -94,10 +94,10 @@ public class PlaceServiceImpl implements PlaceService {
                 .address(dbResult.getAddress())
                 .distanceToStation(dbResult.getDistanceToStation())
                 .timeToStation(dbResult.getTimeToStation())
-                .stayableMinutes(dbResult.getStayableMinutes())
+                .stayableMinutes(dbResult.getStayableMinutes() + PlaceConst.MINIMUM_STAY_TIME)
                 .stationLat(station.getLatitude())
                 .stationLon(station.getLongitude())
-                .leaveTime(formattedLeaveTime) // 포맷팅된 출발 시간 추가
+                .leaveTime(formattedLeaveTime)
                 .imageUrl(googleApiResult.getImageUrl())
                 .weekday(googleApiResult.getWeekdayHours())
                 .weekend(googleApiResult.getWeekendHours())
@@ -145,7 +145,7 @@ public class PlaceServiceImpl implements PlaceService {
                 .address(place.getAddress())
                 .lat(place.getLat())
                 .lon(place.getLon())
-                .stayableMinutes(place.getStayableMinutes())
+                .stayableMinutes(place.getStayableMinutes() + PlaceConst.MINIMUM_STAY_TIME)
                 .isOpen(true)                             // TODO : Google API 연동 및 캐싱 로직 추가
                 .closingTime(hardcodedClosingTime)        // TODO : Google API 연동 및 캐싱 로직 추가
                 .build()
