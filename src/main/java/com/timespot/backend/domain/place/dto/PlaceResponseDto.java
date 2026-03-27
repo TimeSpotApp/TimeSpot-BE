@@ -141,7 +141,7 @@ public abstract class PlaceResponseDto {
 
         // Google API 연동 데이터
         @Schema(description = "장소 대표 이미지 URL", example = "https://places.googleapis.com/v1/places/ChIJ.../media?key=...&maxWidthPx=400")
-        private String imageUrl;
+        private List<String> imageUrl;
 
         @Schema(description = "평일 영업시간 목록", example = "[\"월요일: AM 09:00 ~ PM 06:00\", \"화요일: AM 09:00 ~ PM 06:00\"]")
         private List<String> weekday;
