@@ -140,7 +140,7 @@ public class PlaceServiceImpl implements PlaceService {
 
         return dbPlaces.map(place -> PlaceResponseDto.SearchPlace.builder()
                 .name(place.getName())
-                .googlePlaceId(place.getGooglePlaceId())
+                .placeId(place.getPlaceId())
                 .category(place.getCategory())
                 .address(place.getAddress())
                 .lat(place.getLat())

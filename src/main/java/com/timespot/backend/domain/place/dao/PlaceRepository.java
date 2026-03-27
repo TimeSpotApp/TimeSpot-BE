@@ -93,7 +93,7 @@ public interface PlaceRepository extends JpaRepository<Place, Long> {
     @Query(value = """
             SELECT 
                 p.name AS name,
-                p.google_place_id AS googlePlaceId,
+                p.place_id AS placeId,
                 p.category AS category,
                 p.address AS address,
                 ST_X(p.location) AS lat,
