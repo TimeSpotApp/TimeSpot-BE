@@ -15,6 +15,8 @@ import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 
@@ -54,7 +56,7 @@ public class PlaceServiceImpl implements PlaceService {
      * @return 방문 가능한 장소 엔티티
      */
     @Override
-    public List<PlaceResponseDto.AvailablePlace> getAvailablePlaces(double userLat, double userLon, double mapLat, double mapLon, Long stationId, int remainingMinutes) {
+    public List<PlaceResponseDto.SimpleAvailablePlace> getAvailablePlaces(double userLat, double userLon, double mapLat, double mapLon, Long stationId, int remainingMinutes) {
 
         Station station = getValidatedStation(stationId);
         int walkableDistance = calculateWalkableDistance(remainingMinutes);
@@ -72,20 +74,20 @@ public class PlaceServiceImpl implements PlaceService {
      * @return 장소 상세 정보 엔티티
      */
     @Override
-    public PlaceResponseDto.PlaceDetail getPlaceDetail(String googleId, Long stationId, double userLat, double userLon, int remainingMinutes){
+    public PlaceResponseDto.PlaceDetail getPlaceDetail(String googleId, Long stationId, double userLat, double userLon, int remainingMinutes) {
 
         Station station = getValidatedStation(stationId);
-
         int walkableDistance = calculateWalkableDistance(remainingMinutes);
 
         PlaceResponseDto.PlaceDetailInDB dbResult = placeRepository.findPlaceDetail(
                         googleId, stationId, userLat, userLon, walkableDistance, PlaceConst.WALK_SPEED_PER_MINUTE)
                 .orElseThrow(() -> new GlobalException(ErrorCode.PLACE_NOT_FOUND));
 
-        // 4. 구글 API 호출
         GooglePlaceDto.ParsedResult googleApiResult = googlePlaceApiService.getPlaceDetails(googleId);
 
-        // 5. 응답 DTO 조립
+        LocalDateTime leaveTimeObj = LocalDateTime.now().plusMinutes(remainingMinutes - dbResult.getTimeToStation());
+        String formattedLeaveTime = leaveTimeObj.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+
         return PlaceResponseDto.PlaceDetail.builder()
                 .name(dbResult.getName())
                 .category(dbResult.getCategory())
@@ -95,6 +97,7 @@ public class PlaceServiceImpl implements PlaceService {
                 .stayableMinutes(dbResult.getStayableMinutes())
                 .stationLat(station.getLatitude())
                 .stationLon(station.getLongitude())
+                .leaveTime(formattedLeaveTime) // 포맷팅된 출발 시간 추가
                 .imageUrl(googleApiResult.getImageUrl())
                 .weekday(googleApiResult.getWeekdayHours())
                 .weekend(googleApiResult.getWeekendHours())
@@ -103,20 +106,29 @@ public class PlaceServiceImpl implements PlaceService {
     }
 
     @Override
-    public Slice<PlaceResponseDto.AvailablePlace> searchPlaces(double userLat, double userLon, Long stationId, int remainingMinutes, String keyword, String category, PlaceSortType sortBy, Pageable pageable) {
+    public Slice<PlaceResponseDto.AvailablePlace> searchPlaces(double userLat, double userLon, Long stationId, int remainingMinutes, String keyword, String category, PlaceSortType sortBy, Double markerLat, Double markerLon, Pageable pageable) {
 
         Station station = getValidatedStation(stationId);
         int walkableDistance = calculateWalkableDistance(remainingMinutes);
 
-        String filterCategory = (category == null || category.trim().isEmpty() || "전체".equals(category)) ? null : category;
+        // 마커 기준 정렬인데 마커 좌표가 없는 경우 예외 처리
+        if (sortBy == PlaceSortType.MARKER_NEAREST && (markerLat == null || markerLon == null)) {
+            // 적절한 ErrorCode로 변경해주세요. (예: ErrorCode.INVALID_REQUEST_PARAMETER)
+            throw new GlobalException(ErrorCode.PLACE_NOT_FOUND);
+        }
 
+        // 쿼리 오류 방지를 위한 안전한 기본값 할당 (정렬 조건이 MARKER_NEAREST가 아닐 때 null 방지)
+        double safeMarkerLat = markerLat != null ? markerLat : 0.0;
+        double safeMarkerLon = markerLon != null ? markerLon : 0.0;
+
+        String filterCategory = (category == null || category.trim().isEmpty() || "전체".equals(category)) ? null : category;
         String filterKeyword = (keyword == null || keyword.trim().isEmpty()) ? null : keyword;
 
-        Pageable unpaged = org.springframework.data.domain.PageRequest.of(
-                pageable.getPageNumber(), pageable.getPageSize());
+        Pageable unpaged = org.springframework.data.domain.PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
 
         return placeRepository.searchAvailablePlaces(
                 stationId, userLat, userLon, station.getLatitude(), station.getLongitude(),
+                safeMarkerLat, safeMarkerLon, // 추가된 마커 좌표
                 walkableDistance, PlaceConst.WALK_SPEED_PER_MINUTE,
                 filterKeyword,
                 filterCategory,

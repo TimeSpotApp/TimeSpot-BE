@@ -25,7 +25,7 @@ import java.util.List;
  * 26. 3. 27.     whitecity01       MODIFY getPlaceDetail response
  */
 public interface PlaceService {
-    List<PlaceResponseDto.AvailablePlace> getAvailablePlaces(double userLat,
+    List<PlaceResponseDto.SimpleAvailablePlace> getAvailablePlaces(double userLat,
                                                              double userLon,
                                                              double mapLat,
                                                              double mapLon,
@@ -41,5 +41,7 @@ public interface PlaceService {
                                                         String keyword,
                                                         String category,
                                                         PlaceSortType sortBy,
+                                                        Double markerLat,
+                                                        Double markerLon,
                                                         Pageable pageable);
 }

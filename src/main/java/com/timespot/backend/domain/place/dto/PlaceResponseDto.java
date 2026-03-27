@@ -52,6 +52,21 @@ public abstract class PlaceResponseDto {
         Integer getStayableMinutes();
     }
 
+    @Schema(description = "경로상 간소화된 장소 응답 페이로드")
+    public interface SimpleAvailablePlace {
+        @Schema(description = "내부 DB 장소 ID", example = "1")
+        Long getPlaceId();
+
+        @Schema(description = "위도", example = "37.5546")
+        Double getLat();
+
+        @Schema(description = "경도", example = "126.9706")
+        Double getLon();
+
+        @Schema(description = "장소 카테고리", example = "카페")
+        String getCategory();
+    }
+
     public interface PlaceDetailInDB {
         String getName();
         String getCategory();
@@ -88,6 +103,9 @@ public abstract class PlaceResponseDto {
 
         @Schema(description = "기준 역 경도", example = "126.9706")
         private Double stationLon;
+
+        @Schema(description = "역으로 출발해야 하는 시간", example = "2026-03-27 20:30:00")
+        private String leaveTime;
 
         // Google API 연동 데이터
         @Schema(description = "장소 대표 이미지 URL", example = "https://places.googleapis.com/v1/places/ChIJ.../media?key=...&maxWidthPx=400")
