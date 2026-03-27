@@ -32,7 +32,7 @@ public interface PlaceService {
                                                              Long stationId,
                                                              int remainingMinutes);
 
-    PlaceResponseDto.PlaceDetail getPlaceDetail(String googleId, Long stationId, double userLat, double userLon, int remainingMinutes);
+    PlaceResponseDto.PlaceDetail getPlaceDetail(Long placeId, Long stationId, double userLat, double userLon, int remainingMinutes);
 
     Slice<PlaceResponseDto.SearchPlace> searchPlaces(double userLat,
                                                         double userLon,

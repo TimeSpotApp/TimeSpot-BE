@@ -60,6 +60,7 @@ public interface PlaceRepository extends JpaRepository<Place, Long> {
 
     @Query(value = """
             SELECT 
+                p.google_place_id AS googlePlaceId,
                 p.name AS name,
                 p.category AS category,
                 p.address AS address,
@@ -76,12 +77,12 @@ public interface PlaceRepository extends JpaRepository<Place, Long> {
             FROM places p
             INNER JOIN station_place_map spm ON p.place_id = spm.place_id
             INNER JOIN stations s ON spm.station_id = s.station_id 
-            WHERE p.google_place_id = :googleId
+            WHERE p.place_id = :placeId
               AND s.station_id = :stationId
             LIMIT 1
             """, nativeQuery = true)
     Optional<PlaceResponseDto.PlaceDetailInDB> findPlaceDetail(
-            @Param("googleId") String googleId,
+            @Param("placeId") Long placeId,
             @Param("stationId") Long stationId,
             @Param("userLat") double userLat,
             @Param("userLon") double userLon,

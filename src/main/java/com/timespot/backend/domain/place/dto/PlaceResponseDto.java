@@ -100,6 +100,7 @@ public abstract class PlaceResponseDto {
     }
 
     public interface PlaceDetailInDB {
+        String getGooglePlaceId();
         String getName();
         String getCategory();
         String getAddress();

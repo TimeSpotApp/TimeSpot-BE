@@ -69,21 +69,21 @@ public class PlaceServiceImpl implements PlaceService {
     /**
      * 장소 상세 정보 제공
      *
-     * @param googleId         구글 place ID
+     * @param placeId          place ID
      * @param stationId        출발 역 ID
      * @return 장소 상세 정보 엔티티
      */
     @Override
-    public PlaceResponseDto.PlaceDetail getPlaceDetail(String googleId, Long stationId, double userLat, double userLon, int remainingMinutes) {
+    public PlaceResponseDto.PlaceDetail getPlaceDetail(Long placeId, Long stationId, double userLat, double userLon, int remainingMinutes) {
 
         Station station = getValidatedStation(stationId);
         int walkableDistance = calculateWalkableDistance(remainingMinutes);
 
         PlaceResponseDto.PlaceDetailInDB dbResult = placeRepository.findPlaceDetail(
-                        googleId, stationId, userLat, userLon, walkableDistance, PlaceConst.WALK_SPEED_PER_MINUTE)
+                        placeId, stationId, userLat, userLon, walkableDistance, PlaceConst.WALK_SPEED_PER_MINUTE)
                 .orElseThrow(() -> new GlobalException(ErrorCode.PLACE_NOT_FOUND));
 
-        GooglePlaceDto.ParsedResult googleApiResult = googlePlaceApiService.getPlaceDetails(googleId);
+        GooglePlaceDto.ParsedResult googleApiResult = googlePlaceApiService.getPlaceDetails(dbResult.getGooglePlaceId());
 
         LocalDateTime leaveTimeObj = LocalDateTime.now().plusMinutes(remainingMinutes - dbResult.getTimeToStation());
         String formattedLeaveTime = leaveTimeObj.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));

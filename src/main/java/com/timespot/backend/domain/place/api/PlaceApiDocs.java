@@ -46,7 +46,7 @@ public interface PlaceApiDocs {
     @Operation(summary = "장소 상세 정보 조회", description = "해당 장소의 상세 정보를 조회합니다.")
     @ApiResponse(responseCode = "200", description = "장소 상세 정보 조회 성공")
     ResponseEntity<BaseResponse<PlaceResponseDto.PlaceDetail>> getPlaceDetail(
-            @RequestParam String googleId,
+            @RequestParam Long placeId,
             @RequestParam Long stationId,
             @RequestParam double userLat,
             @RequestParam double userLon,
