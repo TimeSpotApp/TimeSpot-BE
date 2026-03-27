@@ -46,14 +46,20 @@ public abstract class SecurityConst {
             "/api/v1/auth/signup",
             "/api/v1/auth/login",
             "/api/v1/auth/refresh",
-            };
+            // Device
+            "/api/v1/devices"
+    };
     public static final String[] PUT_PERMIT_ALL_URLS    = {};
     public static final String[] PATCH_PERMIT_ALL_URLS  = {};
-    public static final String[] DELETE_PERMIT_ALL_URLS = {};
+    public static final String[] DELETE_PERMIT_ALL_URLS = {
+            // Device
+            "/api/v1/devices"
+    };
 
     public static final String[] GET_AUTHENTICATED_URLS    = {
             // User
             "/api/v1/users",
+            "/api/v1/users/notification-settings",
             // Place
             "/api/v1/place",
             "/api/v1/place/detail",
@@ -78,6 +84,7 @@ public abstract class SecurityConst {
     public static final String[] PUT_AUTHENTICATED_URLS    = {
             // User
             "/api/v1/users",
+            "/api/v1/users/notification-settings",
             // Visiting History
             "/api/v1/histories/{historyId}"
     };

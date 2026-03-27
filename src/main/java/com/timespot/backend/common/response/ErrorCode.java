@@ -92,7 +92,19 @@ public enum ErrorCode {
     FAVORITE_NOT_FOUND(HttpStatus.NOT_FOUND, "FA001", "즐겨찾기를 찾을 수 없습니다."),
     FAVORITE_INVALID_USER(HttpStatus.BAD_REQUEST, "FA002", "유효하지 않은 사용자입니다."),
     FAVORITE_INVALID_STATION(HttpStatus.BAD_REQUEST, "FA003", "유효하지 않은 역입니다."),
-    FAVORITE_DUPLICATE_STATION(HttpStatus.CONFLICT, "FA004", "이미 즐겨찾기에 등록된 역입니다.");
+    FAVORITE_DUPLICATE_STATION(HttpStatus.CONFLICT, "FA004", "이미 즐겨찾기에 등록된 역입니다."),
+
+    // Device
+    DEVICE_NOT_FOUND(HttpStatus.NOT_FOUND, "DE001", "등록되지 않은 디바이스입니다."),
+    DEVICE_DUPLICATE_TOKEN(HttpStatus.CONFLICT, "DE002", "이미 등록된 디바이스 토큰입니다."),
+    DEVICE_INVALID_PLATFORM(HttpStatus.BAD_REQUEST, "DE003", "지원하지 않는 플랫폼입니다."),
+    DEVICE_INVALID_TOKEN_FORMAT(HttpStatus.BAD_REQUEST, "DE004", "디바이스 토큰 형식이 올바르지 않습니다."),
+
+    // User Notification
+    USER_NOTIFICATION_SETTING_NOT_FOUND(HttpStatus.NOT_FOUND, "UN001", "알림 설정을 찾을 수 없습니다."),
+    USER_NOTIFICATION_INVALID_TYPE(HttpStatus.BAD_REQUEST, "UN002", "지원하지 않는 알림 타입입니다."),
+    USER_NOTIFICATION_DUPLICATE_TYPE(HttpStatus.BAD_REQUEST, "UN003", "중복된 알림 타입이 포함되어 있습니다."),
+    USER_NOTIFICATION_EXCEEDS_MAX_COUNT(HttpStatus.BAD_REQUEST, "UN004", "알림 설정은 최대 3 개까지 가능합니다.");
 
     private final HttpStatus status;
     private final String     code;

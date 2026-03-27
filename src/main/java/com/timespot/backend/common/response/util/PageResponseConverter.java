@@ -66,6 +66,8 @@ public final class PageResponseConverter {
             return resultMap;
         }
 
+        if (obj.getClass().getName().startsWith("java.") || obj.getClass().isEnum()) return obj;
+
         return convertObjectFields(obj, annotation);
     }
 
@@ -85,12 +87,12 @@ public final class PageResponseConverter {
                 && method.getParameterCount() == 0
                 && !method.getReturnType().equals(Void.TYPE))
                 try {
+                    if (method.getName().equals("getClass")) continue;
+
                     Object value = method.invoke(obj);
-                    if (value != null) {
-                        resultMap.put(toCamelCase(method.getName()), convertNestedPageToObject(value, annotation));
-                    }
+                    resultMap.put(toCamelCase(method.getName()), convertNestedPageToObject(value, annotation));
                 } catch (Exception e) {
-                    // getter 호출 실패 시 무시
+                    // 무시
                 }
 
         return resultMap;

@@ -1,6 +1,7 @@
 package com.timespot.backend.common.security.config;
 
 import static com.timespot.backend.common.security.constant.SecurityConst.DELETE_AUTHENTICATED_URLS;
+import static com.timespot.backend.common.security.constant.SecurityConst.DELETE_PERMIT_ALL_URLS;
 import static com.timespot.backend.common.security.constant.SecurityConst.GET_AUTHENTICATED_URLS;
 import static com.timespot.backend.common.security.constant.SecurityConst.GET_PERMIT_ALL_URLS;
 import static com.timespot.backend.common.security.constant.SecurityConst.POST_AUTHENTICATED_URLS;
@@ -107,7 +108,7 @@ public class SecurityConfig {
                         .requestMatchers(POST, POST_PERMIT_ALL_URLS).permitAll()
                         //.requestMatchers(PUT, PUT_PERMIT_ALL_URLS).permitAll()
                         //.requestMatchers(PATCH, PATCH_PERMIT_ALL_URLS).permitAll()
-                        //.requestMatchers(DELETE, DELETE_PERMIT_ALL_URLS).permitAll()
+                        .requestMatchers(DELETE, DELETE_PERMIT_ALL_URLS).permitAll()
 
                         // Authenticated
                         .requestMatchers(GET, GET_AUTHENTICATED_URLS).authenticated()

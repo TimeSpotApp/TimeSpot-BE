@@ -65,6 +65,8 @@ public class FavoriteRepositoryImpl implements FavoriteRepositoryCustom {
                                                                .where(FAVORITE.id.in(favoriteIds),
                                                                       stationNameContains(keyword))
                                                                .orderBy(getSortCondition(pageable))
+                                                               .offset(pageable.getOffset())
+                                                               .limit(pageable.getPageSize())
                                                                .fetch();
 
         return PageableExecutionUtils.getPage(
