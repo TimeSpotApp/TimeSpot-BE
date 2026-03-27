@@ -43,7 +43,7 @@ public class PlaceController implements PlaceApiDocs {
 
     @Override
     @GetMapping()
-    public ResponseEntity<BaseResponse<List<PlaceResponseDto.AvailablePlace>>> getAvailablePlaces(
+    public ResponseEntity<BaseResponse<List<PlaceResponseDto.SimpleAvailablePlace>>> getAvailablePlaces(
             @RequestParam double userLat,
             @RequestParam double userLon,
             @RequestParam double mapLat,
@@ -51,7 +51,7 @@ public class PlaceController implements PlaceApiDocs {
             @RequestParam Long stationId,
             @RequestParam int remainingMinutes) {
 
-        List<PlaceResponseDto.AvailablePlace> places = placeService.getAvailablePlaces(
+        List<PlaceResponseDto.SimpleAvailablePlace> places = placeService.getAvailablePlaces(
                 userLat, userLon, mapLat, mapLon, stationId, remainingMinutes);
 
         return ResponseEntity.ok(BaseResponse.success(SuccessCode.PLACE_GET_AVAILABLE_PLACES_SUCCESS, places));
@@ -74,7 +74,7 @@ public class PlaceController implements PlaceApiDocs {
 
     @Override
     @GetMapping("/search")
-    public ResponseEntity<BaseResponse<Slice<PlaceResponseDto.AvailablePlace>>> searchPlaces(
+    public ResponseEntity<BaseResponse<Slice<PlaceResponseDto.SearchPlace>>> searchPlaces(
             @RequestParam double userLat,
             @RequestParam double userLon,
             @RequestParam Long stationId,
@@ -82,10 +82,12 @@ public class PlaceController implements PlaceApiDocs {
             @RequestParam(required = false, defaultValue = "") String keyword,
             @RequestParam(required = false, defaultValue = "전체") String category,
             @RequestParam(defaultValue = "STATION_NEAREST") PlaceSortType sortBy,
+            @RequestParam(required = false) Double markerLat,
+            @RequestParam(required = false) Double markerLon,
             @PageableDefault(size = 10) Pageable pageable) {
 
-        Slice<PlaceResponseDto.AvailablePlace> places = placeService.searchPlaces(
-                userLat, userLon, stationId, remainingMinutes, keyword, category, sortBy, pageable);
+        Slice<PlaceResponseDto.SearchPlace> places = placeService.searchPlaces(
+                userLat, userLon, stationId, remainingMinutes, keyword, category, sortBy, markerLat, markerLon, pageable);
 
         return ResponseEntity.ok(BaseResponse.success(SuccessCode.PLACE_GET_AVAILABLE_PLACES_SUCCESS, places));
     }

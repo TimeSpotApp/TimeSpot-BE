@@ -34,7 +34,7 @@ import java.util.List;
 public interface PlaceApiDocs {
     @Operation(summary = "방문 가능 장소 조회", description = "현재 사용자 위치에서 주어진 시간 내에 방문 후 복귀 가능한 장소를 조회합니다.")
     @ApiResponse(responseCode = "200", description = "방문 가능 장소 조회 성공")
-    ResponseEntity<BaseResponse<List<PlaceResponseDto.AvailablePlace>>> getAvailablePlaces(
+    ResponseEntity<BaseResponse<List<PlaceResponseDto.SimpleAvailablePlace>>> getAvailablePlaces(
             @RequestParam double userLat,
             @RequestParam double userLon,
             @RequestParam double mapLat,
@@ -55,7 +55,7 @@ public interface PlaceApiDocs {
 
     @Operation(summary = "장소 검색", description = "검색어와 필터에 맞는 장소를 검색합니다.")
     @ApiResponse(responseCode = "200", description = "장소 검색 성공")
-    ResponseEntity<BaseResponse<Slice<PlaceResponseDto.AvailablePlace>>> searchPlaces(
+    ResponseEntity<BaseResponse<Slice<PlaceResponseDto.SearchPlace>>> searchPlaces(
             @RequestParam double userLat,
             @RequestParam double userLon,
             @RequestParam Long stationId,
@@ -63,6 +63,8 @@ public interface PlaceApiDocs {
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String category,
             @RequestParam(defaultValue = "STATION_NEAREST") PlaceSortType sortBy,
+            @RequestParam(required = false) Double markerLat,
+            @RequestParam(required = false) Double markerLon,
             @PageableDefault(size = 10) Pageable pageable
     );
 }

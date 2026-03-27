@@ -13,12 +13,13 @@ import lombok.NoArgsConstructor;
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------
  * 26. 3. 19.     whitecity01       Initial creation
+ * 26. 3. 27.     whitecity01       Modify walk speed 60 -> 50
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public abstract class PlaceConst {
 
-    // 도보 속도 (분당 60m)
-    public static final int WALK_SPEED_PER_MINUTE = 60;
+    // 도보 속도 (분당 50m)
+    public static final int WALK_SPEED_PER_MINUTE = 50;
 
     // 플랫폼 대기 시간 (10분)
     public static final int PLATFORM_WAIT_TIME = 10;
