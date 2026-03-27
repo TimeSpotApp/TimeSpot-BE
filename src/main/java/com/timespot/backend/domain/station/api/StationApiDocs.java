@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -32,6 +33,7 @@ import org.springframework.http.ResponseEntity;
  * 26. 3. 26.    loadingKKamo21     ApiDocs 완성 (상세 문서화, validation annotation 추가, radius 파라미터 추가)
  * 26. 3. 26.    loadingKKamo21     즐겨찾기 API 문서 추가 (/api/v1/stations/favorites)
  * 26. 3. 28.    loadingKKamo21     JavaDoc 주석 보강
+ * 26. 3. 28.    loadingKKamo21     인증/비인증 API 분리 문서화
  */
 @Tag(
         name = "Station API",
@@ -49,7 +51,8 @@ import org.springframework.http.ResponseEntity;
                       - `DELETE /api/v1/stations/favorites/{stationId}` - 즐겨찾기 역 삭제
                       
                       ### 인증 방식
-                      - 모든 API 는 `Bearer Token` 인증이 필요합니다.
+                      - **역 목록 조회**: 인증 없이 이용 가능 (인증 시 즐겨찾기 정보 포함)
+                      - **즐겨찾기 관리**: `Bearer Token` 인증 필요
                       - 요청 헤더에 `Authorization: Bearer {accessToken}` 를 포함해야 합니다.
                       
                       ### 대상 역 정보
@@ -283,6 +286,7 @@ public interface StationApiDocs {
                           - 중복 시도 시 `409 CONFLICT` 에러가 반환됩니다.
                           """
     )
+    @SecurityRequirement(name = "BearerAuth")
     @ApiResponses({
             @ApiResponse(
                     responseCode = "201",
@@ -403,6 +407,7 @@ public interface StationApiDocs {
                           - 본인의 즐겨찾기가 아닌 경우 `404` 에러가 반환됩니다 (보안).
                           """
     )
+    @SecurityRequirement(name = "BearerAuth")
     @ApiResponses({
             @ApiResponse(
                     responseCode = "204",
@@ -496,6 +501,7 @@ public interface StationApiDocs {
                           - `hasNext`: 다음 페이지 존재 여부
                           """
     )
+    @SecurityRequirement(name = "BearerAuth")
     @ApiResponse(
             responseCode = "200",
             description = "즐겨찾기 목록 조회 성공",
