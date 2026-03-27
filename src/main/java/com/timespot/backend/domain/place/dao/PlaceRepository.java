@@ -2,6 +2,8 @@ package com.timespot.backend.domain.place.dao;
 
 import com.timespot.backend.domain.place.dto.PlaceResponseDto;
 import com.timespot.backend.domain.place.model.Place;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -22,39 +24,29 @@ import java.util.Optional;
  * 26. 3. 19.     whitecity01       Initial creation
  * 26. 3. 22.     whitecity01       ADD pagenation
  * 26. 3. 26.     whitecity01       MODIFY findAvailablePlacesOnRoute logic
+ * 26. 3. 27.     whitecity01       ADD place search
+ * 26. 3. 27.     whitecity01       MODIFY getPlaceDetail response
  */
 public interface PlaceRepository extends JpaRepository<Place, Long> {
 
     // 화면 기준 300m 내의 장소 중 사용자 체류 가능 장소 조회
     @Query(value = """
             SELECT 
-                p.name AS name,
-                p.google_place_id AS googlePlaceId,
-                p.category AS category,
-                p.address AS address,
+                p.place_id AS placeId,
                 ST_Y(p.location) AS lat,
                 ST_X(p.location) AS lon,
-                FLOOR(
-                    (
-                        :walkableDistance - (
-                            ST_Distance_Sphere(p.location, ST_GeomFromText(CONCAT('POINT(', :userLat, ' ', :userLon, ')'), 4326)) +
-                            ST_Distance_Sphere(p.location, ST_GeomFromText(CONCAT('POINT(', :stationLat, ' ', :stationLon, ')'), 4326))
-                        )
-                    ) / :walkSpeed
-                ) AS stayableMinutes
+                p.category AS category
             FROM places p
             INNER JOIN station_place_map spm ON p.place_id = spm.place_id
             WHERE spm.station_id = :stationId
-              -- 1차 필터링: 화면 중심 좌표(mapLon, mapLat) 반경 300m 이내
               AND ST_Distance_Sphere(p.location, ST_GeomFromText(CONCAT('POINT(', :mapLat, ' ', :mapLon, ')'), 4326)) <= 300
-              -- 2차 필터링: 남은 시간 내 방문 가능 여부 (사용자->장소 + 장소->역 거리)
               AND (
                     ST_Distance_Sphere(p.location, ST_GeomFromText(CONCAT('POINT(', :userLat, ' ', :userLon, ')'), 4326)) 
                     + 
                     ST_Distance_Sphere(p.location, ST_GeomFromText(CONCAT('POINT(', :stationLat, ' ', :stationLon, ')'), 4326))
               ) <= :walkableDistance
             """, nativeQuery = true)
-    List<PlaceResponseDto.AvailablePlace> findAvailablePlacesOnRoute(
+    List<PlaceResponseDto.SimpleAvailablePlace> findAvailablePlacesOnRoute(
             @Param("stationId") Long stationId,
             @Param("userLat") double userLat,
             @Param("userLon") double userLon,
@@ -68,21 +60,84 @@ public interface PlaceRepository extends JpaRepository<Place, Long> {
 
     @Query(value = """
             SELECT 
+                p.google_place_id AS googlePlaceId,
                 p.name AS name,
                 p.category AS category,
                 p.address AS address,
-                ST_Distance_Sphere(p.location, s.location) AS distanceToStation,
-                FLOOR(ST_Distance_Sphere(p.location, s.location) / :walkSpeed) AS timeToStation
+                CAST(ROUND(ST_Distance_Sphere(p.location, s.location)) AS UNSIGNED) AS distanceToStation,
+                FLOOR(ST_Distance_Sphere(p.location, s.location) / :walkSpeed) AS timeToStation,
+                FLOOR(
+                    (
+                        :walkableDistance - (
+                            ST_Distance_Sphere(p.location, ST_GeomFromText(CONCAT('POINT(', :userLat, ' ', :userLon, ')'), 4326)) +
+                            ST_Distance_Sphere(p.location, s.location)
+                        )
+                    ) / :walkSpeed
+                ) AS stayableMinutes
             FROM places p
             INNER JOIN station_place_map spm ON p.place_id = spm.place_id
             INNER JOIN stations s ON spm.station_id = s.station_id 
-            WHERE p.google_place_id = :googleId
+            WHERE p.place_id = :placeId
               AND s.station_id = :stationId
             LIMIT 1
             """, nativeQuery = true)
     Optional<PlaceResponseDto.PlaceDetailInDB> findPlaceDetail(
-            @Param("googleId") String googleId,
+            @Param("placeId") Long placeId,
             @Param("stationId") Long stationId,
+            @Param("userLat") double userLat,
+            @Param("userLon") double userLon,
+            @Param("walkableDistance") int walkableDistance,
             @Param("walkSpeed") int walkSpeed
+    );
+
+    @Query(value = """
+            SELECT 
+                p.name AS name,
+                p.place_id AS placeId,
+                p.category AS category,
+                p.address AS address,
+                ST_X(p.location) AS lat,
+                ST_Y(p.location) AS lon,
+                FLOOR(
+                    (
+                        :walkableDistance - (
+                            ST_Distance_Sphere(p.location, ST_GeomFromText(CONCAT('POINT(', :userLat, ' ', :userLon, ')'), 4326)) +
+                            ST_Distance_Sphere(p.location, ST_GeomFromText(CONCAT('POINT(', :stationLat, ' ', :stationLon, ')'), 4326))
+                        )
+                    ) / :walkSpeed
+                ) AS stayableMinutes,
+                ST_Distance_Sphere(p.location, ST_GeomFromText(CONCAT('POINT(', :stationLat, ' ', :stationLon, ')'), 4326)) AS distanceToStation,
+                ST_Distance_Sphere(p.location, ST_GeomFromText(CONCAT('POINT(', :userLat, ' ', :userLon, ')'), 4326)) AS distanceToUser,
+                ST_Distance_Sphere(p.location, ST_GeomFromText(CONCAT('POINT(', :markerLat, ' ', :markerLon, ')'), 4326)) AS distanceToMarker
+            FROM places p
+            INNER JOIN station_place_map spm ON p.place_id = spm.place_id
+            WHERE spm.station_id = :stationId
+              AND (:keyword IS NULL OR p.name LIKE CONCAT('%', :keyword, '%'))
+              AND (:category IS NULL OR p.category = :category)
+              AND (
+                    ST_Distance_Sphere(p.location, ST_GeomFromText(CONCAT('POINT(', :userLat, ' ', :userLon, ')'), 4326)) 
+                    + 
+                    ST_Distance_Sphere(p.location, ST_GeomFromText(CONCAT('POINT(', :stationLat, ' ', :stationLon, ')'), 4326))
+              ) <= :walkableDistance
+            ORDER BY
+                CASE WHEN :sortBy = 'USER_NEAREST' THEN distanceToUser
+                     WHEN :sortBy = 'MARKER_NEAREST' THEN distanceToMarker
+                     ELSE distanceToStation
+                END ASC
+            """, nativeQuery = true)
+    Slice<PlaceResponseDto.AvailablePlace> searchAvailablePlaces(
+            @Param("stationId") Long stationId,
+            @Param("userLat") double userLat,
+            @Param("userLon") double userLon,
+            @Param("stationLat") double stationLat,
+            @Param("stationLon") double stationLon,
+            @Param("markerLat") double markerLat,
+            @Param("markerLon") double markerLon,
+            @Param("walkableDistance") int walkableDistance,
+            @Param("walkSpeed") int walkSpeed,
+            @Param("keyword") String keyword,
+            @Param("category") String category,
+            @Param("sortBy") String sortBy,
+            Pageable pageable
     );
 }

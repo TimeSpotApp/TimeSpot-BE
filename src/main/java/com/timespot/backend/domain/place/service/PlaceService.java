@@ -1,6 +1,9 @@
 package com.timespot.backend.domain.place.service;
 
+import com.timespot.backend.domain.place.constant.PlaceSortType;
 import com.timespot.backend.domain.place.dto.PlaceResponseDto;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 
 import java.util.List;
 
@@ -18,14 +21,27 @@ import java.util.List;
  * 26. 3. 22.     whitecity01       ADD pagenation
  * 26. 3. 22.     whitecity01       ADD place detail
  * 26. 3. 26.     whitecity01       MODIFY findAvailablePlacesOnRoute logic
+ * 26. 3. 27.     whitecity01       ADD place search
+ * 26. 3. 27.     whitecity01       MODIFY getPlaceDetail response
  */
 public interface PlaceService {
-    List<PlaceResponseDto.AvailablePlace> getAvailablePlaces(double userLat,
+    List<PlaceResponseDto.SimpleAvailablePlace> getAvailablePlaces(double userLat,
                                                              double userLon,
                                                              double mapLat,
                                                              double mapLon,
                                                              Long stationId,
                                                              int remainingMinutes);
 
-    PlaceResponseDto.PlaceDetail getPlaceDetail(String googleId, Long stationId);
+    PlaceResponseDto.PlaceDetail getPlaceDetail(Long placeId, Long stationId, double userLat, double userLon, int remainingMinutes);
+
+    Slice<PlaceResponseDto.SearchPlace> searchPlaces(double userLat,
+                                                        double userLon,
+                                                        Long stationId,
+                                                        int remainingMinutes,
+                                                        String keyword,
+                                                        String category,
+                                                        PlaceSortType sortBy,
+                                                        Double markerLat,
+                                                        Double markerLon,
+                                                        Pageable pageable);
 }
