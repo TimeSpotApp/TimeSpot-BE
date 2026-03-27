@@ -83,6 +83,10 @@ public class PlaceServiceImpl implements PlaceService {
                         placeId, stationId, userLat, userLon, walkableDistance, PlaceConst.WALK_SPEED_PER_MINUTE)
                 .orElseThrow(() -> new GlobalException(ErrorCode.PLACE_NOT_FOUND));
 
+        if (dbResult.getStayableMinutes() < 0) {
+            throw new GlobalException(ErrorCode.PLACE_INSUFFICIENT_REMAINING_TIME); // 체류 불가능
+        }
+
         GooglePlaceDto.ParsedResult googleApiResult = googlePlaceApiService.getPlaceDetails(dbResult.getGooglePlaceId());
 
         LocalDateTime leaveTimeObj = LocalDateTime.now().plusMinutes(remainingMinutes - dbResult.getTimeToStation());
@@ -140,7 +144,7 @@ public class PlaceServiceImpl implements PlaceService {
 
         return dbPlaces.map(place -> PlaceResponseDto.SearchPlace.builder()
                 .name(place.getName())
-                .googlePlaceId(place.getGooglePlaceId())
+                .placeId(place.getPlaceId())
                 .category(place.getCategory())
                 .address(place.getAddress())
                 .lat(place.getLat())

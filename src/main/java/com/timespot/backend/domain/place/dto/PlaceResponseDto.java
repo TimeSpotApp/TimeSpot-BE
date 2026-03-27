@@ -33,8 +33,8 @@ public abstract class PlaceResponseDto {
         @Schema(description = "장소 이름", example = "스타벅스 서울역점")
         String getName();
 
-        @Schema(description = "구글 플레이스 ID", example = "ChIJudLQD1mjfDUR3VmcnRfX3Yg")
-        String getGooglePlaceId();
+        @Schema(description = "장소 ID", example = "20")
+        Long getPlaceId();
 
         @Schema(description = "장소 카테고리", example = "카페")
         String getCategory();
@@ -59,8 +59,8 @@ public abstract class PlaceResponseDto {
         @Schema(description = "장소 이름", example = "스타벅스 서울역점")
         private String name;
 
-        @Schema(description = "구글 플레이스 ID", example = "ChIJudLQD1mjfDUR3VmcnRfX3Yg")
-        private String googlePlaceId;
+        @Schema(description = "장소 ID", example = "20")
+        private Long placeId;
 
         @Schema(description = "장소 카테고리", example = "카페")
         private String category;
