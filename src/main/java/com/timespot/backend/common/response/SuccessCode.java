@@ -54,7 +54,15 @@ public enum SuccessCode {
     HISTORY_DELETE_SUCCESS(HttpStatus.NO_CONTENT, "방문 이력이 성공적으로 삭제되었습니다."),
 
     // Station
-    STATION_GET_SUCCESS(HttpStatus.OK, "역 조회가 완료되었습니다.");
+    STATION_GET_SUCCESS(HttpStatus.OK, "역 조회가 완료되었습니다."),
+
+    // Device
+    DEVICE_REGISTER_SUCCESS(HttpStatus.OK, "디바이스 등록이 완료되었습니다."),
+    DEVICE_UNREGISTER_SUCCESS(HttpStatus.OK, "디바이스 등록이 해제되었습니다."),
+
+    // User Notification
+    USER_NOTIFICATION_SETTINGS_GET_SUCCESS(HttpStatus.OK, "알림 설정 조회가 완료되었습니다."),
+    USER_NOTIFICATION_SETTINGS_UPDATE_SUCCESS(HttpStatus.OK, "알림 설정이 변경되었습니다.");
 
     private final HttpStatus status;
     private final String     message;

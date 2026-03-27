@@ -77,6 +77,8 @@ public class VisitingHistoryRepositoryImpl implements VisitingHistoryRepositoryC
                                                                       .where(VISITING_HISTORY.id.in(historyIds),
                                                                              stationOrPlaceContains(keyword))
                                                                       .orderBy(getSortCondition(pageable))
+                                                                      .offset(pageable.getOffset())
+                                                                      .limit(pageable.getPageSize())
                                                                       .fetch();
 
         return PageableExecutionUtils.getPage(
