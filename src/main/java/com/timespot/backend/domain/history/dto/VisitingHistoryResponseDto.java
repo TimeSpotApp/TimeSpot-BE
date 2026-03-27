@@ -7,11 +7,12 @@ import static lombok.AccessLevel.PRIVATE;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.querydsl.core.annotations.QueryProjection;
-import com.timespot.backend.domain.history.model.VisitingHistory;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDateTime;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.locationtech.jts.geom.Point;
 
 /**
  * PackageName : com.timespot.backend.domain.history.dto
@@ -120,41 +121,40 @@ public abstract class VisitingHistoryResponseDto {
         private final String stationName;
 
         @Schema(description = "역 주소", example = "서울특별시 용산구 청암로 92", accessMode = READ_ONLY)
-        private final String stationAddress;
-
+        private final String        stationAddress;
         @Schema(description = "방문 장소 ID", example = "10", accessMode = READ_ONLY)
-        private final Long placeId;
-
+        private final Long          placeId;
         @Schema(description = "방문 장소 이름", example = "스타벅스 서울역점", accessMode = READ_ONLY)
-        private final String placeName;
-
+        private final String        placeName;
         @Schema(description = "방문 장소 카테고리", example = "카페", accessMode = READ_ONLY)
-        private final String placeCategory;
-
+        private final String        placeCategory;
         @Schema(description = "방문 장소 주소", example = "서울특별시 용산구 청암로 90 1 층", accessMode = READ_ONLY)
-        private final String placeAddress;
-
+        private final String        placeAddress;
+        @Schema(description = "방문 장소 위도", example = "37.5665", accessMode = READ_ONLY)
+        private final Double        placeLat;
+        @Schema(description = "방문 장소 경도", example = "126.9780", accessMode = READ_ONLY)
+        private final Double        placeLng;
         @Schema(description = "여정 시작 시간 (ISO-8601 형식)", example = "2024-03-25T13:00:00", accessMode = READ_ONLY)
         private final LocalDateTime startTime;
-
         @Schema(description = "여정 종료 시간 (ISO-8601 형식, null 인 경우 진행 중)", example = "2024-03-25T14:30:00",
                 accessMode = READ_ONLY)
         private final LocalDateTime endTime;
-
         @Schema(description = "열차 출발 시간 (ISO-8601 형식)", example = "2024-03-25T15:30:00", accessMode = READ_ONLY)
         private final LocalDateTime trainDepartureTime;
-
         @Schema(description = "총 소요 시간 (분)", example = "90", accessMode = READ_ONLY)
-        private final Integer totalDurationMinutes;
-
+        private final Integer       totalDurationMinutes;
         @Schema(description = "여정 진행 중 여부 (true: 진행 중, false: 완료)", example = "true", accessMode = READ_ONLY)
-        private final Boolean isInProgress;
-
+        private final Boolean       isInProgress;
         @Schema(description = "여정 성공 여부 (true: 열차 출발 전 도착, false: 놓침)", example = "true", accessMode = READ_ONLY)
-        private final Boolean isSuccess;
-
+        private final Boolean       isSuccess;
         @Schema(description = "여정 생성 일시 (ISO-8601 형식)", example = "2024-03-25T13:00:00", accessMode = READ_ONLY)
         private final LocalDateTime createdAt;
+        @Setter
+        @Schema(description = "여정 시작 위치 위도", example = "37.5665", accessMode = READ_ONLY)
+        private       Double        startLat;
+        @Setter
+        @Schema(description = "여정 시작 위치 경도", example = "126.9780", accessMode = READ_ONLY)
+        private       Double        startLng;
 
         @QueryProjection
         @JsonCreator
@@ -166,6 +166,7 @@ public abstract class VisitingHistoryResponseDto {
                                              final String placeName,
                                              final String placeCategory,
                                              final String placeAddress,
+                                             final Point placeLocation,
                                              final LocalDateTime startTime,
                                              final LocalDateTime endTime,
                                              final LocalDateTime trainDepartureTime,
@@ -181,6 +182,8 @@ public abstract class VisitingHistoryResponseDto {
             this.placeName = placeName;
             this.placeCategory = placeCategory;
             this.placeAddress = placeAddress;
+            this.placeLat = placeLocation.getY();
+            this.placeLng = placeLocation.getX();
             this.startTime = startTime;
             this.endTime = endTime;
             this.trainDepartureTime = trainDepartureTime;
@@ -188,26 +191,6 @@ public abstract class VisitingHistoryResponseDto {
             this.isInProgress = isInProgress;
             this.isSuccess = !isInProgress && isSuccess;
             this.createdAt = createdAt;
-        }
-
-        public static VisitingHistoryDetailResponse from(final VisitingHistory visitingHistory) {
-            return new VisitingHistoryDetailResponse(
-                    visitingHistory.getId(),
-                    visitingHistory.getStation().getId(),
-                    visitingHistory.getStation().getName(),
-                    visitingHistory.getStation().getAddress(),
-                    visitingHistory.getPlace().getId(),
-                    visitingHistory.getPlace().getName(),
-                    visitingHistory.getPlace().getCategory(),
-                    visitingHistory.getPlace().getAddress(),
-                    visitingHistory.getStartTime(),
-                    visitingHistory.getEndTime(),
-                    visitingHistory.getTrainDepartureTime(),
-                    visitingHistory.getTotalDurationMinutes(),
-                    visitingHistory.isInProgress(),
-                    visitingHistory.isSuccess(),
-                    visitingHistory.getCreatedAt()
-            );
         }
 
     }

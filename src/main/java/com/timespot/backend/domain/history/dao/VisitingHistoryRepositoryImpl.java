@@ -8,13 +8,16 @@ import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import com.timespot.backend.domain.history.dto.QVisitingHistoryResponseDto_VisitingHistoryDetailResponse;
 import com.timespot.backend.domain.history.dto.QVisitingHistoryResponseDto_VisitingHistoryListResponse;
+import com.timespot.backend.domain.history.dto.VisitingHistoryResponseDto.VisitingHistoryDetailResponse;
 import com.timespot.backend.domain.history.dto.VisitingHistoryResponseDto.VisitingHistoryListResponse;
 import com.timespot.backend.domain.history.model.QVisitingHistory;
 import com.timespot.backend.domain.place.model.QPlace;
 import com.timespot.backend.domain.station.model.QStation;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -43,6 +46,36 @@ public class VisitingHistoryRepositoryImpl implements VisitingHistoryRepositoryC
     private static final QPlace           PLACE            = QPlace.place;
 
     private final JPAQueryFactory queryFactory;
+
+    @Override
+    public Optional<VisitingHistoryDetailResponse> findVisitingHistoryDetail(final UUID userId, final Long historyId) {
+        return Optional.ofNullable(queryFactory.select(
+                                                       new QVisitingHistoryResponseDto_VisitingHistoryDetailResponse(
+                                                               VISITING_HISTORY.id,
+                                                               STATION.id,
+                                                               STATION.name,
+                                                               STATION.address,
+                                                               PLACE.id,
+                                                               PLACE.name,
+                                                               PLACE.category,
+                                                               PLACE.address,
+                                                               PLACE.location,
+                                                               VISITING_HISTORY.startTime,
+                                                               VISITING_HISTORY.endTime,
+                                                               VISITING_HISTORY.trainDepartureTime,
+                                                               VISITING_HISTORY.totalDurationMinutes,
+                                                               VISITING_HISTORY.isSuccess.isNull().or(VISITING_HISTORY.isSuccess.isFalse()),
+                                                               VISITING_HISTORY.isSuccess,
+                                                               VISITING_HISTORY.createdAt
+                                                       )
+                                               )
+                                               .from(VISITING_HISTORY)
+                                               .join(STATION).on(VISITING_HISTORY.station.id.eq(STATION.id))
+                                               .join(PLACE).on(VISITING_HISTORY.place.id.eq(PLACE.id))
+                                               .where(VISITING_HISTORY.user.id.eq(userId),
+                                                      VISITING_HISTORY.id.eq(historyId))
+                                               .fetchOne());
+    }
 
     @Override
     public Page<VisitingHistoryListResponse> findVisitingHistoryList(final UUID userId,

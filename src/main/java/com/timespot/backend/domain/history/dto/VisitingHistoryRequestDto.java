@@ -52,6 +52,14 @@ public abstract class VisitingHistoryRequestDto {
         @Schema(description = "[필수] 열차 출발 시간 (ISO-8601 형식)", example = "2024-03-25T15:30:00", requiredMode = REQUIRED)
         private LocalDateTime trainDepartureTime;
 
+        @NotNull(message = "여정 시작 위치 위도는 필수입니다.")
+        @Schema(description = "[필수] 여정 시작 위치 위도", example = "37.5665", requiredMode = REQUIRED)
+        private Double lat;
+
+        @NotNull(message = "여정 시작 위치 경도는 필수입니다.")
+        @Schema(description = "[필수] 여정 시작 위치 경도", example = "126.9780", requiredMode = REQUIRED)
+        private Double lng;
+
     }
 
     /**

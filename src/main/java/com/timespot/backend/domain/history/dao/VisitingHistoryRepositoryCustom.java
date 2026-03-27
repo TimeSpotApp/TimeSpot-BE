@@ -1,6 +1,8 @@
 package com.timespot.backend.domain.history.dao;
 
+import com.timespot.backend.domain.history.dto.VisitingHistoryResponseDto.VisitingHistoryDetailResponse;
 import com.timespot.backend.domain.history.dto.VisitingHistoryResponseDto.VisitingHistoryListResponse;
+import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -17,6 +19,8 @@ import org.springframework.data.domain.Pageable;
  * 26. 3. 24.    loadingKKamo21       Initial creation
  */
 public interface VisitingHistoryRepositoryCustom {
+
+    Optional<VisitingHistoryDetailResponse> findVisitingHistoryDetail(UUID userId, Long historyId);
 
     /**
      * 사용자의 방문 이력 목록을 조회합니다.

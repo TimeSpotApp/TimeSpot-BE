@@ -1,14 +1,19 @@
 package com.timespot.backend.domain.place.model;
 
 import com.timespot.backend.common.model.BaseAuditingEntity;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import java.util.Objects;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.util.Objects;
+import org.locationtech.jts.geom.Point;
 
 /**
  * PackageName : com.timespot.backend.domain.place.model
@@ -21,6 +26,7 @@ import java.util.Objects;
  * ---------------------------------------------------------------------------------------------------------------------
  * 26. 3. 19.     whitecity01       Initial creation
  * 26. 3. 20.     whitecity01       REFACTOR DATE INIT
+ * 26. 3. 26.     loadingKKamo21    ADD location
  */
 @Getter
 @Entity
@@ -52,6 +58,9 @@ public class Place extends BaseAuditingEntity {
     @Column(name = "address", nullable = false)
     private String address;
 
+    @Column(columnDefinition = "POINT SRID 4326", nullable = false)
+    private Point location;
+
     // ========================= JPA 엔티티 메서드 =========================
 
     @Override
@@ -62,5 +71,5 @@ public class Place extends BaseAuditingEntity {
     }
 
     @Override
-    public int hashCode() { return Objects.hashCode(getId()); }
+    public int hashCode() {return Objects.hashCode(getId());}
 }
