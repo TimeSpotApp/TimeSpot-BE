@@ -63,7 +63,7 @@ public interface PlaceRepository extends JpaRepository<Place, Long> {
                 p.name AS name,
                 p.category AS category,
                 p.address AS address,
-                ST_Distance_Sphere(p.location, s.location) AS distanceToStation,
+                CAST(ROUND(ST_Distance_Sphere(p.location, s.location)) AS UNSIGNED) AS distanceToStation,
                 FLOOR(ST_Distance_Sphere(p.location, s.location) / :walkSpeed) AS timeToStation,
                 FLOOR(
                     (

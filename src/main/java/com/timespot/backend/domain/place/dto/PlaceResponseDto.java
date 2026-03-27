@@ -103,7 +103,7 @@ public abstract class PlaceResponseDto {
         String getName();
         String getCategory();
         String getAddress();
-        Double getDistanceToStation();
+        Integer getDistanceToStation();
         Integer getTimeToStation();
         Integer getStayableMinutes();
     }
@@ -122,7 +122,7 @@ public abstract class PlaceResponseDto {
         private String address;
 
         @Schema(description = "역으로부터의 직선 거리 (미터)", example = "450.5")
-        private Double distanceToStation;
+        private Integer distanceToStation;
 
         @Schema(description = "역에서부터 도보 소요 시간 (분)", example = "5")
         private Integer timeToStation;
