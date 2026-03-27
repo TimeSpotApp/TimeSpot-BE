@@ -57,11 +57,18 @@ public class VisitingHistoryServiceImpl implements VisitingHistoryService {
         Station station = getStationById(dto.getStationId());
         Place   place   = getPlaceById(dto.getPlaceId());
 
-        VisitingHistory visitingHistory = visitingHistoryRepository.save(
+        Long historyId = visitingHistoryRepository.save(
                 VisitingHistory.of(user, station, place, LocalDateTime.now(), dto.getTrainDepartureTime())
-        );
+        ).getId();
 
-        return VisitingHistoryDetailResponse.from(visitingHistory);
+        VisitingHistoryDetailResponse response = visitingHistoryRepository.findVisitingHistoryDetail(userId, historyId)
+                                                                          .orElseThrow(() -> new GlobalException(
+                                                                                  HISTORY_NOT_FOUND
+                                                                          ));
+        response.setStartLat(dto.getLat());
+        response.setStartLng(dto.getLng());
+
+        return response;
     }
 
     @Override
@@ -82,9 +89,9 @@ public class VisitingHistoryServiceImpl implements VisitingHistoryService {
             visitingHistory.endJourney(LocalDateTime.now());
 
             if (visitingHistory.isSuccess()) {
-                User user = visitingHistory.getUser();
-                Station station = visitingHistory.getStation();
-                int durationMinutes = visitingHistory.getTotalDurationMinutes();
+                User    user            = visitingHistory.getUser();
+                Station station         = visitingHistory.getStation();
+                int     durationMinutes = visitingHistory.getTotalDurationMinutes();
 
                 user.addVisitHistory(durationMinutes, true);
 
@@ -93,7 +100,8 @@ public class VisitingHistoryServiceImpl implements VisitingHistoryService {
         } else
             visitingHistory.abandonJourney();
 
-        return VisitingHistoryDetailResponse.from(visitingHistory);
+        return visitingHistoryRepository.findVisitingHistoryDetail(userId, historyId)
+                                        .orElseThrow(() -> new GlobalException(HISTORY_NOT_FOUND));
     }
 
     @Override
