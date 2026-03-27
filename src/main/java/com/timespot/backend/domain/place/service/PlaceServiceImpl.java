@@ -106,15 +106,14 @@ public class PlaceServiceImpl implements PlaceService {
     }
 
     @Override
-    public Slice<PlaceResponseDto.AvailablePlace> searchPlaces(double userLat, double userLon, Long stationId, int remainingMinutes, String keyword, String category, PlaceSortType sortBy, Double markerLat, Double markerLon, Pageable pageable) {
+    public Slice<PlaceResponseDto.SearchPlace> searchPlaces(double userLat, double userLon, Long stationId, int remainingMinutes, String keyword, String category, PlaceSortType sortBy, Double markerLat, Double markerLon, Pageable pageable) {
 
         Station station = getValidatedStation(stationId);
         int walkableDistance = calculateWalkableDistance(remainingMinutes);
 
         // 마커 기준 정렬인데 마커 좌표가 없는 경우 예외 처리
         if (sortBy == PlaceSortType.MARKER_NEAREST && (markerLat == null || markerLon == null)) {
-            // 적절한 ErrorCode로 변경해주세요. (예: ErrorCode.INVALID_REQUEST_PARAMETER)
-            throw new GlobalException(ErrorCode.PLACE_NOT_FOUND);
+            throw new GlobalException(ErrorCode.PLACE_INVALID_MARKER);
         }
 
         // 쿼리 오류 방지를 위한 안전한 기본값 할당 (정렬 조건이 MARKER_NEAREST가 아닐 때 null 방지)
@@ -126,14 +125,30 @@ public class PlaceServiceImpl implements PlaceService {
 
         Pageable unpaged = org.springframework.data.domain.PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
 
-        return placeRepository.searchAvailablePlaces(
+        Slice<PlaceResponseDto.AvailablePlace> dbPlaces = placeRepository.searchAvailablePlaces(
                 stationId, userLat, userLon, station.getLatitude(), station.getLongitude(),
-                safeMarkerLat, safeMarkerLon, // 추가된 마커 좌표
+                safeMarkerLat, safeMarkerLon,
                 walkableDistance, PlaceConst.WALK_SPEED_PER_MINUTE,
                 filterKeyword,
                 filterCategory,
                 sortBy.name(),
                 unpaged
+        );
+
+        // TODO : Google API 연동 및 캐싱 로직 추가
+        String hardcodedClosingTime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + " 22:00:00";
+
+        return dbPlaces.map(place -> PlaceResponseDto.SearchPlace.builder()
+                .name(place.getName())
+                .googlePlaceId(place.getGooglePlaceId())
+                .category(place.getCategory())
+                .address(place.getAddress())
+                .lat(place.getLat())
+                .lon(place.getLon())
+                .stayableMinutes(place.getStayableMinutes())
+                .isOpen(true)                             // TODO : Google API 연동 및 캐싱 로직 추가
+                .closingTime(hardcodedClosingTime)        // TODO : Google API 연동 및 캐싱 로직 추가
+                .build()
         );
     }
 

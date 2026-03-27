@@ -34,7 +34,7 @@ public interface PlaceService {
 
     PlaceResponseDto.PlaceDetail getPlaceDetail(String googleId, Long stationId, double userLat, double userLon, int remainingMinutes);
 
-    Slice<PlaceResponseDto.AvailablePlace> searchPlaces(double userLat,
+    Slice<PlaceResponseDto.SearchPlace> searchPlaces(double userLat,
                                                         double userLon,
                                                         Long stationId,
                                                         int remainingMinutes,

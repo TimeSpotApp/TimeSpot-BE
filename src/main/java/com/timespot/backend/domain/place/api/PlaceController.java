@@ -74,7 +74,7 @@ public class PlaceController implements PlaceApiDocs {
 
     @Override
     @GetMapping("/search")
-    public ResponseEntity<BaseResponse<Slice<PlaceResponseDto.AvailablePlace>>> searchPlaces(
+    public ResponseEntity<BaseResponse<Slice<PlaceResponseDto.SearchPlace>>> searchPlaces(
             @RequestParam double userLat,
             @RequestParam double userLon,
             @RequestParam Long stationId,
@@ -86,7 +86,7 @@ public class PlaceController implements PlaceApiDocs {
             @RequestParam(required = false) Double markerLon,
             @PageableDefault(size = 10) Pageable pageable) {
 
-        Slice<PlaceResponseDto.AvailablePlace> places = placeService.searchPlaces(
+        Slice<PlaceResponseDto.SearchPlace> places = placeService.searchPlaces(
                 userLat, userLon, stationId, remainingMinutes, keyword, category, sortBy, markerLat, markerLon, pageable);
 
         return ResponseEntity.ok(BaseResponse.success(SuccessCode.PLACE_GET_AVAILABLE_PLACES_SUCCESS, places));
