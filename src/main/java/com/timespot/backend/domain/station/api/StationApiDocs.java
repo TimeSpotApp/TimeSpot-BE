@@ -3,7 +3,6 @@ package com.timespot.backend.domain.station.api;
 import com.timespot.backend.common.response.BaseResponse;
 import com.timespot.backend.common.response.annotation.CustomPageResponse;
 import com.timespot.backend.common.security.model.CustomUserDetails;
-import com.timespot.backend.domain.favorite.dto.FavoriteRequestDto.FavoriteStationCreateRequest;
 import com.timespot.backend.domain.favorite.dto.FavoriteResponseDto.FavoriteListResponse;
 import com.timespot.backend.domain.station.dto.StationResponseDto.StationSearchResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -14,7 +13,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Pattern;
@@ -38,17 +36,17 @@ import org.springframework.http.ResponseEntity;
         name = "Station API",
         description = """
                       ## 역 (Station) API
-
+                      
                       ### 주요 기능
                       - **역 목록 조회**: 사용자의 위치 기반 역 목록 통합 조회 (즐겨찾기 + 근처 + 전체)
                       - **즐겨찾기 관리**: 역 즐겨찾기 추가/삭제/목록 조회
-
+                      
                       ### API 경로
                       - `GET /api/v1/stations` - 역 목록 통합 조회
                       - `POST /api/v1/stations/favorites` - 즐겨찾기 역 추가
                       - `GET /api/v1/stations/favorites` - 즐겨찾기 역 목록 조회
                       - `DELETE /api/v1/stations/favorites/{favoriteId}` - 즐겨찾기 역 삭제
-
+                      
                       ### 인증 방식
                       - 모든 API 는 `Bearer Token` 인증이 필요합니다.
                       - 요청 헤더에 `Authorization: Bearer {accessToken}` 를 포함해야 합니다.
@@ -60,10 +58,10 @@ public interface StationApiDocs {
             summary = "역 목록 통합 조회",
             description = """
                           ### 사용자의 위치를 기반으로 역 목록을 통합 조회합니다.
-
+                          
                           #### 요청 헤더
                           - `Authorization: Bearer {accessToken}` - 선택 (인증 시 즐겨찾기 여부 포함)
-
+                          
                           #### 쿼리 파라미터
                           - `lat`: 사용자 위도 - 필수
                           - `lng`: 사용자 경도 - 필수
@@ -76,12 +74,12 @@ public interface StationApiDocs {
                             - **방향**: `ASC`, `DESC` (대소문자 구분 없음)
                             - **단일 정렬 예시**: `stationName,ASC`
                             - **다중 정렬 예시**: `stationName,DESC,stationName,ASC`
-
+                          
                           #### 응답 데이터
                           - `favoriteStations`: 사용자가 즐겨찾기한 역 목록 (인증 시에만 populated, 아니면 빈 배열)
                           - `nearbyStations`: 사용자 위치와 가까운 역 목록 (거리 기준 오름차순, 최대 5 개)
                           - `stations`: 전체 역 목록 (페이징 적용, 정렬 가능)
-
+                          
                           #### 주의사항
                           - 인증하지 않은 사용자는 `favoriteStations` 가 빈 배열로 반환됩니다.
                           - `nearbyStations` 는 거리 기준 오름차순 정렬됩니다 (최대 5 개).
@@ -255,28 +253,26 @@ public interface StationApiDocs {
             @Parameter(hidden = true) CustomUserDetails userDetails
     );
 
-    // ========================= 즐겨찾기 API 문서 =========================
-
     @Operation(
             summary = "즐겨찾기 역 추가",
             description = """
                           ### 사용자가 특정 역을 즐겨찾기에 추가합니다.
-
+                          
                           #### 요청 헤더
                           - `Authorization: Bearer {accessToken}` - 필수
-
+                          
                           #### 요청 본문
                           - `stationId`: 추가할 역 ID - 필수
-
+                          
                           #### 요청 URL
-                          - `POST /api/v1/stations/favorites`
-
+                          - `POST /api/v1/stations/favorites/{stationId}`
+                          
                           #### 처리 과정
                           1. 사용자 존재 여부 확인
                           2. 역 존재 여부 확인
                           3. 중복 즐겨찾기 검증
                           4. 즐겨찾기 생성 및 저장
-
+                          
                           #### 주의사항
                           - 이미 즐겨찾기에 등록된 역은 중복 추가할 수 없습니다.
                           - 중복 시도 시 `409 CONFLICT` 에러가 반환됩니다.
@@ -373,33 +369,32 @@ public interface StationApiDocs {
     ResponseEntity<BaseResponse<Void>> createFavoriteStation(
             @Parameter(hidden = true) CustomUserDetails userDetails,
             @Parameter(
-                    description = "즐겨찾기 역 생성 요청 페이로드",
-                    required = true
-            ) @Valid FavoriteStationCreateRequest dto
+                    description = "역 ID",
+                    required = true,
+                    example = "1"
+            ) @Min(1) Long stationId
     );
 
     @Operation(
             summary = "즐겨찾기 역 삭제",
             description = """
-                          ### 즐겨찾기 ID 를 사용하여 특정 즐겨찾기를 삭제합니다.
-
+                          ### 역 ID 를 사용하여 특정 즐겨찾기를 삭제합니다.
+                          
                           #### 요청 헤더
                           - `Authorization: Bearer {accessToken}` - 필수
-
+                          
                           #### 경로 변수
-                          - `favoriteId`: 삭제할 즐겨찾기 ID - 필수
-
+                          - `stationId`: 삭제할 즐겨찾기 역 ID - 필수
+                          
                           #### 요청 URL
-                          - `DELETE /api/v1/stations/favorites/{favoriteId}`
-
+                          - `DELETE /api/v1/stations/favorites/{stationId}`
+                          
                           #### 처리 과정
                           1. 즐겨찾기 존재 여부 확인
                           2. 본인 소유 검증 (보안)
                           3. 즐겨찾기 삭제
-
+                          
                           #### 중요
-                          - `stationId` 가 아닌 `favoriteId` 를 사용합니다.
-                          - 이는 REST 원칙에 따라 리소스를 명확히 식별하기 위함입니다.
                           - 본인의 즐겨찾기가 아닌 경우 `404` 에러가 반환됩니다 (보안).
                           """
     )
@@ -451,20 +446,20 @@ public interface StationApiDocs {
     ResponseEntity<BaseResponse<Void>> deleteFavoriteStation(
             @Parameter(hidden = true) CustomUserDetails userDetails,
             @Parameter(
-                    description = "즐겨찾기 ID",
+                    description = "역 ID",
                     required = true,
                     example = "1"
-            ) @Min(1) Long favoriteId
+            ) @Min(1) Long stationId
     );
 
     @Operation(
             summary = "즐겨찾기 역 목록 조회",
             description = """
                           ### 사용자의 즐겨찾기 역 목록을 조회합니다.
-
+                          
                           #### 요청 헤더
                           - `Authorization: Bearer {accessToken}` - 필수
-
+                          
                           #### 쿼리 파라미터
                           - `keyword`: 검색어 (역 이름, 부분 일치, 대소문자 구분 없음) - 선택
                           - `page`: 페이지 번호 (1 부터 시작, 기본값: 1) - 선택
@@ -474,10 +469,10 @@ public interface StationApiDocs {
                             - **방향**: `ASC`, `DESC` (대소문자 구분 없음)
                             - **단일 정렬 예시**: `createdAt,DESC`
                             - **다중 정렬 예시**: `visitCount,DESC,stationName,ASC`
-
+                          
                           #### 요청 URL
                           - `GET /api/v1/stations/favorites`
-
+                          
                           #### 응답 데이터
                           - `favoriteId`: 즐겨찾기 ID
                           - `stationId`: 역 ID
@@ -485,7 +480,7 @@ public interface StationApiDocs {
                           - `visitCount`: 방문 횟수 (정상 완료된 여정만 카운트)
                           - `totalVisitMinutes`: 총 방문 시간 (분) (정상 완료된 여정의 소요 시간 합계)
                           - `createdAt`: 즐겨찾기 추가 일시
-
+                          
                           #### 페이징 정보
                           - `content`: 즐겨찾기 목록
                           - `totalElements`: 전체 요소 개수

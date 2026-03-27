@@ -13,7 +13,6 @@ import com.timespot.backend.domain.station.dao.StationRepository;
 import com.timespot.backend.domain.station.model.Station;
 import com.timespot.backend.domain.user.dao.UserRepository;
 import com.timespot.backend.domain.user.model.User;
-import java.util.Objects;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -63,19 +62,16 @@ public class FavoriteServiceImpl implements FavoriteService {
     /**
      * 즐겨찾기 역 삭제
      *
-     * @param userId     사용자 ID
-     * @param favoriteId 즐겨찾기 ID
+     * @param userId    사용자 ID
+     * @param stationId 즐겨찾기 역 ID
      */
     @Override
     @Transactional
-    public void deleteFavoriteStation(final UUID userId, final Long favoriteId) {
+    public void deleteFavoriteStation(final UUID userId, final Long stationId) {
         if (!userRepository.existsById(userId)) throw new GlobalException(USER_NOT_FOUND);
 
-        Favorite favorite = favoriteRepository.findById(favoriteId)
+        Favorite favorite = favoriteRepository.findByUserIdAndStationId(userId, stationId)
                                               .orElseThrow(() -> new GlobalException(FAVORITE_NOT_FOUND));
-
-        if (!Objects.requireNonNull(favorite.getUser().getId()).equals(userId))
-            throw new GlobalException(FAVORITE_NOT_FOUND);
 
         favoriteRepository.delete(favorite);
     }
