@@ -21,6 +21,7 @@ import java.util.List;
  * 26. 3. 22.     whitecity01       ADD pagenation
  * 26. 3. 22.     whitecity01       ADD place detail
  * 26. 3. 26.     whitecity01       MODIFY findAvailablePlacesOnRoute logic
+ * 26. 3. 27.     whitecity01       MODIFY getPlaceDetail response
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 @Schema(description = "장소 도메인 응답 페이로드")
@@ -57,6 +58,7 @@ public abstract class PlaceResponseDto {
         String getAddress();
         Double getDistanceToStation();
         Integer getTimeToStation();
+        Integer getStayableMinutes();
     }
 
     @Getter
@@ -77,6 +79,15 @@ public abstract class PlaceResponseDto {
 
         @Schema(description = "역에서부터 도보 소요 시간 (분)", example = "5")
         private Integer timeToStation;
+
+        @Schema(description = "체류 가능 시간 (분)", example = "25")
+        private Integer stayableMinutes;
+
+        @Schema(description = "기준 역 위도", example = "37.5546")
+        private Double stationLat;
+
+        @Schema(description = "기준 역 경도", example = "126.9706")
+        private Double stationLon;
 
         // Google API 연동 데이터
         @Schema(description = "장소 대표 이미지 URL", example = "https://places.googleapis.com/v1/places/ChIJ.../media?key=...&maxWidthPx=400")

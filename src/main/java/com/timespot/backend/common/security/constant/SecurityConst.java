@@ -37,8 +37,9 @@ public abstract class SecurityConst {
             // Place
             "/api/v1/place",
             "/api/v1/place/detail",
+            "/api/v1/place/search",
             // Station
-            "/api/v1/stations"
+            "/api/v1/stations",
     };
     public static final String[] POST_PERMIT_ALL_URLS   = {
             // Auth
