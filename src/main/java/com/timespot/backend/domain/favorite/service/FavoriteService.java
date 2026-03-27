@@ -29,10 +29,10 @@ public interface FavoriteService {
     /**
      * 즐겨찾기 역 삭제
      *
-     * @param userId     사용자 ID
-     * @param favoriteId 즐겨찾기 ID
+     * @param userId    사용자 ID
+     * @param stationId 즐겨찾기 역 ID
      */
-    void deleteFavoriteStation(UUID userId, Long favoriteId);
+    void deleteFavoriteStation(UUID userId, Long stationId);
 
     /**
      * 즐겨찾기 역 목록 조회
