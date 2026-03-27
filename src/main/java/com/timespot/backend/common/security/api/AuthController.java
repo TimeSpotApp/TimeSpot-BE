@@ -1,5 +1,6 @@
 package com.timespot.backend.common.security.api;
 
+import static com.timespot.backend.common.response.SuccessCode.DEVICE_REGISTER_SUCCESS;
 import static com.timespot.backend.common.response.SuccessCode.USER_AUTH_LOGIN_SUCCESS;
 import static com.timespot.backend.common.response.SuccessCode.USER_AUTH_LOGOUT_SUCCESS;
 import static com.timespot.backend.common.response.SuccessCode.USER_AUTH_TOKEN_REFRESH_SUCCESS;
@@ -15,7 +16,10 @@ import com.timespot.backend.common.security.dto.AuthRequestDto.OAuth2SignupReque
 import com.timespot.backend.common.security.dto.AuthRequestDto.TokenRefreshRequest;
 import com.timespot.backend.common.security.dto.AuthResponseDto.AuthInfoResponse;
 import com.timespot.backend.common.security.dto.AuthResponseDto.TokenInfoResponse;
+import com.timespot.backend.common.security.model.CustomUserDetails;
 import com.timespot.backend.common.security.service.AuthService;
+import com.timespot.backend.domain.device.dto.DeviceRequestDto.DeviceRegisterRequest;
+import com.timespot.backend.domain.device.dto.DeviceResponseDto.DeviceRegisterResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,11 +34,12 @@ import org.springframework.web.bind.annotation.RestController;
  * FileName    : AuthController
  * Author      : loadingKKamo21
  * Date        : 26. 3. 9.
- * Description : 인증/인가 API 컨트롤러 (로그인, 회원가입, 토큰 관리)
+ * Description : 인증/인가 API 컨트롤러 (로그인, 회원가입, 토큰 관리, 디바이스 등록)
  * =====================================================================================================================
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------
  * 26. 3. 9.     loadingKKamo21       Initial creation
+ * 26. 3. 28.    loadingKKamo21       디바이스 등록 API 추가 (/api/v1/auth/devices)
  */
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -83,6 +88,26 @@ public class AuthController implements AuthApiDocs {
     ) {
         TokenInfoResponse responseData = authService.refresh(dto.getRefreshToken());
         return ResponseEntity.ok(BaseResponse.success(USER_AUTH_TOKEN_REFRESH_SUCCESS, responseData));
+    }
+
+    @Override
+    @PostMapping("/devices")
+    public ResponseEntity<BaseResponse<DeviceRegisterResponse>> registerDevice(
+            @RequestBody final DeviceRegisterRequest dto,
+            @org.springframework.security.core.annotation.AuthenticationPrincipal final CustomUserDetails userDetails
+    ) {
+        // TODO: 서비스 계층 개발 시 구현
+        // DeviceRegisterResponse responseData = deviceService.registerDevice(dto, userDetails);
+
+        // 임시 응답 (서비스 계층 개발 시 제거)
+        String userId = (userDetails != null) ? userDetails.getId().toString() : null;
+        DeviceRegisterResponse responseData = new DeviceRegisterResponse(
+                userId,
+                dto.getDeviceToken(),
+                true
+        );
+
+        return ResponseEntity.ok(BaseResponse.success(DEVICE_REGISTER_SUCCESS, responseData));
     }
 
 }

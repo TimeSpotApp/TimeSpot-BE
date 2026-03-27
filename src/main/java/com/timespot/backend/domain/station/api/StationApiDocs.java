@@ -24,13 +24,14 @@ import org.springframework.http.ResponseEntity;
  * FileName    : StationApiDocs
  * Author      : loadingKKamo21
  * Date        : 26. 3. 26.
- * Description : 역 관련 API 문서화 인터페이스
+ * Description : 열차/기차 역 관련 API 문서화 인터페이스
  * =====================================================================================================================
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------
  * 26. 3. 26.    whitecity01        Initial creation
  * 26. 3. 26.    loadingKKamo21     ApiDocs 완성 (상세 문서화, validation annotation 추가, radius 파라미터 추가)
  * 26. 3. 26.    loadingKKamo21     즐겨찾기 API 문서 추가 (/api/v1/stations/favorites)
+ * 26. 3. 28.    loadingKKamo21     JavaDoc 주석 보강
  */
 @Tag(
         name = "Station API",
@@ -38,18 +39,22 @@ import org.springframework.http.ResponseEntity;
                       ## 역 (Station) API
                       
                       ### 주요 기능
-                      - **역 목록 조회**: 사용자의 위치 기반 역 목록 통합 조회 (즐겨찾기 + 근처 + 전체)
-                      - **즐겨찾기 관리**: 역 즐겨찾기 추가/삭제/목록 조회
+                      - **역 목록 조회**: 사용자의 위치 기반 열차/기차 역 목록 통합 조회 (즐겨찾기 + 근처 + 전체)
+                      - **즐겨찾기 관리**: 열차/기차 역 즐겨찾기 추가/삭제/목록 조회
                       
                       ### API 경로
                       - `GET /api/v1/stations` - 역 목록 통합 조회
-                      - `POST /api/v1/stations/favorites` - 즐겨찾기 역 추가
+                      - `POST /api/v1/stations/favorites/{stationId}` - 즐겨찾기 역 추가
                       - `GET /api/v1/stations/favorites` - 즐겨찾기 역 목록 조회
-                      - `DELETE /api/v1/stations/favorites/{favoriteId}` - 즐겨찾기 역 삭제
+                      - `DELETE /api/v1/stations/favorites/{stationId}` - 즐겨찾기 역 삭제
                       
                       ### 인증 방식
                       - 모든 API 는 `Bearer Token` 인증이 필요합니다.
                       - 요청 헤더에 `Authorization: Bearer {accessToken}` 를 포함해야 합니다.
+                      
+                      ### 대상 역 정보
+                      - **지하철이 아닌 열차/기차 역**을 대상으로 합니다
+                      - 서울역, 용산역, 부산역 등 KTX/일반열차 역 정보 제공
                       """
 )
 public interface StationApiDocs {
