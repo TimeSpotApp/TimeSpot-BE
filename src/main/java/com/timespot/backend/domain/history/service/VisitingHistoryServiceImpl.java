@@ -12,7 +12,9 @@ import com.timespot.backend.domain.history.dto.VisitingHistoryRequestDto.Journey
 import com.timespot.backend.domain.history.dto.VisitingHistoryRequestDto.JourneyStartRequest;
 import com.timespot.backend.domain.history.dto.VisitingHistoryResponseDto.VisitingHistoryDetailResponse;
 import com.timespot.backend.domain.history.dto.VisitingHistoryResponseDto.VisitingHistoryListResponse;
+import com.timespot.backend.domain.history.event.JourneyStartedEvent;
 import com.timespot.backend.domain.history.model.VisitingHistory;
+import com.timespot.backend.domain.history.notification.JourneyNotificationScheduler;
 import com.timespot.backend.domain.place.dao.PlaceRepository;
 import com.timespot.backend.domain.place.model.Place;
 import com.timespot.backend.domain.station.dao.StationRepository;
@@ -22,10 +24,12 @@ import com.timespot.backend.domain.user.model.User;
 import java.time.LocalDateTime;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.time.Clock;
 
 /**
  * PackageName : com.timespot.backend.domain.history.service
@@ -49,6 +53,9 @@ public class VisitingHistoryServiceImpl implements VisitingHistoryService {
     private final StationRepository         stationRepository;
     private final PlaceRepository           placeRepository;
     private final FavoriteRepository        favoriteRepository;
+    private final ApplicationEventPublisher eventPublisher;
+    private final JourneyNotificationScheduler journeyNotificationScheduler;
+    private final Clock clock;
 
     @Override
     @Transactional
@@ -58,7 +65,7 @@ public class VisitingHistoryServiceImpl implements VisitingHistoryService {
         Place   place   = getPlaceById(dto.getPlaceId());
 
         Long historyId = visitingHistoryRepository.save(
-                VisitingHistory.of(user, station, place, LocalDateTime.now(), dto.getTrainDepartureTime())
+                VisitingHistory.of(user, station, place, LocalDateTime.now(clock), dto.getTrainDepartureTime())
         ).getId();
 
         VisitingHistoryDetailResponse response = visitingHistoryRepository.findVisitingHistoryDetail(userId, historyId)
@@ -67,6 +74,12 @@ public class VisitingHistoryServiceImpl implements VisitingHistoryService {
                                                                           ));
         response.setStartLat(dto.getLat());
         response.setStartLng(dto.getLng());
+
+        eventPublisher.publishEvent(new JourneyStartedEvent(
+                userId,
+                historyId,
+                dto.getTrainDepartureTime()
+        ));
 
         return response;
     }
@@ -86,7 +99,7 @@ public class VisitingHistoryServiceImpl implements VisitingHistoryService {
         visitingHistory.validateEndable();
 
         if (dto.getIsCompleted()) {
-            visitingHistory.endJourney(LocalDateTime.now());
+            visitingHistory.endJourney(LocalDateTime.now(clock));
 
             if (visitingHistory.isSuccess()) {
                 User    user            = visitingHistory.getUser();
@@ -99,6 +112,8 @@ public class VisitingHistoryServiceImpl implements VisitingHistoryService {
             }
         } else
             visitingHistory.abandonJourney();
+
+        journeyNotificationScheduler.cancel(historyId);
 
         return visitingHistoryRepository.findVisitingHistoryDetail(userId, historyId)
                                         .orElseThrow(() -> new GlobalException(HISTORY_NOT_FOUND));
@@ -125,6 +140,8 @@ public class VisitingHistoryServiceImpl implements VisitingHistoryService {
         if (visitingHistory.isSuccess() && visitingHistory.getTotalDurationMinutes() > 0)
             user.removeVisitHistory(visitingHistory.getTotalDurationMinutes(), true);
         else if (!visitingHistory.isInProgress()) user.removeVisitHistory(0, false);
+
+        journeyNotificationScheduler.cancel(historyId);
 
         visitingHistoryRepository.delete(visitingHistory);
     }
