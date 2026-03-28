@@ -26,6 +26,7 @@ import org.springframework.stereotype.Component;
 public class ApnsJourneyNotificationScheduler implements JourneyNotificationScheduler {
 
     private static final String TITLE = "출발 알림";
+    private static final String CUSTOM_PAYLOAD_KEY_NOTIFICATION_SCHEMA = "notificationSchema";
 
     private final TaskScheduler taskScheduler;
     private final ApnsService apnsService;
@@ -108,7 +109,8 @@ public class ApnsJourneyNotificationScheduler implements JourneyNotificationSche
                     1,
                     Map.of(
                             "historyId", historyId,
-                            "timing", timing.toValue()
+                            "timing", timing.toValue(),
+                            CUSTOM_PAYLOAD_KEY_NOTIFICATION_SCHEMA, timing.toSchema()
                     )
             );
 
