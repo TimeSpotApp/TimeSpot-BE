@@ -10,13 +10,17 @@ import static com.timespot.backend.domain.user.constant.NotificationType.DEPARTU
 import static com.timespot.backend.domain.user.constant.NotificationType.DEPARTURE_5_MIN_BEFORE;
 import static com.timespot.backend.domain.user.constant.NotificationType.DEPARTURE_TIME;
 
+import jakarta.validation.Valid;
 import com.timespot.backend.common.response.BaseResponse;
+import com.timespot.backend.common.response.SuccessCode;
 import com.timespot.backend.common.security.dto.AuthResponseDto.AuthInfoResponse;
 import com.timespot.backend.common.security.model.CustomUserDetails;
+import com.timespot.backend.domain.user.dto.UserRequestDto;
 import com.timespot.backend.domain.user.constant.NotificationType;
 import com.timespot.backend.domain.user.dto.UserNotificationRequestDto.NotificationSettingsRequest;
 import com.timespot.backend.domain.user.dto.UserNotificationResponseDto.NotificationSettingsResponse;
 import com.timespot.backend.domain.user.dto.UserRequestDto.UserInfoUpdateRequest;
+import com.timespot.backend.domain.user.dto.UserResponseDto;
 import com.timespot.backend.domain.user.dto.UserResponseDto.UserInfoResponse;
 import com.timespot.backend.domain.user.facade.UserAuthFacade;
 import com.timespot.backend.domain.user.service.UserService;
@@ -25,6 +29,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -68,6 +73,26 @@ public class UserController implements UserApiDocs {
         AuthInfoResponse responseData = userAuthFacade.updateUserInfoAndReissueToken(userDetails.getId(), dto);
         return ResponseEntity.ok(BaseResponse.success(USER_UPDATE_SUCCESS, responseData));
     }
+
+    @GetMapping("/notifications")
+    @Override
+    public ResponseEntity<BaseResponse<UserResponseDto.UserNotificationResponse>> getUserNotificationSettings(
+            @AuthenticationPrincipal final CustomUserDetails userDetails
+    ) {
+        UserResponseDto.UserNotificationResponse responseData = userService.findUserNotificationSettings(userDetails.getId());
+        return ResponseEntity.ok(BaseResponse.success(SuccessCode.USER_NOTIFICATION_GET_SUCCESS, responseData));
+    }
+
+    @PatchMapping("/notifications")
+    @Override
+    public ResponseEntity<BaseResponse<Void>> updateUserNotificationSettings(
+            @AuthenticationPrincipal final CustomUserDetails userDetails,
+            @RequestBody @Valid final UserRequestDto.UserNotificationUpdateRequest dto
+    ) {
+        userService.updateUserNotificationSettings(userDetails.getId(), dto);
+        return ResponseEntity.ok(BaseResponse.success(SuccessCode.USER_NOTIFICATION_UPDATE_SUCCESS));
+    }
+
 
     @DeleteMapping
     @Override

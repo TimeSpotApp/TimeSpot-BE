@@ -1,5 +1,8 @@
 package com.timespot.backend.domain.user.service;
 
+import com.timespot.backend.common.security.dto.AuthRequestDto;
+import com.timespot.backend.domain.user.dto.UserRequestDto;
+import com.timespot.backend.domain.user.dto.UserResponseDto;
 import com.timespot.backend.common.security.dto.AuthRequestDto.OAuth2SignupRequest;
 import com.timespot.backend.domain.user.dto.UserRequestDto.UserInfoUpdateRequest;
 import com.timespot.backend.domain.user.dto.UserResponseDto.UserInfoResponse;
@@ -66,6 +69,10 @@ public interface UserService {
      * @throws com.timespot.backend.common.error.GlobalException (USER_NOT_FOUND)
      */
     void updateUserInfo(UUID id, UserInfoUpdateRequest dto);
+
+    UserResponseDto.UserNotificationResponse findUserNotificationSettings(UUID id);
+
+    void updateUserNotificationSettings(UUID id, UserRequestDto.UserNotificationUpdateRequest dto);
 
     /**
      * 회원 탈퇴 처리

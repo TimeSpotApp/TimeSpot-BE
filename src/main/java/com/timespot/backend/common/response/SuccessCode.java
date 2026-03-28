@@ -38,6 +38,8 @@ public enum SuccessCode {
     USER_AUTH_TOKEN_REFRESH_SUCCESS(HttpStatus.OK, "인증 토큰 갱신이 완료되었습니다."),
     USER_GET_INFO_SUCCESS(HttpStatus.OK, "회원 정보 조회이 완료되었습니다."),
     USER_MAP_API_UPDATE_SUCCESS(HttpStatus.OK, "회원의 주사용 지도 API 설정이 완료되었습니다."),
+    USER_NOTIFICATION_UPDATE_SUCCESS(HttpStatus.OK, "회원의 알림 설정이 완료되었습니다."),
+    USER_NOTIFICATION_GET_SUCCESS(HttpStatus.OK, "회원의 알림 설정 조회가 완료되었습니다."),
 
     // Place
     PLACE_GET_AVAILABLE_PLACES_SUCCESS(HttpStatus.OK, "방문 가능 장소 조회가 완료되었습니다."),

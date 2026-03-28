@@ -16,14 +16,26 @@ import static org.hibernate.type.SqlTypes.BINARY;
 import com.github.f4b6a3.ulid.UlidCreator;
 import com.timespot.backend.common.error.GlobalException;
 import com.timespot.backend.common.model.BaseAuditingEntity;
+import com.timespot.backend.common.response.ErrorCode;
+import com.timespot.backend.domain.user.constant.UserConst;
+import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
+
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
+
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -68,20 +80,27 @@ public class User extends BaseAuditingEntity implements Persistable<UUID> {
     @Column(name = "role", nullable = false)
     private UserRole role;
 
+    @ElementCollection(targetClass = NotificationTiming.class)
+    @CollectionTable(name = "user_notification_timings", joinColumns = @JoinColumn(name = "user_id"))
+    @Enumerated(EnumType.STRING)
+    @Column(name = "notification_timing", nullable = false)
+    private Set<NotificationTiming> notificationTimings = new HashSet<>();
+
     @Column(name = "total_visit_count", nullable = false)
     private Integer totalVisitCount;
 
     @Column(name = "total_journey_minutes", nullable = false)
     private Integer totalJourneyMinutes;
 
-    @Builder(access = PRIVATE)
-    private User(final String email, final String nickname, final MapApi mapApi, final UserRole role) {
+    @Builder(access = AccessLevel.PRIVATE)
+    private User(final String email, final String nickname, final MapApi mapApi, final UserRole role, final Set<NotificationTiming> notificationTimings) {
         validateEmail(email);
         validateNickname(nickname);
         this.id = UlidCreator.getUlid().toUuid();
         this.email = email.toLowerCase();
         this.nickname = nickname;
         this.mapApi = mapApi;
+        this.notificationTimings = notificationTimings != null ? new HashSet<>(notificationTimings) : new HashSet<>();
         this.role = role != null ? role : USER;
         this.totalVisitCount = 0;
         this.totalJourneyMinutes = 0;
@@ -161,6 +180,27 @@ public class User extends BaseAuditingEntity implements Persistable<UUID> {
     public void updateNickname(final String newNickname) {
         validateNickname(newNickname);
         this.nickname = newNickname;
+    }
+
+    /**
+     * 알림 시간 설정 조회
+     *
+     * @return 알림 시간 설정 목록
+     */
+    public Set<NotificationTiming> getNotificationTimings() {
+        return Collections.unmodifiableSet(notificationTimings);
+    }
+
+    /**
+     * 알림 시간 설정 업데이트
+     *
+     * @param newNotificationTimings 새로운 알림 시간 설정 목록
+     */
+    public void updateNotificationTimings(final Set<NotificationTiming> newNotificationTimings) {
+        this.notificationTimings.clear();
+        if (newNotificationTimings != null) {
+            this.notificationTimings.addAll(newNotificationTimings);
+        }
     }
 
     /**

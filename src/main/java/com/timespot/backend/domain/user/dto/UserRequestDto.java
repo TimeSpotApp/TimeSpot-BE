@@ -5,9 +5,14 @@ import static lombok.AccessLevel.PRIVATE;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.util.List;
 
 /**
  * PackageName : com.timespot.backend.domain.user.dto
@@ -47,4 +52,14 @@ public abstract class UserRequestDto {
 
     }
 
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Schema(description = "알림 설정 수정 요청 페이로드")
+    public static class UserNotificationUpdateRequest {
+
+        @Size(max = 5, message = "알림 설정은 최대 5개까지 선택 가능합니다.")
+        @Schema(description = "[필수] 알림 시간 설정 목록", example = "[\"departure_time\", \"before_5_minutes\"]")
+        private List<String> notificationTimings;
+    }
 }

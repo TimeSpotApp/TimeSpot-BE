@@ -8,12 +8,16 @@ import static com.timespot.backend.common.response.ErrorCode.USER_NOT_FOUND;
 import static com.timespot.backend.infra.security.oauth.constant.TokenType.REFRESH_TOKEN;
 
 import com.timespot.backend.common.error.GlobalException;
+import com.timespot.backend.common.response.ErrorCode;
 import com.timespot.backend.common.security.dto.AuthRequestDto.OAuth2SignupRequest;
 import com.timespot.backend.domain.user.dao.SocialConnectionRepository;
 import com.timespot.backend.domain.user.dao.UserRepository;
+import com.timespot.backend.domain.user.dto.UserRequestDto;
+import com.timespot.backend.domain.user.dto.UserResponseDto;
 import com.timespot.backend.domain.user.dto.UserRequestDto.UserInfoUpdateRequest;
 import com.timespot.backend.domain.user.dto.UserResponseDto.UserInfoResponse;
 import com.timespot.backend.domain.user.model.MapApi;
+import com.timespot.backend.domain.user.model.NotificationTiming;
 import com.timespot.backend.domain.user.model.ProviderType;
 import com.timespot.backend.domain.user.model.SocialConnection;
 import com.timespot.backend.domain.user.model.User;
@@ -24,7 +28,12 @@ import com.timespot.backend.infra.security.oauth.model.OAuthProfile;
 import com.timespot.backend.infra.security.oauth.model.OAuthProfileFactory;
 import com.timespot.backend.infra.security.oauth.validator.CustomOAuth2TokenValidator;
 import io.jsonwebtoken.Claims;
+
+import java.util.Comparator;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 import lombok.RequiredArgsConstructor;
@@ -134,6 +143,24 @@ public class UserServiceImpl implements UserService {
         user.updateMapApi(mapApi);
     }
 
+    @Override
+    public UserResponseDto.UserNotificationResponse findUserNotificationSettings(final UUID id) {
+        User user = userRepository.findById(id).orElseThrow(() -> new GlobalException(ErrorCode.USER_NOT_FOUND));
+        return new UserResponseDto.UserNotificationResponse(toNotificationTimingCodes(user.getNotificationTimings()));
+    }
+
+    @Override
+    @Transactional
+    public void updateUserNotificationSettings(final UUID id, final UserRequestDto.UserNotificationUpdateRequest dto) {
+        User user = userRepository.findById(id).orElseThrow(() -> new GlobalException(ErrorCode.USER_NOT_FOUND));
+
+        Set<NotificationTiming> notificationTimings = parseNotificationTimings(dto.getNotificationTimings());
+        validateNotificationTimings(notificationTimings);
+
+        user.updateNotificationTimings(notificationTimings);
+    }
+
+
     /**
      * ID로 회원 탈퇴
      *
@@ -203,6 +230,27 @@ public class UserServiceImpl implements UserService {
         );
 
         return user;
+    }
+
+    private Set<NotificationTiming> parseNotificationTimings(final List<String> timings) {
+        if (timings == null || timings.isEmpty()) {
+            return new LinkedHashSet<>();
+        }
+
+        return timings.stream().map(NotificationTiming::from).collect(java.util.stream.Collectors.toCollection(LinkedHashSet::new));
+    }
+
+    private List<String> toNotificationTimingCodes(final Set<NotificationTiming> notificationTimings) {
+        return notificationTimings.stream()
+                .sorted(Comparator.comparingInt(Enum::ordinal))
+                .map(NotificationTiming::toValue)
+                .toList();
+    }
+
+    private void validateNotificationTimings(final Set<NotificationTiming> notificationTimings) {
+        if (notificationTimings.contains(NotificationTiming.NONE) && notificationTimings.size() > 1) {
+            throw new GlobalException(ErrorCode.USER_NOTIFICATION_TIMING_INVALID_COMBINATION);
+        }
     }
 
     /**
