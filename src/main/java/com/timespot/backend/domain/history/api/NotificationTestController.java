@@ -18,10 +18,22 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * PackageName : com.timespot.backend.domain.history.api
+ * FileName    : NotificationTestController
+ * Author      : loadingKKamo21
+ * Date        : 26. 3. 28.
+ * Description : 알림 테스트 컨트롤러 (개발/디버깅 전용)
+ * =====================================================================================================================
+ * DATE          AUTHOR               DESCRIPTION
+ * ---------------------------------------------------------------------------------------------------------------------
+ * 26. 3. 28.    이승현                Initial creation
+ * 26. 3. 28.    loadingKKamo21       ApiDocs 추가
+ */
 @RestController
 @RequestMapping("/api/v1/test/notifications")
 @RequiredArgsConstructor
-public class NotificationTestController {
+public class NotificationTestController implements NotificationTestApiDocs {
 
     private static final String TITLE = "테스트 알림";
     private static final String CUSTOM_PAYLOAD_KEY_NOTIFICATION_SCHEMA = "notificationSchema";
@@ -29,6 +41,7 @@ public class NotificationTestController {
     private final ApnsTokenRepository apnsTokenRepository;
     private final ApnsService apnsService;
 
+    @Override
     @PostMapping("/departure-time")
     public ResponseEntity<BaseResponse<NotificationTestResponse>> testDepartureTime(
             @AuthenticationPrincipal final CustomUserDetails userDetails
@@ -37,6 +50,7 @@ public class NotificationTestController {
         return ResponseEntity.ok(BaseResponse.success(REQUEST_SUCCESS, responseData));
     }
 
+    @Override
     @PostMapping("/5-min-before")
     public ResponseEntity<BaseResponse<NotificationTestResponse>> test5MinBefore(
             @AuthenticationPrincipal final CustomUserDetails userDetails
@@ -45,6 +59,7 @@ public class NotificationTestController {
         return ResponseEntity.ok(BaseResponse.success(REQUEST_SUCCESS, responseData));
     }
 
+    @Override
     @PostMapping("/10-min-before")
     public ResponseEntity<BaseResponse<NotificationTestResponse>> test10MinBefore(
             @AuthenticationPrincipal final CustomUserDetails userDetails
@@ -53,6 +68,7 @@ public class NotificationTestController {
         return ResponseEntity.ok(BaseResponse.success(REQUEST_SUCCESS, responseData));
     }
 
+    @Override
     @PostMapping("/15-min-before")
     public ResponseEntity<BaseResponse<NotificationTestResponse>> test15MinBefore(
             @AuthenticationPrincipal final CustomUserDetails userDetails
