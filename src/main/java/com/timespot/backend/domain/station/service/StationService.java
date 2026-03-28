@@ -24,7 +24,7 @@ public interface StationService {
 
     List<StationListResponse> getFavoriteStationList(UUID userId, String keyword);
 
-    List<StationListResponse> getNearbyStationList(double lat, double lng, double radius, String keyword);
+    List<StationListResponse> getNearbyStationList(double userLat, double userLon, double radius, String keyword);
 
     Page<StationListResponse> getStationList(String keyword, Pageable pageable);
 

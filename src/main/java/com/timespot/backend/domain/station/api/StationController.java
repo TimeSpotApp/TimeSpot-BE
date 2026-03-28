@@ -65,8 +65,8 @@ public class StationController implements StationApiDocs {
     )
     @Override
     public ResponseEntity<BaseResponse<StationSearchResponse>> getStations(
-            @RequestParam("lat") final double lat,
-            @RequestParam("lng") final double lng,
+            @RequestParam("userLat") final double userLat,
+            @RequestParam("userLon") final double userLon,
             @RequestParam(required = false, defaultValue = "2000") final double radius,
             @RequestParam(required = false, defaultValue = "") final String keyword,
             @RequestParam(required = false, defaultValue = "1") final int page,
@@ -81,7 +81,7 @@ public class StationController implements StationApiDocs {
                                                      : List.of();
 
         List<StationListResponse> nearbyStations = stationService.getNearbyStationList(
-                lat, lng, radius, keyword
+                userLat, userLon, radius, keyword
         );
 
         Pageable                  pageable = SortUtils.createPageable(page, size, sort);
