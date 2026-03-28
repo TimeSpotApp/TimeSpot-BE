@@ -9,6 +9,8 @@ lombok = "9.2.0"
 ulidCreator = "5.2.4"
 springDocOpenApi = "2.8.16"
 querydsl = "7.1"
+hibernateSpatial = "6.6.45.Final"
+jts-core = "1.20.0"
 p6spy = "1.12.1"
 jjwt = "0.13.0"
 jwks-rsa = "0.23.0"
@@ -39,6 +41,9 @@ spring-boot-starter-data-jpa = { module = "org.springframework.boot:spring-boot-
 spring-boot-starter-data-redis = { module = "org.springframework.boot:spring-boot-starter-data-redis" }
 querydsl-jpa = { module = "io.github.openfeign.querydsl:querydsl-jpa", version.ref = "querydsl" }
 querydsl-apt = { module = "io.github.openfeign.querydsl:querydsl-apt", version.ref = "querydsl" }
+jts-core = { module = "org.locationtech.jts:jts-core", version.ref = "jts-core" }
+hibernate-spatial = { module = "org.hibernate.orm:hibernate-spatial", version.ref = "hibernateSpatial" }
+querydsl-spatial = { module = "io.github.openfeign.querydsl:querydsl-spatial", version.ref = "querydsl" }
 p6spy-spring-boot-starter = { module = "com.github.gavlyukovskiy:p6spy-spring-boot-starter", version.ref = "p6spy" }
 h2 = { module = "com.h2database:h2" }
 mysql-connector-j = { module = "com.mysql:mysql-connector-j" }

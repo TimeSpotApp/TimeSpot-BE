@@ -34,20 +34,32 @@ public abstract class SecurityConst {
             "/swagger-ui.html",
             "/swagger-resources/**",
             "/v3/api-docs/**",
-            };
+            // Place
+            "/api/v1/place",
+            "/api/v1/place/detail",
+            "/api/v1/place/search",
+            // Station
+            "/api/v1/stations",
+    };
     public static final String[] POST_PERMIT_ALL_URLS   = {
             // Auth
             "/api/v1/auth/signup",
             "/api/v1/auth/login",
             "/api/v1/auth/refresh",
-            };
+            // Device
+            "/api/v1/devices"
+    };
     public static final String[] PUT_PERMIT_ALL_URLS    = {};
     public static final String[] PATCH_PERMIT_ALL_URLS  = {};
-    public static final String[] DELETE_PERMIT_ALL_URLS = {};
+    public static final String[] DELETE_PERMIT_ALL_URLS = {
+            // Device
+            "/api/v1/devices"
+    };
 
     public static final String[] GET_AUTHENTICATED_URLS    = {
             // User
             "/api/v1/users",
+            "/api/v1/users/notification-settings",
             // Place
             "/api/v1/place",
             "/api/v1/place/detail",
@@ -55,7 +67,9 @@ public abstract class SecurityConst {
             "/api/v1/favorites",
             // Visiting History
             "/api/v1/histories",
-            "/api/v1/histories/{historyId}"
+            "/api/v1/histories/{historyId}",
+            // Station
+            "/api/v1/stations"
     };
     public static final String[] POST_AUTHENTICATED_URLS   = {
             // Auth
@@ -65,12 +79,14 @@ public abstract class SecurityConst {
             // Favorite
             "/api/v1/favorites",
             // Visiting History
-            "/api/v1/histories",
-            "/api/v1/histories/{historyId}/end"
+            "/api/v1/histories"
     };
     public static final String[] PUT_AUTHENTICATED_URLS    = {
             // User
-            "/api/v1/users"
+            "/api/v1/users",
+            "/api/v1/users/notification-settings",
+            // Visiting History
+            "/api/v1/histories/{historyId}"
     };
     public static final String[] PATCH_AUTHENTICATED_URLS  = {};
     public static final String[] DELETE_AUTHENTICATED_URLS = {

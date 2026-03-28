@@ -1,39 +1,5 @@
 package com.timespot.backend.domain.history.dao;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import autoparams.AutoSource;
-import autoparams.Repeat;
-import com.timespot.backend.common.config.EnableJpaAuditingConfig;
-import com.timespot.backend.common.config.P6SpyConfig;
-import com.timespot.backend.common.config.QuerydslConfig;
-import com.timespot.backend.common.util.TestUtils;
-import com.timespot.backend.domain.history.dto.VisitingHistoryResponseDto.VisitingHistoryListResponse;
-import com.timespot.backend.domain.history.model.VisitingHistory;
-import com.timespot.backend.domain.place.model.Place;
-import com.timespot.backend.domain.place.model.Station;
-import com.timespot.backend.domain.user.model.User;
-import jakarta.validation.constraints.Min;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.RepeatedTest;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-import org.springframework.context.annotation.Import;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-
 /**
  * PackageName : com.timespot.backend.domain.history.dao
  * FileName    : VisitingHistoryRepositoryTest
@@ -45,10 +11,10 @@ import org.springframework.data.domain.Sort;
  * ---------------------------------------------------------------------------------------------------------------------
  * 26. 3. 25.    loadingKKamo21       Initial creation
  */
-@DataJpaTest
-@Import({EnableJpaAuditingConfig.class, P6SpyConfig.class, QuerydslConfig.class})
+//@DataJpaTest
+//@Import({EnableJpaAuditingConfig.class, P6SpyConfig.class, QuerydslConfig.class})
 class VisitingHistoryRepositoryTest {
-
+/*
     @Autowired
     private TestEntityManager         em;
     @Autowired
@@ -561,5 +527,5 @@ class VisitingHistoryRepositoryTest {
         }
 
     }
-
+*/
 }

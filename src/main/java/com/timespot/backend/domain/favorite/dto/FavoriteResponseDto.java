@@ -61,6 +61,13 @@ public abstract class FavoriteResponseDto {
         private final Integer visitCount;
 
         @Schema(
+                description = "총 방문 시간 (분)",
+                example = "150",
+                accessMode = READ_ONLY
+        )
+        private final Integer totalVisitMinutes;
+
+        @Schema(
                 description = "즐겨찾기 추가 일시 (ISO-8601 형식)",
                 example = "2024-03-24T16:00:00",
                 accessMode = READ_ONLY
@@ -73,11 +80,13 @@ public abstract class FavoriteResponseDto {
                                     final Long stationId,
                                     final String stationName,
                                     final Integer visitCount,
+                                    final Integer totalVisitMinutes,
                                     final LocalDateTime createdAt) {
             this.favoriteId = favoriteId;
             this.stationId = stationId;
             this.stationName = stationName;
             this.visitCount = visitCount;
+            this.totalVisitMinutes = totalVisitMinutes;
             this.createdAt = createdAt;
         }
 

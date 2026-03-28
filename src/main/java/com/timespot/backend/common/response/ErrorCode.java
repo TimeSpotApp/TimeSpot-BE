@@ -47,15 +47,14 @@ public enum ErrorCode {
     USER_NICKNAME_REQUIRED(HttpStatus.BAD_REQUEST, "US006", "닉네임은 필수입니다."),
     USER_INVALID_NICKNAME_FORMAT(HttpStatus.BAD_REQUEST, "US007",
                                  "닉네임 형식이 올바르지 않습니다. 2~15자 영문, 한글, 숫자, '-', '_'만 사용 가능합니다."),
-    USER_AUTH_INVALID_ACCESS_TOKEN(HttpStatus.BAD_REQUEST, "US008", "잘못된 AccessToken입니다."),
-    USER_AUTH_INVALID_REFRESH_TOKEN(HttpStatus.BAD_REQUEST, "US009", "잘못된 RefreshToken입니다."),
-    USER_AUTH_ACCESS_TOKEN_EXPIRED(HttpStatus.BAD_REQUEST, "US010", "AccessToken이 만료되었습니다."),
-    USER_AUTH_REFRESH_TOKEN_EXPIRED(HttpStatus.BAD_REQUEST, "US011", "RefreshToken이 만료되었습니다."),
-    USER_AUTH_ACCESS_DENIED(HttpStatus.FORBIDDEN, "US012", "해당 회원은 접근 권한이 없습니다."),
-    USER_ROLE_NOT_SUPPORTED(HttpStatus.BAD_REQUEST, "US013", "지원하지 않는 계정 유형입니다."),
-    USER_MAP_API_NOT_SUPPORTED(HttpStatus.BAD_REQUEST, "US014", "지원하지 않는 지도 API 유형입니다."),
-    USER_NOTIFICATION_TIMING_NOT_SUPPORTED(HttpStatus.BAD_REQUEST, "US015", "지원하지 않는 알림 시간 설정입니다."),
-    USER_NOTIFICATION_TIMING_INVALID_COMBINATION(HttpStatus.BAD_REQUEST, "US016", "알림 미설정은 다른 알림 시간과 함께 선택할 수 없습니다."),
+    USER_AUTH_INVALID_ACCESS_TOKEN(HttpStatus.UNAUTHORIZED, "US008", "잘못된 AccessToken입니다."),
+    USER_AUTH_INVALID_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, "US009", "잘못된 RefreshToken입니다."),
+    USER_AUTH_ACCESS_TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "US010", "AccessToken이 만료되었습니다."),
+    USER_AUTH_REFRESH_TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "US011", "RefreshToken이 만료되었습니다."),
+    USER_ROLE_NOT_SUPPORTED(HttpStatus.BAD_REQUEST, "US012", "지원하지 않는 계정 유형입니다."),
+    USER_MAP_API_NOT_SUPPORTED(HttpStatus.BAD_REQUEST, "US013", "지원하지 않는 지도 API 유형입니다."),
+    USER_NOTIFICATION_TIMING_NOT_SUPPORTED(HttpStatus.BAD_REQUEST, "US014", "지원하지 않는 알림 시간 설정입니다."),
+    USER_NOTIFICATION_TIMING_INVALID_COMBINATION(HttpStatus.BAD_REQUEST, "US015", "알림 미설정은 다른 알림 시간과 함께 선택할 수 없습니다."),
 
     // Social Connection
     SOCIAL_CONNECTION_NOT_FOUND(HttpStatus.NOT_FOUND, "SO001", "소셜 연동 정보를 찾을 수 없습니다."),
@@ -78,6 +77,7 @@ public enum ErrorCode {
     // Place
     PLACE_NOT_FOUND(HttpStatus.NOT_FOUND, "PL001", "장소를 찾을 수 없습니다."),
     PLACE_INSUFFICIENT_REMAINING_TIME(HttpStatus.BAD_REQUEST, "PL002", "체류 가능한 시간이 부족합니다."),
+    PLACE_INVALID_MARKER(HttpStatus.BAD_REQUEST, "PL003", "유효하지 않은 마커 좌표입니다."),
 
     // Visiting History
     HISTORY_NOT_FOUND(HttpStatus.NOT_FOUND, "HI001", "방문 이력을 찾을 수 없습니다."),
@@ -89,12 +89,25 @@ public enum ErrorCode {
     HISTORY_INVALID_VISIT_HISTORY(HttpStatus.BAD_REQUEST, "HI007", "유효하지 않은 방문 이력입니다."),
     HISTORY_ALREADY_EXISTS(HttpStatus.CONFLICT, "HI008", "이미 등록된 방문 이력입니다."),
     HISTORY_IN_PROGRESS(HttpStatus.BAD_REQUEST, "HI009", "진행 중인 방문 이력이 있습니다."),
+    HISTORY_ALREADY_ENDED(HttpStatus.CONFLICT, "HI010", "이미 종료된 방문 이력입니다."),
 
     // Favorite
     FAVORITE_NOT_FOUND(HttpStatus.NOT_FOUND, "FA001", "즐겨찾기를 찾을 수 없습니다."),
     FAVORITE_INVALID_USER(HttpStatus.BAD_REQUEST, "FA002", "유효하지 않은 사용자입니다."),
     FAVORITE_INVALID_STATION(HttpStatus.BAD_REQUEST, "FA003", "유효하지 않은 역입니다."),
-    FAVORITE_DUPLICATE_STATION(HttpStatus.CONFLICT, "FA004", "이미 즐겨찾기에 등록된 역입니다.");
+    FAVORITE_DUPLICATE_STATION(HttpStatus.CONFLICT, "FA004", "이미 즐겨찾기에 등록된 역입니다."),
+
+    // Device
+    DEVICE_NOT_FOUND(HttpStatus.NOT_FOUND, "DE001", "등록되지 않은 디바이스입니다."),
+    DEVICE_DUPLICATE_TOKEN(HttpStatus.CONFLICT, "DE002", "이미 등록된 디바이스 토큰입니다."),
+    DEVICE_INVALID_PLATFORM(HttpStatus.BAD_REQUEST, "DE003", "지원하지 않는 플랫폼입니다."),
+    DEVICE_INVALID_TOKEN_FORMAT(HttpStatus.BAD_REQUEST, "DE004", "디바이스 토큰 형식이 올바르지 않습니다."),
+
+    // User Notification
+    USER_NOTIFICATION_SETTING_NOT_FOUND(HttpStatus.NOT_FOUND, "UN001", "알림 설정을 찾을 수 없습니다."),
+    USER_NOTIFICATION_INVALID_TYPE(HttpStatus.BAD_REQUEST, "UN002", "지원하지 않는 알림 타입입니다."),
+    USER_NOTIFICATION_DUPLICATE_TYPE(HttpStatus.BAD_REQUEST, "UN003", "중복된 알림 타입이 포함되어 있습니다."),
+    USER_NOTIFICATION_EXCEEDS_MAX_COUNT(HttpStatus.BAD_REQUEST, "UN004", "알림 설정은 최대 3 개까지 가능합니다.");
 
     private final HttpStatus status;
     private final String     code;

@@ -60,7 +60,7 @@ public class GooglePlaceApiServiceImpl implements GooglePlaceApiService {
             if (body == null) return createEmptyResult();
 
             String phoneNumber = body.getInternationalPhoneNumber();
-            String imageUrl = extractImageUrl(body.getPhotos());
+            List<String> imageUrls = extractImageUrls(body.getPhotos());
 
             List<List<String>> parsedHours = parseOperatingHours(body.getRegularOpeningHours());
 
@@ -68,7 +68,7 @@ public class GooglePlaceApiServiceImpl implements GooglePlaceApiService {
                     .phoneNumber(phoneNumber)
                     .weekdayHours(parsedHours.get(0))
                     .weekendHours(parsedHours.get(1))
-                    .imageUrl(imageUrl)
+                    .imageUrls(imageUrls)
                     .build();
 
         } catch (Exception e) {
@@ -78,16 +78,15 @@ public class GooglePlaceApiServiceImpl implements GooglePlaceApiService {
     }
 
     /**
-     * 사진 리소스 이름을 실제 이미지 URL로 변환
-     *
-     * @param photos 사진 리소스 이름
-     * @return 실제 이미지 url
+     * 최대 5개의 사진 리소스 이름을 실제 이미지 URL 리스트로 변환
      */
-    private String extractImageUrl(List<GooglePlaceDto.Photo> photos) {
-        if (photos == null || photos.isEmpty()) return null;
+    private List<String> extractImageUrls(List<GooglePlaceDto.Photo> photos) {
+        if (photos == null || photos.isEmpty()) return List.of();
 
-        String photoName = photos.get(0).getName();
-        return String.format("https://places.googleapis.com/v1/%s/media?key=%s&maxWidthPx=400", photoName, apiKey);
+        return photos.stream()
+                .limit(5) // 최대 5개
+                .map(photo -> String.format("https://places.googleapis.com/v1/%s/media?key=%s&maxWidthPx=400", photo.getName(), apiKey))
+                .collect(Collectors.toList());
     }
 
     /**

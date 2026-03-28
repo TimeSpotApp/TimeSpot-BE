@@ -6,6 +6,7 @@ import static com.timespot.backend.common.response.ErrorCode.STATION_NOT_FOUND;
 import static com.timespot.backend.common.response.ErrorCode.USER_NOT_FOUND;
 
 import com.timespot.backend.common.error.GlobalException;
+import com.timespot.backend.domain.favorite.dao.FavoriteRepository;
 import com.timespot.backend.domain.history.dao.VisitingHistoryRepository;
 import com.timespot.backend.domain.history.dto.VisitingHistoryRequestDto.JourneyEndRequest;
 import com.timespot.backend.domain.history.dto.VisitingHistoryRequestDto.JourneyStartRequest;
@@ -13,9 +14,9 @@ import com.timespot.backend.domain.history.dto.VisitingHistoryResponseDto.Visiti
 import com.timespot.backend.domain.history.dto.VisitingHistoryResponseDto.VisitingHistoryListResponse;
 import com.timespot.backend.domain.history.model.VisitingHistory;
 import com.timespot.backend.domain.place.dao.PlaceRepository;
-import com.timespot.backend.domain.place.dao.StationRepository;
 import com.timespot.backend.domain.place.model.Place;
-import com.timespot.backend.domain.place.model.Station;
+import com.timespot.backend.domain.station.dao.StationRepository;
+import com.timespot.backend.domain.station.model.Station;
 import com.timespot.backend.domain.user.dao.UserRepository;
 import com.timespot.backend.domain.user.model.User;
 import java.time.LocalDateTime;
@@ -36,6 +37,7 @@ import org.springframework.transaction.annotation.Transactional;
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------
  * 26. 3. 25.    loadingKKamo21               Initial creation
+ * 26. 3. 26.    loadingKKamo21               이미 종료된 이력 접근 차단 및 즐겨찾기 방문 통계 업데이트 추가
  */
 @Service
 @Transactional(readOnly = true)
@@ -46,6 +48,7 @@ public class VisitingHistoryServiceImpl implements VisitingHistoryService {
     private final UserRepository            userRepository;
     private final StationRepository         stationRepository;
     private final PlaceRepository           placeRepository;
+    private final FavoriteRepository        favoriteRepository;
 
     @Override
     @Transactional
@@ -54,11 +57,18 @@ public class VisitingHistoryServiceImpl implements VisitingHistoryService {
         Station station = getStationById(dto.getStationId());
         Place   place   = getPlaceById(dto.getPlaceId());
 
-        VisitingHistory visitingHistory = visitingHistoryRepository.save(
+        Long historyId = visitingHistoryRepository.save(
                 VisitingHistory.of(user, station, place, LocalDateTime.now(), dto.getTrainDepartureTime())
-        );
+        ).getId();
 
-        return VisitingHistoryDetailResponse.from(visitingHistory);
+        VisitingHistoryDetailResponse response = visitingHistoryRepository.findVisitingHistoryDetail(userId, historyId)
+                                                                          .orElseThrow(() -> new GlobalException(
+                                                                                  HISTORY_NOT_FOUND
+                                                                          ));
+        response.setStartLat(dto.getLat());
+        response.setStartLng(dto.getLng());
+
+        return response;
     }
 
     @Override
@@ -66,22 +76,32 @@ public class VisitingHistoryServiceImpl implements VisitingHistoryService {
     public VisitingHistoryDetailResponse endJourney(final UUID userId,
                                                     final Long historyId,
                                                     final JourneyEndRequest dto) {
-        VisitingHistory visitingHistory = visitingHistoryRepository.findById(historyId)
+        VisitingHistory visitingHistory = visitingHistoryRepository.findByIdAndIsSuccessFalse(historyId)
                                                                    .orElseThrow(
                                                                            () -> new GlobalException(HISTORY_NOT_FOUND)
                                                                    );
 
         if (!visitingHistory.getUser().getId().equals(userId)) throw new GlobalException(HISTORY_NOT_FOUND);
 
+        visitingHistory.validateEndable();
+
         if (dto.getIsCompleted()) {
             visitingHistory.endJourney(LocalDateTime.now());
 
-            User user = visitingHistory.getUser();
-            if (visitingHistory.isSuccess())
-                user.addVisitHistory(visitingHistory.getTotalDurationMinutes(), true);
-        } else visitingHistory.abandonJourney();
+            if (visitingHistory.isSuccess()) {
+                User    user            = visitingHistory.getUser();
+                Station station         = visitingHistory.getStation();
+                int     durationMinutes = visitingHistory.getTotalDurationMinutes();
 
-        return VisitingHistoryDetailResponse.from(visitingHistory);
+                user.addVisitHistory(durationMinutes, true);
+
+                updateFavoriteVisitCount(user, station, durationMinutes);
+            }
+        } else
+            visitingHistory.abandonJourney();
+
+        return visitingHistoryRepository.findVisitingHistoryDetail(userId, historyId)
+                                        .orElseThrow(() -> new GlobalException(HISTORY_NOT_FOUND));
     }
 
     @Override
@@ -110,6 +130,22 @@ public class VisitingHistoryServiceImpl implements VisitingHistoryService {
     }
 
     // ========================= 내부 메서드 =========================
+
+    /**
+     * 즐겨찾기 방문 횟수 및 누적 시간 업데이트
+     * <p>
+     * - 여정이 정상 완료된 경우에만 호출됨
+     * - 해당 역의 즐겨찾기가 존재하는 경우 방문 횟수 + 여정 시간 증가
+     * </p>
+     *
+     * @param user            사용자
+     * @param station         역
+     * @param durationMinutes 여정 시간 (분)
+     */
+    private void updateFavoriteVisitCount(final User user, final Station station, final int durationMinutes) {
+        favoriteRepository.findByUserIdAndStationId(user.getId(), station.getId())
+                          .ifPresent(favorite -> favorite.addVisitHistory(durationMinutes));
+    }
 
     /**
      * 사용자 ID 로 사용자 조회

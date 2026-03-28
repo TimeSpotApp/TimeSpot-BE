@@ -10,7 +10,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.timespot.backend.domain.favorite.dto.FavoriteResponseDto.FavoriteListResponse;
 import com.timespot.backend.domain.favorite.dto.QFavoriteResponseDto_FavoriteListResponse;
 import com.timespot.backend.domain.favorite.model.QFavorite;
-import com.timespot.backend.domain.place.model.QStation;
+import com.timespot.backend.domain.station.model.QStation;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -56,6 +56,7 @@ public class FavoriteRepositoryImpl implements FavoriteRepositoryCustom {
                                                                                FAVORITE.station.id,
                                                                                FAVORITE.station.name,
                                                                                FAVORITE.visitCount,
+                                                                               FAVORITE.totalVisitMinutes,
                                                                                FAVORITE.createdAt
                                                                        )
                                                                )
@@ -64,6 +65,8 @@ public class FavoriteRepositoryImpl implements FavoriteRepositoryCustom {
                                                                .where(FAVORITE.id.in(favoriteIds),
                                                                       stationNameContains(keyword))
                                                                .orderBy(getSortCondition(pageable))
+                                                               .offset(pageable.getOffset())
+                                                               .limit(pageable.getPageSize())
                                                                .fetch();
 
         return PageableExecutionUtils.getPage(
@@ -116,7 +119,8 @@ public class FavoriteRepositoryImpl implements FavoriteRepositoryCustom {
      * @return 정렬 조건 배열
      */
     private OrderSpecifier<?>[] getSortCondition(final Pageable pageable) {
-        if (pageable.getSort().isEmpty()) return new OrderSpecifier[]{new OrderSpecifier<>(DESC, FAVORITE.createdAt)};
+        if (pageable.getSort().isEmpty()) return new OrderSpecifier[]{new OrderSpecifier<>(DESC, FAVORITE.createdAt),
+                                                                      new OrderSpecifier<>(DESC, FAVORITE.id)};
 
         List<OrderSpecifier<?>> orderSpecifiers = new ArrayList<>();
 

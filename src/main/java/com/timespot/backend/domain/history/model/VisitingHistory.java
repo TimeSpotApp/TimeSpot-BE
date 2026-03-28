@@ -1,5 +1,6 @@
 package com.timespot.backend.domain.history.model;
 
+import static com.timespot.backend.common.response.ErrorCode.HISTORY_ALREADY_ENDED;
 import static com.timespot.backend.common.response.ErrorCode.HISTORY_INVALID_END_TIME;
 import static com.timespot.backend.common.response.ErrorCode.HISTORY_INVALID_PLACE;
 import static com.timespot.backend.common.response.ErrorCode.HISTORY_INVALID_START_TIME;
@@ -13,7 +14,7 @@ import static lombok.AccessLevel.PROTECTED;
 import com.timespot.backend.common.error.GlobalException;
 import com.timespot.backend.common.model.BaseAuditingEntity;
 import com.timespot.backend.domain.place.model.Place;
-import com.timespot.backend.domain.place.model.Station;
+import com.timespot.backend.domain.station.model.Station;
 import com.timespot.backend.domain.user.model.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -35,10 +36,23 @@ import lombok.NoArgsConstructor;
  * Author      : loadingKKamo21
  * Date        : 26. 3. 24.
  * Description : 방문 이력 엔티티 (사용자-역 여정 기록)
+ *
+ * ## 여정 상태 흐름
+ * 1. **여정 시작**: `of(user, station, place, startTime, trainDepartureTime)` - 진행 중 상태
+ * 2. **여정 종료**:
+ *    - 정상 완료: `endJourney(endTime)` - `isSuccess = true` (열차 출발 전 도착)
+ *    - 시간 초과: `endJourney(endTime)` - `isSuccess = false` (열차 출발 후 도착)
+ *    - 중도 포기: `abandonJourney()` - `isSuccess = false`, `endTime = null`
+ * 3. **접근 차단**: `validateEndable()` - 이미 종료된 이력에 대한 재접근 차단
+ *
+ * ## 통계 업데이트
+ * - 여정이 **정상 완료**된 경우 (`isSuccess == true`) 에만 사용자 통계 및 즐겨찾기 업데이트
+ * - 포기 또는 시간 초과한 경우 통계 미반영
  * =====================================================================================================================
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------
  * 26. 3. 24.    loadingKKamo21       Initial creation
+ * 26. 3. 26.    loadingKKamo21       이미 종료된 이력 접근 차단 로직 추가, 통계 업데이트 로직 강화
  */
 @Entity
 @Table(name = "visiting_histories")
@@ -279,6 +293,19 @@ public class VisitingHistory extends BaseAuditingEntity {
      */
     public int getTotalDurationMinutes() {
         return this.totalDurationMinutes != null ? this.totalDurationMinutes : 0;
+    }
+
+    /**
+     * 여정 종료 검증 (이미 종료된 이력에 대한 재접근 차단)
+     * <p>
+     * - 진행 중이 아닌 경우 (isInProgress() == false) 예외 발생
+     * - 즉, endTime 이 있거나 isSuccess 가 명시적으로 false 로 설정된 경우 차단
+     * </p>
+     *
+     * @throws GlobalException HISTORY_ALREADY_ENDED
+     */
+    public void validateEndable() {
+        if (!isInProgress()) throw new GlobalException(HISTORY_ALREADY_ENDED);
     }
 
 }

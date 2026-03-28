@@ -40,6 +40,6 @@ public class GooglePlaceDto {
         private String phoneNumber;
         private List<String> weekdayHours;
         private List<String> weekendHours;
-        private String imageUrl;
+        private List<String> imageUrls;
     }
 }

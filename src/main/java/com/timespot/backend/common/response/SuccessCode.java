@@ -10,13 +10,14 @@ import org.springframework.http.HttpStatus;
  * FileName    : SuccessCode
  * Author      : loadingKKamo21
  * Date        : 26. 2. 26.
- * Description : 성공 코드 열거형 (공통, 사용자, 장소)
+ * Description : 성공 코드 열거형 (공통, 사용자, 소셜 연결, 역, 장소, 즐겨찾기, 방문 이력, 디바이스, 알림)
  * =====================================================================================================================
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------
  * 26. 2. 26.    loadingKKamo21       Initial creation
  * 26. 2. 19.    whitecity01          ADD GET_AVAILABLE_PLACE
  * 26. 3. 22.    whitecity01          Add place detail success
+ * 26. 3. 28.    loadingKKamo21       디바이스 등록 성공 코드 유지, 해제 코드 제거
  */
 @Getter
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
@@ -53,7 +54,17 @@ public enum SuccessCode {
     HISTORY_CREATE_SUCCESS(HttpStatus.CREATED, "새로운 여정이 시작되었습니다."),
     HISTORY_END_SUCCESS(HttpStatus.OK, "여정이 종료되었습니다."),
     HISTORY_GET_SUCCESS(HttpStatus.OK, "방문 이력 목록 조회가 완료되었습니다."),
-    HISTORY_DELETE_SUCCESS(HttpStatus.NO_CONTENT, "방문 이력이 성공적으로 삭제되었습니다.");
+    HISTORY_DELETE_SUCCESS(HttpStatus.NO_CONTENT, "방문 이력이 성공적으로 삭제되었습니다."),
+
+    // Station
+    STATION_GET_SUCCESS(HttpStatus.OK, "역 조회가 완료되었습니다."),
+
+    // Device
+    DEVICE_REGISTER_SUCCESS(HttpStatus.OK, "디바이스 등록이 완료되었습니다."),
+
+    // User Notification
+    USER_NOTIFICATION_SETTINGS_GET_SUCCESS(HttpStatus.OK, "알림 설정 조회가 완료되었습니다."),
+    USER_NOTIFICATION_SETTINGS_UPDATE_SUCCESS(HttpStatus.OK, "알림 설정이 변경되었습니다.");
 
     private final HttpStatus status;
     private final String     message;

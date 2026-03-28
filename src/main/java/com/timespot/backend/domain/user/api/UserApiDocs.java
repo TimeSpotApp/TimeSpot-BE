@@ -4,6 +4,8 @@ import com.timespot.backend.common.response.BaseResponse;
 import com.timespot.backend.common.security.dto.AuthResponseDto.AuthInfoResponse;
 import com.timespot.backend.common.security.model.CustomUserDetails;
 import com.timespot.backend.domain.user.dto.UserRequestDto;
+import com.timespot.backend.domain.user.dto.UserNotificationRequestDto.NotificationSettingsRequest;
+import com.timespot.backend.domain.user.dto.UserNotificationResponseDto.NotificationSettingsResponse;
 import com.timespot.backend.domain.user.dto.UserRequestDto.UserInfoUpdateRequest;
 import com.timespot.backend.domain.user.dto.UserResponseDto;
 import com.timespot.backend.domain.user.dto.UserResponseDto.UserInfoResponse;
@@ -16,6 +18,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 
 /**
@@ -35,7 +38,7 @@ import org.springframework.http.ResponseEntity;
         description = """
                       ## 회원 관리 API
                       
-                      회원 정보 조회, 수정, 탈퇴 기능을 제공합니다.
+                      회원 정보 조회, 수정, 탈퇴 및 알림 설정 기능을 제공합니다.
                       
                       ### 인증 방식
                       - 모든 API 는 `Bearer Token` 인증이 필요합니다.
@@ -43,8 +46,22 @@ import org.springframework.http.ResponseEntity;
                       
                       ### 주요 기능
                       - **회원 정보 조회**: 현재 로그인한 사용자의 정보를 조회합니다.
-                      - **회원 정보 수정**: 닉네임과 주사용 지도 API 를 변경합니다.
+                      - **회원 정보 수정**: 주사용 지도 API 를 변경합니다.
                       - **회원 탈퇴**: 사용자를 탈퇴 처리하고 모든 연동 정보를 삭제합니다.
+                      - **알림 설정 조회/수정**: 열차 출발 알림 수신 설정을 관리합니다.
+                      
+                      ### 알림 설정 (회원 전용)
+                      - **회원 전용 기능**: 로그인한 사용자만 사용 가능
+                      - **기기 동기화**: 한 기기에서 설정하면 모든 기기에서 적용됨
+                      - **비회원**: 디바이스 등록만 가능 (알림 설정 불가)
+                      
+                      ### 알림 타입
+                      | 타입 | 설명 | 수정 가능 |
+                      |------|------|-----------|
+                      | `DEPARTURE_TIME` | 열차 출발 시간 (기본) | ❌ |
+                      | `DEPARTURE_5_MIN_BEFORE` | 출발 5 분 전 | ✅ |
+                      | `DEPARTURE_10_MIN_BEFORE` | 출발 10 분 전 | ✅ |
+                      | `DEPARTURE_15_MIN_BEFORE` | 출발 15 분 전 | ✅ |
                       """
 )
 @SecurityRequirement(name = "BearerAuth")
@@ -242,7 +259,7 @@ public interface UserApiDocs {
             @Parameter(
                     description = "회원 정보 수정 요청 페이로드",
                     required = true
-            ) UserInfoUpdateRequest dto
+            ) @Valid UserInfoUpdateRequest dto
     );
 
 
@@ -370,6 +387,402 @@ public interface UserApiDocs {
     })
     ResponseEntity<BaseResponse<Void>> withdraw(
             @Parameter(hidden = true) CustomUserDetails userDetails
+    );
+
+    @Operation(
+            summary = "알림 설정 조회",
+            description = """
+                          ### 현재 사용자의 알림 수신 설정 상태를 조회합니다.
+                          
+                          #### 요청 헤더
+                          - `Authorization: Bearer {accessToken}` - 필수
+                          
+                          #### 응답 데이터
+                          - **4 가지 알림 타입 모두 반환**
+                          - `DEPARTURE_TIME`: 항상 `isEnabled = true`, `isEditable = false`
+                          - 나머지 3 가지: 사용자 설정에 따라 `isEnabled` 변동, `isEditable = true`
+                          
+                          #### 알림 타입별 설명
+                          | 타입 | 설명 | 기본값 | 수정 가능 |
+                          |------|------|--------|-----------|
+                          | `DEPARTURE_TIME` | 열차 출발 시간 | 항상 활성화 | ❌ |
+                          | `DEPARTURE_5_MIN_BEFORE` | 출발 5 분 전 | 활성화 | ✅ |
+                          | `DEPARTURE_10_MIN_BEFORE` | 출발 10 분 전 | 활성화 | ✅ |
+                          | `DEPARTURE_15_MIN_BEFORE` | 출발 15 분 전 | 활성화 | ✅ |
+                          
+                          #### "설정 안 함" 상태
+                          - 3 가지 선택적 알림 모두 `isEnabled = false` 인 상태
+                          - `DEPARTURE_TIME` 만 수신
+                          
+                          #### 기기 동기화
+                          - **회원 전용**: 한 기기에서 설정하면 모든 기기에서 적용됨
+                          - 예: iPhone 에서 설정 → iPad 에서도 동일하게 적용
+                          """
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "알림 설정 조회 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = NotificationSettingsResponse.class),
+                            examples = @ExampleObject(
+                                    name = "조회 성공 (모두 활성화)",
+                                    value = """
+                                            {
+                                              "code": 200,
+                                              "message": "알림 설정 조회가 완료되었습니다.",
+                                              "data": {
+                                                "settings": [
+                                                  {
+                                                    "type": "DEPARTURE_TIME",
+                                                    "isEnabled": true,
+                                                    "isEditable": false
+                                                  },
+                                                  {
+                                                    "type": "DEPARTURE_5_MIN_BEFORE",
+                                                    "isEnabled": true,
+                                                    "isEditable": true
+                                                  },
+                                                  {
+                                                    "type": "DEPARTURE_10_MIN_BEFORE",
+                                                    "isEnabled": true,
+                                                    "isEditable": true
+                                                  },
+                                                  {
+                                                    "type": "DEPARTURE_15_MIN_BEFORE",
+                                                    "isEnabled": true,
+                                                    "isEditable": true
+                                                  }
+                                                ],
+                                                "updatedAt": "2024-01-15T10:30:00"
+                                              }
+                                            }
+                                            """
+                            )
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "알림 설정 조회 성공 (일부 비활성화)",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(
+                                    name = "조회 성공 (5 분 전만 활성화)",
+                                    value = """
+                                            {
+                                              "code": 200,
+                                              "message": "알림 설정 조회가 완료되었습니다.",
+                                              "data": {
+                                                "settings": [
+                                                  {
+                                                    "type": "DEPARTURE_TIME",
+                                                    "isEnabled": true,
+                                                    "isEditable": false
+                                                  },
+                                                  {
+                                                    "type": "DEPARTURE_5_MIN_BEFORE",
+                                                    "isEnabled": true,
+                                                    "isEditable": true
+                                                  },
+                                                  {
+                                                    "type": "DEPARTURE_10_MIN_BEFORE",
+                                                    "isEnabled": false,
+                                                    "isEditable": true
+                                                  },
+                                                  {
+                                                    "type": "DEPARTURE_15_MIN_BEFORE",
+                                                    "isEnabled": false,
+                                                    "isEditable": true
+                                                  }
+                                                ],
+                                                "updatedAt": "2024-01-15T10:30:00"
+                                              }
+                                            }
+                                            """
+                            )
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "알림 설정 조회 성공 (설정 안 함)",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(
+                                    name = "조회 성공 (설정 안 함)",
+                                    value = """
+                                            {
+                                              "code": 200,
+                                              "message": "알림 설정 조회가 완료되었습니다.",
+                                              "data": {
+                                                "settings": [
+                                                  {
+                                                    "type": "DEPARTURE_TIME",
+                                                    "isEnabled": true,
+                                                    "isEditable": false
+                                                  },
+                                                  {
+                                                    "type": "DEPARTURE_5_MIN_BEFORE",
+                                                    "isEnabled": false,
+                                                    "isEditable": true
+                                                  },
+                                                  {
+                                                    "type": "DEPARTURE_10_MIN_BEFORE",
+                                                    "isEnabled": false,
+                                                    "isEditable": true
+                                                  },
+                                                  {
+                                                    "type": "DEPARTURE_15_MIN_BEFORE",
+                                                    "isEnabled": false,
+                                                    "isEditable": true
+                                                  }
+                                                ],
+                                                "updatedAt": "2024-01-15T10:30:00"
+                                              }
+                                            }
+                                            """
+                            )
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "인증 실패",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(
+                                    name = "인증 실패",
+                                    value = """
+                                            {
+                                              "code": 401,
+                                              "message": "인증 정보가 유효하지 않습니다."
+                                            }
+                                            """
+                            )
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "회원을 찾을 수 없음",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(
+                                    name = "회원 없음",
+                                    value = """
+                                            {
+                                              "code": 404,
+                                              "message": "해당 회원을 찾을 수 없습니다."
+                                            }
+                                            """
+                            )
+                    )
+            )
+    })
+    ResponseEntity<BaseResponse<NotificationSettingsResponse>> getNotificationSettings(
+            @Parameter(hidden = true) CustomUserDetails userDetails
+    );
+
+    @Operation(
+            summary = "알림 설정 수정",
+            description = """
+                          ### 사용자의 알림 수신 설정을 변경합니다.
+                          
+                          #### 요청 헤더
+                          - `Authorization: Bearer {accessToken}` - 필수
+                          
+                          #### 요청 본문
+                          - `notificationSettings`: 알림 설정 목록 (1~3 개)
+                            - `type`: 알림 타입 (`DEPARTURE_5_MIN_BEFORE`, `DEPARTURE_10_MIN_BEFORE`, `DEPARTURE_15_MIN_BEFORE`)
+                            - `isEnabled`: 활성화 여부 (`true`/`false`)
+                          
+                          #### 제약사항
+                          - `DEPARTURE_TIME` 은 기본 알림이므로 **제외** (항상 활성화)
+                          - 최대 3 개 항목까지 전송 가능
+                          - 중복된 타입 전송 불가
+                          - 존재하지 않는 타입 전송 불가
+                          
+                          #### "설정 안 함" 구현 방법
+                          ```json
+                          {
+                            "notificationSettings": [
+                              {"type": "DEPARTURE_5_MIN_BEFORE", "isEnabled": false},
+                              {"type": "DEPARTURE_10_MIN_BEFORE", "isEnabled": false},
+                              {"type": "DEPARTURE_15_MIN_BEFORE", "isEnabled": false}
+                            ]
+                          }
+                          ```
+                          
+                          #### "모두 활성화" 구현 방법
+                          ```json
+                          {
+                            "notificationSettings": [
+                              {"type": "DEPARTURE_5_MIN_BEFORE", "isEnabled": true},
+                              {"type": "DEPARTURE_10_MIN_BEFORE", "isEnabled": true},
+                              {"type": "DEPARTURE_15_MIN_BEFORE", "isEnabled": true}
+                            ]
+                          }
+                          ```
+                          
+                          #### 부분 활성화 예시 (5 분 전 + 10 분 전)
+                          ```json
+                          {
+                            "notificationSettings": [
+                              {"type": "DEPARTURE_5_MIN_BEFORE", "isEnabled": true},
+                              {"type": "DEPARTURE_10_MIN_BEFORE", "isEnabled": true},
+                              {"type": "DEPARTURE_15_MIN_BEFORE", "isEnabled": false}
+                            ]
+                          }
+                          ```
+                          
+                          #### 기기 동기화
+                          - **회원 전용**: 한 기기에서 설정하면 모든 기기에서 적용됨
+                          - 예: iPhone 에서 수정 → iPad 에서도 자동으로 적용
+                          """
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "알림 설정 수정 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = NotificationSettingsResponse.class),
+                            examples = @ExampleObject(
+                                    name = "수정 성공 (5 분 전 + 10 분 전 활성화)",
+                                    value = """
+                                            {
+                                              "code": 200,
+                                              "message": "알림 설정이 변경되었습니다.",
+                                              "data": {
+                                                "settings": [
+                                                  {
+                                                    "type": "DEPARTURE_TIME",
+                                                    "isEnabled": true,
+                                                    "isEditable": false
+                                                  },
+                                                  {
+                                                    "type": "DEPARTURE_5_MIN_BEFORE",
+                                                    "isEnabled": true,
+                                                    "isEditable": true
+                                                  },
+                                                  {
+                                                    "type": "DEPARTURE_10_MIN_BEFORE",
+                                                    "isEnabled": true,
+                                                    "isEditable": true
+                                                  },
+                                                  {
+                                                    "type": "DEPARTURE_15_MIN_BEFORE",
+                                                    "isEnabled": false,
+                                                    "isEditable": true
+                                                  }
+                                                ],
+                                                "updatedAt": "2024-01-15T11:00:00"
+                                              }
+                                            }
+                                            """
+                            )
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "잘못된 요청 - 유효성 검사 실패",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = {
+                                    @ExampleObject(
+                                            name = "설정 목록 누락",
+                                            value = """
+                                                    {
+                                                      "code": 400,
+                                                      "message": "알림 설정 목록은 필수입니다."
+                                                    }
+                                                    """
+                                    ),
+                                    @ExampleObject(
+                                            name = "알림 타입 누락",
+                                            value = """
+                                                    {
+                                                      "code": 400,
+                                                      "message": "알림 타입은 필수입니다."
+                                                    }
+                                                    """
+                                    ),
+                                    @ExampleObject(
+                                            name = "잘못된 알림 타입",
+                                            value = """
+                                                    {
+                                                      "code": 400,
+                                                      "message": "지원하지 않는 알림 타입입니다."
+                                                    }
+                                                    """
+                                    ),
+                                    @ExampleObject(
+                                            name = "활성화 여부 누락",
+                                            value = """
+                                                    {
+                                                      "code": 400,
+                                                      "message": "활성화 여부는 필수입니다."
+                                                    }
+                                                    """
+                                    ),
+                                    @ExampleObject(
+                                            name = "중복된 타입",
+                                            value = """
+                                                    {
+                                                      "code": 400,
+                                                      "message": "중복된 알림 타입이 포함되어 있습니다."
+                                                    }
+                                                    """
+                                    ),
+                                    @ExampleObject(
+                                            name = "범위 초과 (4 개 이상)",
+                                            value = """
+                                                    {
+                                                      "code": 400,
+                                                      "message": "알림 설정은 최대 3 개까지 가능합니다."
+                                                    }
+                                                    """
+                                    )
+                            }
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "인증 실패",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(
+                                    name = "인증 실패",
+                                    value = """
+                                            {
+                                              "code": 401,
+                                              "message": "인증 정보가 유효하지 않습니다."
+                                            }
+                                            """
+                            )
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "회원을 찾을 수 없음",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(
+                                    name = "회원 없음",
+                                    value = """
+                                            {
+                                              "code": 404,
+                                              "message": "해당 회원을 찾을 수 없습니다."
+                                            }
+                                            """
+                            )
+                    )
+            )
+    })
+    ResponseEntity<BaseResponse<NotificationSettingsResponse>> updateNotificationSettings(
+            @Parameter(hidden = true) CustomUserDetails userDetails,
+            @Parameter(
+                    description = "알림 설정 수정 요청 페이로드",
+                    required = true
+            ) @Valid NotificationSettingsRequest dto
     );
 
 }
