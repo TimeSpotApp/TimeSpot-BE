@@ -77,7 +77,7 @@ public enum ErrorCode {
     // Place
     PLACE_NOT_FOUND(HttpStatus.NOT_FOUND, "PL001", "장소를 찾을 수 없습니다."),
     PLACE_INSUFFICIENT_REMAINING_TIME(HttpStatus.BAD_REQUEST, "PL002", "체류 가능한 시간이 부족합니다."),
-    PLACE_INVALID_MARKER(HttpStatus.BAD_REQUEST, "PL003", "유효하지 않은 마커 좌표입니다."),
+    PLACE_INVALID_MAP(HttpStatus.BAD_REQUEST, "PL003", "유효하지 않은 지도 좌표입니다."),
 
     // Visiting History
     HISTORY_NOT_FOUND(HttpStatus.NOT_FOUND, "HI001", "방문 이력을 찾을 수 없습니다."),

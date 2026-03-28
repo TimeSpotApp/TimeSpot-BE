@@ -41,7 +41,7 @@ public interface PlaceService {
                                                         String keyword,
                                                         String category,
                                                         PlaceSortType sortBy,
-                                                        Double markerLat,
-                                                        Double markerLon,
+                                                        Double mapLat,
+                                                        Double mapLon,
                                                         Pageable pageable);
 }
