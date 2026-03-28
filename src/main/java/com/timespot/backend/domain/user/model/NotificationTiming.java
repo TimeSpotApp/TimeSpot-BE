@@ -12,15 +12,18 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum NotificationTiming {
 
-    NONE("none", null, "none"),
-    DEPARTURE_TIME("departure_time", 0, "지금 바로 출발해야 해요!"),
-    BEFORE_5_MINUTES("before_5_minutes", 5, "5분 뒤면 역으로 슬슬 일어날 채비를 할 시간이에요."),
-    BEFORE_10_MINUTES("before_10_minutes", 10, "10분 뒤면 역으로 출발해야 해요!"),
-    BEFORE_15_MINUTES("before_15_minutes", 15, "역으로 출발하기까지 15분 남았어요!");
+    NONE("none", null, "none", "none"),
+    DEPARTURE_TIME("departure_time", 0, "지금 바로 출발해야 해요!", "departure_time"),
+    BEFORE_5_MINUTES("before_5_minutes", 5, "5분 뒤면 역으로 슬슬 일어날 채비를 할 시간이에요.", "5_min_before"),
+    BEFORE_10_MINUTES("before_10_minutes", 10, "10분 뒤면 역으로 출발해야 해요!", "10_min_before"),
+    BEFORE_15_MINUTES("before_15_minutes", 15, "역으로 출발하기까지 15분 남았어요!", "15_min_before");
+
+    private static final String NOTIFICATION_SCHEMA_PREFIX = "timespot://notifications/";
 
     private final String code;
     private final Integer beforeMinutes;
     private final String message;
+    private final String schemaPath;
 
     @JsonCreator
     public static NotificationTiming from(final String value) {
@@ -37,5 +40,9 @@ public enum NotificationTiming {
     @JsonValue
     public String toValue() {
         return this.code;
+    }
+
+    public String toSchema() {
+        return NOTIFICATION_SCHEMA_PREFIX + schemaPath;
     }
 }
