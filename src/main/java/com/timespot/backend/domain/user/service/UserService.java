@@ -1,8 +1,7 @@
 package com.timespot.backend.domain.user.service;
 
-import com.timespot.backend.common.security.dto.AuthRequestDto;
-import com.timespot.backend.domain.user.dto.UserRequestDto;
-import com.timespot.backend.domain.user.dto.UserResponseDto;
+import com.timespot.backend.domain.user.dto.UserNotificationRequestDto.NotificationSettingsRequest;
+import com.timespot.backend.domain.user.dto.UserNotificationResponseDto.NotificationSettingsResponse;
 import com.timespot.backend.common.security.dto.AuthRequestDto.OAuth2SignupRequest;
 import com.timespot.backend.domain.user.dto.UserRequestDto.UserInfoUpdateRequest;
 import com.timespot.backend.domain.user.dto.UserResponseDto.UserInfoResponse;
@@ -70,9 +69,10 @@ public interface UserService {
      */
     void updateUserInfo(UUID id, UserInfoUpdateRequest dto);
 
-    UserResponseDto.UserNotificationResponse findUserNotificationSettings(UUID id);
+    NotificationSettingsResponse getNotificationSettings(UUID id);
 
-    void updateUserNotificationSettings(UUID id, UserRequestDto.UserNotificationUpdateRequest dto);
+
+    NotificationSettingsResponse updateNotificationSettings(UUID id, NotificationSettingsRequest dto);
 
     /**
      * 회원 탈퇴 처리

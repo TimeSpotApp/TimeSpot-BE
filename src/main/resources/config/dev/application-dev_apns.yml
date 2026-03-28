@@ -5,3 +5,4 @@ app:
     private-key: ${APPLE_PRIVATE_KEY:APPLE_PRIVATE_KEY}
     bundle-id: ${APPLE_CLIENT_ID:APPLE_CLIENT_ID}
     endpoint: ${APNS_ENDPOINT:APNS_ENDPOINT}
+    enabled: false

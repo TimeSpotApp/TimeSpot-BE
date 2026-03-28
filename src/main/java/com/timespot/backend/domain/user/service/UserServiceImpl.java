@@ -9,12 +9,14 @@ import static com.timespot.backend.infra.security.oauth.constant.TokenType.REFRE
 
 import com.timespot.backend.common.error.GlobalException;
 import com.timespot.backend.common.response.ErrorCode;
+import com.timespot.backend.domain.user.constant.NotificationType;
 import com.timespot.backend.common.security.dto.AuthRequestDto.OAuth2SignupRequest;
 import com.timespot.backend.domain.user.dao.SocialConnectionRepository;
 import com.timespot.backend.domain.user.dao.UserRepository;
-import com.timespot.backend.domain.user.dto.UserRequestDto;
-import com.timespot.backend.domain.user.dto.UserResponseDto;
 import com.timespot.backend.domain.user.dto.UserRequestDto.UserInfoUpdateRequest;
+import com.timespot.backend.domain.user.dto.UserNotificationRequestDto.NotificationSettingsRequest;
+import com.timespot.backend.domain.user.dto.UserNotificationResponseDto.NotificationSettingItem;
+import com.timespot.backend.domain.user.dto.UserNotificationResponseDto.NotificationSettingsResponse;
 import com.timespot.backend.domain.user.dto.UserResponseDto.UserInfoResponse;
 import com.timespot.backend.domain.user.model.MapApi;
 import com.timespot.backend.domain.user.model.NotificationTiming;
@@ -144,20 +146,20 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserResponseDto.UserNotificationResponse findUserNotificationSettings(final UUID id) {
+    public NotificationSettingsResponse getNotificationSettings(final UUID id) {
         User user = userRepository.findById(id).orElseThrow(() -> new GlobalException(ErrorCode.USER_NOT_FOUND));
-        return new UserResponseDto.UserNotificationResponse(toNotificationTimingCodes(user.getNotificationTimings()));
+        return toNotificationSettingsResponse(user.getNotificationTimings());
     }
 
     @Override
     @Transactional
-    public void updateUserNotificationSettings(final UUID id, final UserRequestDto.UserNotificationUpdateRequest dto) {
+    public NotificationSettingsResponse updateNotificationSettings(final UUID id, final NotificationSettingsRequest dto) {
         User user = userRepository.findById(id).orElseThrow(() -> new GlobalException(ErrorCode.USER_NOT_FOUND));
 
-        Set<NotificationTiming> notificationTimings = parseNotificationTimings(dto.getNotificationTimings());
+        Set<NotificationTiming> notificationTimings = toNotificationTimings(dto);
         validateNotificationTimings(notificationTimings);
 
-        user.updateNotificationTimings(notificationTimings);
+        return toNotificationSettingsResponse(user.getNotificationTimings());
     }
 
 
@@ -232,19 +234,42 @@ public class UserServiceImpl implements UserService {
         return user;
     }
 
-    private Set<NotificationTiming> parseNotificationTimings(final List<String> timings) {
-        if (timings == null || timings.isEmpty()) {
-            return new LinkedHashSet<>();
-        }
+    private NotificationSettingsResponse toNotificationSettingsResponse(final Set<NotificationTiming> notificationTimings) {
+        List<NotificationSettingItem> settings = List.of(
+                new NotificationSettingItem(NotificationType.DEPARTURE_TIME, true, false),
+                toNotificationSettingItem(notificationTimings, NotificationType.DEPARTURE_5_MIN_BEFORE),
+                toNotificationSettingItem(notificationTimings, NotificationType.DEPARTURE_10_MIN_BEFORE),
+                toNotificationSettingItem(notificationTimings, NotificationType.DEPARTURE_15_MIN_BEFORE)
+        );
 
-        return timings.stream().map(NotificationTiming::from).collect(java.util.stream.Collectors.toCollection(LinkedHashSet::new));
+        return new NotificationSettingsResponse(settings, java.time.LocalDateTime.now());
     }
 
-    private List<String> toNotificationTimingCodes(final Set<NotificationTiming> notificationTimings) {
-        return notificationTimings.stream()
+    private NotificationSettingItem toNotificationSettingItem(final Set<NotificationTiming> notificationTimings,
+                                                              final NotificationType notificationType) {
+        return new NotificationSettingItem(
+                notificationType,
+                notificationTimings.contains(toNotificationTiming(notificationType)),
+                true
+        );
+    }
+
+    private Set<NotificationTiming> toNotificationTimings(final NotificationSettingsRequest dto) {
+        return dto.getNotificationSettings()
+                .stream()
+                .filter(item -> Boolean.TRUE.equals(item.getIsEnabled()))
+                .map(item -> toNotificationTiming(item.getType()))
                 .sorted(Comparator.comparingInt(Enum::ordinal))
-                .map(NotificationTiming::toValue)
-                .toList();
+                .collect(java.util.stream.Collectors.toCollection(LinkedHashSet::new));
+    }
+
+    private NotificationTiming toNotificationTiming(final NotificationType notificationType) {
+        return switch (notificationType) {
+            case DEPARTURE_TIME -> NotificationTiming.DEPARTURE_TIME;
+            case DEPARTURE_5_MIN_BEFORE -> NotificationTiming.BEFORE_5_MINUTES;
+            case DEPARTURE_10_MIN_BEFORE -> NotificationTiming.BEFORE_10_MINUTES;
+            case DEPARTURE_15_MIN_BEFORE -> NotificationTiming.BEFORE_15_MINUTES;
+        };
     }
 
     private void validateNotificationTimings(final Set<NotificationTiming> notificationTimings) {

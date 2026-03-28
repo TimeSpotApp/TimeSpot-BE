@@ -20,6 +20,8 @@ import com.timespot.backend.common.security.model.CustomUserDetails;
 import com.timespot.backend.common.security.service.AuthService;
 import com.timespot.backend.domain.device.dto.DeviceRequestDto.DeviceRegisterRequest;
 import com.timespot.backend.domain.device.dto.DeviceResponseDto.DeviceRegisterResponse;
+import com.timespot.backend.domain.device.service.DeviceService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -47,6 +49,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController implements AuthApiDocs {
 
     private final AuthService authService;
+    private final DeviceService deviceService;
 
     @Override
     @PostMapping("/signup")
@@ -93,19 +96,10 @@ public class AuthController implements AuthApiDocs {
     @Override
     @PostMapping("/devices")
     public ResponseEntity<BaseResponse<DeviceRegisterResponse>> registerDevice(
-            @RequestBody final DeviceRegisterRequest dto,
+            @Valid @RequestBody final DeviceRegisterRequest dto,
             @org.springframework.security.core.annotation.AuthenticationPrincipal final CustomUserDetails userDetails
     ) {
-        // TODO: 서비스 계층 개발 시 구현
-        // DeviceRegisterResponse responseData = deviceService.registerDevice(dto, userDetails);
-
-        // 임시 응답 (서비스 계층 개발 시 제거)
-        String userId = (userDetails != null) ? userDetails.getId().toString() : null;
-        DeviceRegisterResponse responseData = new DeviceRegisterResponse(
-                userId,
-                dto.getDeviceToken(),
-                true
-        );
+        DeviceRegisterResponse responseData = deviceService.registerDevice(dto, userDetails);
 
         return ResponseEntity.ok(BaseResponse.success(DEVICE_REGISTER_SUCCESS, responseData));
     }
