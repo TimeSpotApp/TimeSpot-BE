@@ -20,7 +20,7 @@ import java.util.concurrent.CompletableFuture;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@ConditionalOnProperty(prefix = "app.apns", name = "private-key")
+@ConditionalOnProperty(prefix="app.apns", name="enabled", havingValue="true")
 public class ApnsServiceImpl implements ApnsService {
 
     private final ApnsClient apnsClient;
