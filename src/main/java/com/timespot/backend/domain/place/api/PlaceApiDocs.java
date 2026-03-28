@@ -2,6 +2,7 @@ package com.timespot.backend.domain.place.api;
 
 import com.timespot.backend.common.response.BaseResponse;
 import com.timespot.backend.common.response.annotation.CustomPageResponse;
+import com.timespot.backend.common.response.dto.SliceResponseDto;
 import com.timespot.backend.domain.place.constant.PlaceSortType;
 import com.timespot.backend.domain.place.dto.PlaceResponseDto;
 import com.timespot.backend.domain.place.dto.PlaceResponseDto.SimpleAvailablePlace;
@@ -561,7 +562,7 @@ public interface PlaceApiDocs {
             last = false,
             hasPrevious = false
     )
-    ResponseEntity<BaseResponse<Slice<PlaceResponseDto.SearchPlace>>> searchPlaces(
+    ResponseEntity<BaseResponse<SliceResponseDto<PlaceResponseDto.SearchPlace>>> searchPlaces(
             @Parameter(
                     description = "사용자 현재 위치 위도",
                     required = true,
