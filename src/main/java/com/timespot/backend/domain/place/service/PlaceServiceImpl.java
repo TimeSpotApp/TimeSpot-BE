@@ -102,6 +102,7 @@ public class PlaceServiceImpl implements PlaceService {
                 .stationLat(station.getLatitude())
                 .stationLon(station.getLongitude())
                 .leaveTime(formattedLeaveTime)
+                .isGoogleDataLoaded(googleApiResult.isSuccess())
                 .imageUrl(googleApiResult.getImageUrls())
                 .weekday(googleApiResult.getWeekdayHours())
                 .weekend(googleApiResult.getWeekendHours())

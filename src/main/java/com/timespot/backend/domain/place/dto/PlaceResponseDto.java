@@ -140,6 +140,9 @@ public abstract class PlaceResponseDto {
         @Schema(description = "역으로 출발해야 하는 시간", example = "2026-03-27 20:30:00")
         private String leaveTime;
 
+        @Schema(description = "구글 API 데이터 정상 로드 여부", example = "true")
+        private Boolean isGoogleDataLoaded;
+
         // Google API 연동 데이터
         @Schema(description = "장소 대표 이미지 URL", example = "https://places.googleapis.com/v1/places/ChIJ.../media?key=...&maxWidthPx=400")
         private List<String> imageUrl;

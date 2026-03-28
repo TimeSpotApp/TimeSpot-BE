@@ -121,6 +121,7 @@ public interface PlaceApiDocs {
                                                 "stationLat": 37.5546,
                                                 "stationLon": 126.9706,
                                                 "leaveTime": "2026-03-27 20:30:00",
+                                                "isGoogleDataLoaded": true,
                                                 "imageUrl": [
                                                   "https://places.googleapis.com/v1/places/ChIJ.../media?key=...&maxWidthPx=400"
                                                 ],
