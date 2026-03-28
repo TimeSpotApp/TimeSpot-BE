@@ -10,6 +10,7 @@ import static com.timespot.backend.domain.user.constant.NotificationType.DEPARTU
 import static com.timespot.backend.domain.user.constant.NotificationType.DEPARTURE_5_MIN_BEFORE;
 import static com.timespot.backend.domain.user.constant.NotificationType.DEPARTURE_TIME;
 
+import jakarta.validation.Valid;
 import com.timespot.backend.common.response.BaseResponse;
 import com.timespot.backend.common.response.SuccessCode;
 import com.timespot.backend.common.security.dto.AuthResponseDto.AuthInfoResponse;
