@@ -69,11 +69,11 @@ public class StationServiceImpl implements StationService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<StationListResponse> getNearbyStationList(final double lat,
-                                                          final double lng,
+    public List<StationListResponse> getNearbyStationList(final double userLat,
+                                                          final double userLon,
                                                           final double radius,
                                                           final String keyword) {
-        Point point = geometryFactory.createPoint(new Coordinate(lng, lat));
+        Point point = geometryFactory.createPoint(new Coordinate(userLon, userLat));
         return stationRepository.findNearbyStationList(point, radius, keyword);
     }
 

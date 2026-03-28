@@ -71,8 +71,8 @@ public interface StationApiDocs {
                           - `Authorization: Bearer {accessToken}` - 선택 (인증 시 즐겨찾기 여부 포함)
                           
                           #### 쿼리 파라미터
-                          - `lat`: 사용자 위도 - 필수
-                          - `lng`: 사용자 경도 - 필수
+                          - `userLat`: 사용자 위도 - 필수
+                          - `userLon`: 사용자 경도 - 필수
                           - `radius`: 검색 반경 (미터 단위, 기본값: 2000, 최대: 10000) - 선택
                           - `keyword`: 검색어 (역 이름 또는 주소, 부분 일치) - 선택
                           - `page`: 페이지 번호 (1 부터 시작, 기본값: 1) - 선택
@@ -218,12 +218,12 @@ public interface StationApiDocs {
                     description = "사용자 위도",
                     required = true,
                     example = "37.5665"
-            ) double lat,
+            ) double userLat,
             @Parameter(
                     description = "사용자 경도",
                     required = true,
                     example = "126.9780"
-            ) double lng,
+            ) double userLon,
             @Parameter(
                     description = "검색 반경 (미터 단위, 기본값: 2000, 범위: 1~10000)",
                     example = "2000",
