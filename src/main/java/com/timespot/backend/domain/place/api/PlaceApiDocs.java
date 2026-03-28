@@ -37,6 +37,7 @@ import org.springframework.web.bind.annotation.RequestParam;
  * 26. 3. 26.     whitecity01       MODIFY findAvailablePlacesOnRoute logic
  * 26. 3. 27.     whitecity01       MODIFY getPlaceDetail response
  * 26. 3. 28.     loadingKKamo21    API 문서 상세화 (응답 예시, 에러 코드, 인증 정보 추가)
+ * 26. 3. 29.     whitecity01       REMOVE place api
  */
 @Tag(
         name = "Place API",
@@ -44,7 +45,6 @@ import org.springframework.web.bind.annotation.RequestParam;
                       ## 장소 (Place) API
                       
                       ### 주요 기능
-                      - **방문 가능 장소 조회**: 현재 위치와 남은 시간을 기반으로 방문 가능한 장소를 조회합니다.
                       - **장소 상세 정보 조회**: 특정 장소의 상세 정보 (영업시간, 이미지, 연락처 등) 를 조회합니다.
                       - **장소 검색**: 검색어와 필터 (카테고리, 정렬) 를 사용하여 장소를 검색합니다.
                       
@@ -53,7 +53,6 @@ import org.springframework.web.bind.annotation.RequestParam;
                       - **선택적 인증**: 인증 토큰이 있는 경우 더 정확한 맞춤 정보를 제공할 수 있습니다.
                       
                       ### API 경로
-                      - `GET /api/v1/place` - 방문 가능 장소 조회
                       - `GET /api/v1/place/detail` - 장소 상세 정보 조회
                       - `GET /api/v1/place/search` - 장소 검색 (페이징, 필터 지원)
                       
@@ -64,179 +63,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 )
 public interface PlaceApiDocs {
 
-    @Operation(
-            summary = "방문 가능 장소 조회",
-            description = """
-                          ### 현재 사용자 위치에서 주어진 시간 내에 방문 후 복귀 가능한 장소를 조회합니다.
-                          
-                          #### 요청 파라미터
-                          - `userLat`: 사용자 현재 위치 위도 - 필수
-                          - `userLon`: 사용자 현재 위치 경도 - 필수
-                          - `mapLat`: 지도 중심점 위도 - 필수
-                          - `mapLon`: 지도 중심점 경도 - 필수
-                          - `stationId`: 기준 역 ID - 필수
-                          - `remainingMinutes`: 남은 시간 (분) - 필수
-                            - 열차 출발까지 남은 시간
-                            - 왕복 이동시간 + 체류시간을 고려하여 장소 필터링
-                          
-                          #### 처리 과정
-                          1. 사용자 위치와 역 위치 계산
-                          2. 도보 왕복 이동시간 계산
-                          3. 남은 시간에서 이동시간을 제외한 체류 가능시간 계산
-                          4. 체류 가능시간 내에 방문 가능한 장소 필터링
-                          5. 거리순 정렬하여 반환
-                          
-                          #### 응답 데이터
-                          - `placeId`: 장소 ID
-                          - `lat`: 장소 위도
-                          - `lon`: 장소 경도
-                          - `category`: 장소 카테고리
-                          - `stayableMinutes`: 체류 가능 시간 (분)
-                          
-                          #### 주의사항
-                          - `remainingMinutes` 는 양수여야 합니다.
-                          - 역과 장소 간의 도보 거리를 기반으로 계산됩니다.
-                          """
-    )
-    @ApiResponses({
-            @ApiResponse(
-                    responseCode = "200",
-                    description = "방문 가능 장소 조회 성공",
-                    content = @Content(
-                            mediaType = "application/json",
-                            schema = @Schema(implementation = PlaceResponseDto.SimpleAvailablePlace.class),
-                            examples = @ExampleObject(
-                                    name = "조회 성공",
-                                    value = """
-                                            {
-                                              "code": 200,
-                                              "message": "방문 가능 장소 조회가 완료되었습니다.",
-                                              "data": [
-                                                {
-                                                  "placeId": 1,
-                                                  "lat": 37.5546,
-                                                  "lon": 126.9706,
-                                                  "category": "카페",
-                                                  "stayableMinutes": 25
-                                                },
-                                                {
-                                                  "placeId": 2,
-                                                  "lat": 37.5550,
-                                                  "lon": 126.9710,
-                                                  "category": "레스토랑",
-                                                  "stayableMinutes": 40
-                                                }
-                                              ]
-                                            }
-                                            """
-                            )
-                    )
-            ),
-            @ApiResponse(
-                    responseCode = "400",
-                    description = "잘못된 요청 - 필수 파라미터 누락 또는 유효성 검사 실패",
-                    content = @Content(
-                            mediaType = "application/json",
-                            examples = {
-                                    @ExampleObject(
-                                            name = "위도/경도 없음",
-                                            value = """
-                                                    {
-                                                      "code": 400,
-                                                      "message": "위도와 경도는 필수입니다."
-                                                    }
-                                                    """
-                                    ),
-                                    @ExampleObject(
-                                            name = "역 ID 없음",
-                                            value = """
-                                                    {
-                                                      "code": 400,
-                                                      "message": "역 ID 는 필수입니다."
-                                                    }
-                                                    """
-                                    ),
-                                    @ExampleObject(
-                                            name = "남은 시간 없음",
-                                            value = """
-                                                    {
-                                                      "code": 400,
-                                                      "message": "남은 시간은 필수입니다."
-                                                    }
-                                                    """
-                                    ),
-                                    @ExampleObject(
-                                            name = "음수 남은 시간",
-                                            value = """
-                                                    {
-                                                      "code": 400,
-                                                      "message": "남은 시간은 양수여야 합니다."
-                                                    }
-                                                    """
-                                    )
-                            }
-                    )
-            ),
-            @ApiResponse(
-                    responseCode = "404",
-                    description = "역 또는 장소를 찾을 수 없음",
-                    content = @Content(
-                            mediaType = "application/json",
-                            examples = {
-                                    @ExampleObject(
-                                            name = "역 없음",
-                                            value = """
-                                                    {
-                                                      "code": 404,
-                                                      "message": "역을 찾을 수 없습니다."
-                                                    }
-                                                    """
-                                    ),
-                                    @ExampleObject(
-                                            name = "장소 없음",
-                                            value = """
-                                                    {
-                                                      "code": 404,
-                                                      "message": "장소를 찾을 수 없습니다."
-                                                    }
-                                                    """
-                                    )
-                            }
-                    )
-            )
-    })
-    ResponseEntity<BaseResponse<List<SimpleAvailablePlace>>> getAvailablePlaces(
-            @Parameter(
-                    description = "사용자 현재 위치 위도",
-                    required = true,
-                    example = "37.5665"
-            ) @RequestParam double userLat,
-            @Parameter(
-                    description = "사용자 현재 위치 경도",
-                    required = true,
-                    example = "126.9780"
-            ) @RequestParam double userLon,
-            @Parameter(
-                    description = "지도 중심점 위도",
-                    required = true,
-                    example = "37.5665"
-            ) @RequestParam double mapLat,
-            @Parameter(
-                    description = "지도 중심점 경도",
-                    required = true,
-                    example = "126.9780"
-            ) @RequestParam double mapLon,
-            @Parameter(
-                    description = "기준 역 ID",
-                    required = true,
-                    example = "1"
-            ) @RequestParam Long stationId,
-            @Parameter(
-                    description = "남은 시간 (분)",
-                    required = true,
-                    example = "60"
-            ) @Min(value = 1, message = "남은 시간은 양수여야 합니다.") @RequestParam int remainingMinutes
-    );
 
     @Operation(
             summary = "장소 상세 정보 조회",
