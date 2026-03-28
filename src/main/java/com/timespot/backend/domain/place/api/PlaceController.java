@@ -85,7 +85,7 @@ public class PlaceController implements PlaceApiDocs {
             @RequestParam(defaultValue = "STATION_NEAREST") PlaceSortType sortBy,
             @RequestParam(required = false) Double markerLat,
             @RequestParam(required = false) Double markerLon,
-            @PageableDefault(size = 10) Pageable pageable) {
+            @PageableDefault(size = 200) Pageable pageable) {
 
         Slice<PlaceResponseDto.SearchPlace> places = placeService.searchPlaces(
                 userLat, userLon, stationId, remainingMinutes, keyword, category, sortBy, markerLat, markerLon, pageable);
