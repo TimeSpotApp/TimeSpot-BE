@@ -14,6 +14,7 @@ import com.timespot.backend.domain.history.dto.VisitingHistoryRequestDto.Journey
 import com.timespot.backend.domain.history.dto.VisitingHistoryResponseDto.VisitingHistoryDetailResponse;
 import com.timespot.backend.domain.history.dto.VisitingHistoryResponseDto.VisitingHistoryListResponse;
 import com.timespot.backend.domain.history.service.VisitingHistoryService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -52,7 +53,7 @@ public class VisitingHistoryController implements VisitingHistoryApiDocs {
     @Override
     public ResponseEntity<BaseResponse<VisitingHistoryDetailResponse>> createNewJourney(
             @AuthenticationPrincipal final CustomUserDetails userDetails,
-            @RequestBody final JourneyStartRequest dto
+            @RequestBody @Valid final JourneyStartRequest dto
     ) {
         VisitingHistoryDetailResponse responseData = visitingHistoryService.createNewJourney(
                 userDetails.getId(), dto
