@@ -117,12 +117,20 @@ public class GooglePlaceApiServiceImpl implements GooglePlaceApiService {
         return List.of(weekday, weekend);
     }
 
+
+
     /**
      * 비어있는 엔티티 반환
      *
      * @return 비어있는 엔티티 반환
      */
     private GooglePlaceDto.ParsedResult createEmptyResult() {
-        return GooglePlaceDto.ParsedResult.builder().build();
+        return GooglePlaceDto.ParsedResult.builder()
+                .isSuccess(false)
+                .phoneNumber("")
+                .weekdayHours(List.of())
+                .weekendHours(List.of())
+                .imageUrls(List.of())
+                .build();
     }
 }

@@ -102,6 +102,7 @@ public class PlaceServiceImpl implements PlaceService {
                 .stationLat(station.getLatitude())
                 .stationLon(station.getLongitude())
                 .leaveTime(formattedLeaveTime)
+                .isGoogleDataLoaded(googleApiResult.isSuccess())
                 .imageUrl(googleApiResult.getImageUrls())
                 .weekday(googleApiResult.getWeekdayHours())
                 .weekend(googleApiResult.getWeekendHours())
@@ -110,19 +111,19 @@ public class PlaceServiceImpl implements PlaceService {
     }
 
     @Override
-    public Slice<PlaceResponseDto.SearchPlace> searchPlaces(double userLat, double userLon, Long stationId, int remainingMinutes, String keyword, String category, PlaceSortType sortBy, Double markerLat, Double markerLon, Pageable pageable) {
+    public Slice<PlaceResponseDto.SearchPlace> searchPlaces(double userLat, double userLon, Long stationId, int remainingMinutes, String keyword, String category, PlaceSortType sortBy, Double mapLat, Double mapLon, Pageable pageable) {
 
         Station station = getValidatedStation(stationId);
         int walkableDistance = calculateWalkableDistance(remainingMinutes);
 
         // 마커 기준 정렬인데 마커 좌표가 없는 경우 예외 처리
-        if (sortBy == PlaceSortType.MARKER_NEAREST && (markerLat == null || markerLon == null)) {
-            throw new GlobalException(ErrorCode.PLACE_INVALID_MARKER);
+        if (sortBy == PlaceSortType.MAP_NEAREST && (mapLat == null || mapLon == null)) {
+            throw new GlobalException(ErrorCode.PLACE_INVALID_MAP);
         }
 
         // 쿼리 오류 방지를 위한 안전한 기본값 할당 (정렬 조건이 MARKER_NEAREST가 아닐 때 null 방지)
-        double safeMarkerLat = markerLat != null ? markerLat : 0.0;
-        double safeMarkerLon = markerLon != null ? markerLon : 0.0;
+        double safeMapLat = mapLat != null ? mapLat : 0.0;
+        double safeMapLon = mapLon != null ? mapLon : 0.0;
 
         String filterCategory = (category == null || category.trim().isEmpty() || "전체".equals(category)) ? null : category;
         String filterKeyword = (keyword == null || keyword.trim().isEmpty()) ? null : keyword;
@@ -131,7 +132,7 @@ public class PlaceServiceImpl implements PlaceService {
 
         Slice<PlaceResponseDto.AvailablePlace> dbPlaces = placeRepository.searchAvailablePlaces(
                 stationId, userLat, userLon, station.getLatitude(), station.getLongitude(),
-                safeMarkerLat, safeMarkerLon,
+                safeMapLat, safeMapLon,
                 walkableDistance, PlaceConst.WALK_SPEED_PER_MINUTE,
                 filterKeyword,
                 filterCategory,

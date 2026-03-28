@@ -37,6 +37,7 @@ public class GooglePlaceDto {
     @Getter
     @Builder
     public static class ParsedResult {
+        private boolean isSuccess;
         private String phoneNumber;
         private List<String> weekdayHours;
         private List<String> weekendHours;

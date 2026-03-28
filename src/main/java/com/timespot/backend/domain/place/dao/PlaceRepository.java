@@ -108,7 +108,7 @@ public interface PlaceRepository extends JpaRepository<Place, Long> {
                 ) AS stayableMinutes,
                 ST_Distance_Sphere(p.location, ST_GeomFromText(CONCAT('POINT(', :stationLat, ' ', :stationLon, ')'), 4326)) AS distanceToStation,
                 ST_Distance_Sphere(p.location, ST_GeomFromText(CONCAT('POINT(', :userLat, ' ', :userLon, ')'), 4326)) AS distanceToUser,
-                ST_Distance_Sphere(p.location, ST_GeomFromText(CONCAT('POINT(', :markerLat, ' ', :markerLon, ')'), 4326)) AS distanceToMarker
+                ST_Distance_Sphere(p.location, ST_GeomFromText(CONCAT('POINT(', :mapLat, ' ', :mapLon, ')'), 4326)) AS distanceToMap
             FROM places p
             INNER JOIN station_place_map spm ON p.place_id = spm.place_id
             WHERE spm.station_id = :stationId
@@ -121,7 +121,7 @@ public interface PlaceRepository extends JpaRepository<Place, Long> {
               ) <= :walkableDistance
             ORDER BY
                 CASE WHEN :sortBy = 'USER_NEAREST' THEN distanceToUser
-                     WHEN :sortBy = 'MARKER_NEAREST' THEN distanceToMarker
+                     WHEN :sortBy = 'MAP_NEAREST' THEN distanceToMap
                      ELSE distanceToStation
                 END ASC
             """, nativeQuery = true)
@@ -131,8 +131,8 @@ public interface PlaceRepository extends JpaRepository<Place, Long> {
             @Param("userLon") double userLon,
             @Param("stationLat") double stationLat,
             @Param("stationLon") double stationLon,
-            @Param("markerLat") double markerLat,
-            @Param("markerLon") double markerLon,
+            @Param("mapLat") double mapLat,
+            @Param("mapLon") double mapLon,
             @Param("walkableDistance") int walkableDistance,
             @Param("walkSpeed") int walkSpeed,
             @Param("keyword") String keyword,
