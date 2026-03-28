@@ -240,11 +240,11 @@ public interface PlaceApiDocs {
                           - `sortBy`: 정렬 기준 - 선택 (기본값: STATION_NEAREST)
                             - `STATION_NEAREST`: 역에서 가까운 순
                             - `USER_NEAREST`: 사용자 위치에서 가까운 순
-                            - `STAYABLE_TIME_LONGEST`: 체류 가능 시간이 긴 순
-                          - `markerLat`: 마커 위도 - 선택 (지도 중심점)
-                          - `markerLon`: 마커 경도 - 선택 (지도 중심점)
+                            - `MAP_NEAREST`: 현재 출력 중인 앱 지도 화면의 중심 좌표를 기준으로 가까운 순 - 지도 페이지에서 탐색 시 필수
+                          - `mapLat`: 지도 위도 - 선택 (지도 중심점, 현재 출력 중인 지도의 중심 좌표) - 지도 페이지에서 탐색 시 필수
+                          - `mapLon`: 지도 경도 - 선택 (지도 중심점, 현재 출력 중인 지도의 중심 좌표) - 지도 페이지에서 탐색 시 필수
                           - `page`: 페이지 번호 (0 부터 시작, 기본값: 0) - 선택
-                          - `size`: 페이지 크기 (기본값: 10) - 선택
+                          - `size`: 페이지 크기 (기본값: 200) - 선택
                           
                           #### 응답 데이터
                           - `content`: 장소 목록
@@ -306,8 +306,6 @@ public interface PlaceApiDocs {
                                             "closingTime": "2026-03-27 23:00:00"
                                           }
                                         ],
-                                        "number": 0,
-                                        "size": 10,
                                         "hasNext": true
                                       }
                                     }
@@ -420,25 +418,30 @@ public interface PlaceApiDocs {
                     example = "카페"
             ) @RequestParam(required = false) String category,
             @Parameter(
-                    description = "정렬 기준 (STATION_NEAREST, USER_NEAREST, STAYABLE_TIME_LONGEST)",
+                    description = "정렬 기준 (STATION_NEAREST: 역에서 가까운 순, USER_NEAREST: 사용자로 부터 가까운 순, MAP_NEAREST: 앱 화면 중심 좌표를 기준으로 가까운 순(지도에서 장소 탐색용도))",
                     required = false,
                     example = "STATION_NEAREST"
             ) @RequestParam(defaultValue = "STATION_NEAREST") PlaceSortType sortBy,
             @Parameter(
-                    description = "마커 위도 (지도 중심점)",
+                    description = "마커 위도 (앱 내에 표시되는 지도 화면의 중심좌표)",
                     required = false,
                     example = "37.5665"
-            ) @RequestParam(required = false) Double markerLat,
+            ) @RequestParam(required = false) Double mapLat,
             @Parameter(
-                    description = "마커 경도 (지도 중심점)",
+                    description = "마커 경도 (앱 내에 표시되는 지도 화면의 중심좌표)",
                     required = false,
                     example = "126.9780"
-            ) @RequestParam(required = false) Double markerLon,
+            ) @RequestParam(required = false) Double mapLon,
             @Parameter(
                     description = "페이지 번호 (0 부터 시작)",
-                    required = false,
-                    example = "0"
-            ) @PageableDefault(size = 10) Pageable pageable
+                    example = "{\n" +
+                            "  \"page\": 0,\n" +
+                            "  \"size\": 30,\n" +
+                            "  \"sort\": [\n" +
+                            "    \"\"\n" +
+                            "  ]\n" +
+                            "}"
+            ) @PageableDefault(size = 200) Pageable pageable
     );
 
 }

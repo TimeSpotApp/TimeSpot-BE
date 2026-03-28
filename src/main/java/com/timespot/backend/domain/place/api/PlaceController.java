@@ -42,7 +42,6 @@ import java.util.List;
 public class PlaceController implements PlaceApiDocs {
     private final PlaceService placeService;
 
-    @Override
     @GetMapping()
     public ResponseEntity<BaseResponse<List<PlaceResponseDto.SimpleAvailablePlace>>> getAvailablePlaces(
             @RequestParam double userLat,
