@@ -3,11 +3,9 @@ package com.timespot.backend.domain.user.api;
 import com.timespot.backend.common.response.BaseResponse;
 import com.timespot.backend.common.security.dto.AuthResponseDto.AuthInfoResponse;
 import com.timespot.backend.common.security.model.CustomUserDetails;
-import com.timespot.backend.domain.user.dto.UserRequestDto;
 import com.timespot.backend.domain.user.dto.UserNotificationRequestDto.NotificationSettingsRequest;
 import com.timespot.backend.domain.user.dto.UserNotificationResponseDto.NotificationSettingsResponse;
 import com.timespot.backend.domain.user.dto.UserRequestDto.UserInfoUpdateRequest;
-import com.timespot.backend.domain.user.dto.UserResponseDto;
 import com.timespot.backend.domain.user.dto.UserResponseDto.UserInfoResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -260,32 +258,6 @@ public interface UserApiDocs {
                     description = "회원 정보 수정 요청 페이로드",
                     required = true
             ) @Valid UserInfoUpdateRequest dto
-    );
-
-
-    @Operation(summary = "회원 알림 설정 조회", description = "현재 사용자의 알림 시간을 조회합니다.")
-    @SecurityRequirement(name = "BearerAuth")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "회원 알림 설정 조회 성공"),
-            @ApiResponse(responseCode = "400",
-                    description = "유효하지 않은 인증 토큰",
-                    content = @Content(schema = @Schema(hidden = true))),
-    })
-    ResponseEntity<BaseResponse<UserResponseDto.UserNotificationResponse>> getUserNotificationSettings(
-            @Parameter(hidden = true) CustomUserDetails userDetails
-    );
-
-    @Operation(summary = "회원 알림 설정 수정", description = "현재 사용자의 알림 시간을 수정합니다.")
-    @SecurityRequirement(name = "BearerAuth")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "회원 알림 설정 수정 성공"),
-            @ApiResponse(responseCode = "400",
-                    description = "유효하지 않은 인증 토큰",
-                    content = @Content(schema = @Schema(hidden = true))),
-    })
-    ResponseEntity<BaseResponse<Void>> updateUserNotificationSettings(
-            @Parameter(hidden = true) CustomUserDetails userDetails,
-            @Parameter(description = "회원 알림 설정 수정 요청 페이로드") UserRequestDto.UserNotificationUpdateRequest dto
     );
 
     @SecurityRequirement(name = "BearerAuth")
