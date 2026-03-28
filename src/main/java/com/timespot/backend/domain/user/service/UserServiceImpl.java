@@ -158,8 +158,9 @@ public class UserServiceImpl implements UserService {
 
         Set<NotificationTiming> notificationTimings = toNotificationTimings(dto);
         validateNotificationTimings(notificationTimings);
+        user.updateNotificationTimings(notificationTimings);
 
-        return toNotificationSettingsResponse(user.getNotificationTimings());
+        return toNotificationSettingsResponse(notificationTimings);
     }
 
 

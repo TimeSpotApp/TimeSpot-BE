@@ -96,7 +96,7 @@ public class AuthController implements AuthApiDocs {
     @Override
     @PostMapping("/devices")
     public ResponseEntity<BaseResponse<DeviceRegisterResponse>> registerDevice(
-            @Valid @RequestBody final DeviceRegisterRequest dto,
+            @RequestBody final DeviceRegisterRequest dto,
             @org.springframework.security.core.annotation.AuthenticationPrincipal final CustomUserDetails userDetails
     ) {
         DeviceRegisterResponse responseData = deviceService.registerDevice(dto, userDetails);
