@@ -4,6 +4,7 @@ import static com.timespot.backend.common.response.ErrorCode.PLACE_API_CONTENT_T
 import static lombok.AccessLevel.PRIVATE;
 
 import com.timespot.backend.common.error.GlobalException;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
@@ -27,7 +28,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor(access = PRIVATE)
 public enum ContentType {
 
-    CONTENT_TYPE_ALL(null, "전체"),
     CONTENT_TYPE_TOURIST("12", "관광명소"),
     CONTENT_TYPE_CULTURE("14", "문화시설"),
     CONTENT_TYPE_SPORTS("28", "레포츠"),
@@ -53,6 +53,21 @@ public enum ContentType {
         return Optional.ofNullable(contentTypeId)
                        .map(CONTENT_TYPE_MAP::get)
                        .orElseThrow(() -> new GlobalException(PLACE_API_CONTENT_TYPE_NOT_SUPPORTED));
+    }
+
+    /**
+     * 전체 콘텐츠 타입 목록 조회 (API 호출용)
+     *
+     * @return 콘텐츠 타입 목록
+     */
+    public static List<ContentType> getAllContentTypes() {
+        return List.of(
+                CONTENT_TYPE_TOURIST,
+                CONTENT_TYPE_CULTURE,
+                CONTENT_TYPE_SPORTS,
+                CONTENT_TYPE_SHOPPING,
+                CONTENT_TYPE_RESTAURANT
+        );
     }
 
 }

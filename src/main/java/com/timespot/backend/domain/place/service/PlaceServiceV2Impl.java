@@ -32,7 +32,6 @@ import com.timespot.backend.infra.visitkorea.model.ContentType;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
@@ -184,11 +183,7 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
         Set<String>    placeIdSet = new HashSet<>();
         String         geoKey     = "place:geo:" + station.getId();
 
-        List<ContentType> contentTypes = Arrays.stream(ContentType.values())
-                                               .filter(ct -> ct.getContentTypeId() != null)
-                                               .toList();
-
-        for (ContentType contentType : contentTypes) {
+        for (ContentType contentType : ContentType.getAllContentTypes()) {
             for (int page = 1; page <= visitKoreaProperties.getSyncPages(); page++) {
                 VisitKoreaResponseDto.InfoListResponse response = visitKoreaApiClient.locationBasedList(
                         station.getLongitude(),
