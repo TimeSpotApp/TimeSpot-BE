@@ -24,11 +24,10 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class VisitKoreaProperties {
 
     private String  serviceKey;
-    private String  baseUrl;
-    private Integer maxRadiusMeters;
-    private Integer defaultRadiusMeters;
-    private Integer pageSize;
-    private Integer syncPages;
+    private String  baseUrl;          // API 기본 URL
+    private Integer maxRadiusMeters;  // 검색 반경 (미터)
+    private Integer pageSize;         // 페이지당 결과 수
+    private Integer syncPages;        // 동기화 페이지 수
 
     public String getServiceKeyEncoded() {
         return URLEncoder.encode(serviceKey, UTF_8);

@@ -3,7 +3,6 @@ package com.timespot.backend.domain.place.service;
 import static com.timespot.backend.common.response.ErrorCode.PLACE_NOT_FOUND;
 import static com.timespot.backend.common.response.ErrorCode.STATION_NOT_FOUND;
 import static com.timespot.backend.domain.place.constant.PlaceConst.PLATFORM_WAIT_TIME;
-import static com.timespot.backend.domain.place.constant.PlaceConst.TOTAL_BUFFER_TIME;
 import static com.timespot.backend.domain.place.constant.PlaceConst.WALK_SPEED_PER_MINUTE;
 
 import com.timespot.backend.common.error.GlobalException;
@@ -86,19 +85,17 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
     ) {
         Station station = validateStation(stationId);
 
-        int maxWalkableDistance = calculateMaxWalkableDistance(remainingMinutes);
+        int searchRadius = visitKoreaProperties.getMaxRadiusMeters();
 
-        List<GeoPlace> geoPlaces = getPlacesFromGeoOrApi(station, maxWalkableDistance);
+        List<GeoPlace> geoPlaces = getPlacesFromGeoOrApi(station, searchRadius);
 
-        List<GeoPlace> filtered = filterPlaces(
-                geoPlaces, keyword, category, userLat, userLon, station, remainingMinutes
-        );
+        List<GeoPlace> filtered = filterPlaces(geoPlaces, keyword, category);
 
         List<GeoPlace> sorted = sortPlaces(
-                filtered, pageable.getSort(), userLat, userLon, station, mapLat, mapLon
+                filtered, pageable.getSort(), userLat, userLon, mapLat, mapLon
         );
 
-        return buildAvailablePlacePage(sorted, pageable, userLat, userLon, station, remainingMinutes);
+        return buildAvailablePlacePage(sorted, pageable, userLat, userLon, remainingMinutes);
     }
 
     @Override
@@ -140,19 +137,6 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
      */
     private Station validateStation(final Long stationId) {
         return stationRepository.findById(stationId).orElseThrow(() -> new GlobalException(STATION_NOT_FOUND));
-    }
-
-    /**
-     * 최대 도보 가능 거리 계산 (왕복)
-     * - 플랫폼 대기 + 최소 체류
-     * - 실제 걸을 수 있는 시간 = remainingMinutes - TOTAL_BUFFER_TIME
-     * - 왕복 거리 = 실제 걸을 수 있는 시간 * 도보 속도
-     */
-    private int calculateMaxWalkableDistance(final int remainingMinutes) {
-        if (remainingMinutes <= TOTAL_BUFFER_TIME)
-            throw new GlobalException(PLACE_NOT_FOUND, "잔여 시간이 부족합니다 (최소 " + TOTAL_BUFFER_TIME + "분 필요)");
-        int availableMinutes = remainingMinutes - TOTAL_BUFFER_TIME;
-        return availableMinutes * WALK_SPEED_PER_MINUTE;
     }
 
     /**
@@ -238,11 +222,7 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
      */
     private List<GeoPlace> filterPlaces(final List<GeoPlace> places,
                                         final String keyword,
-                                        final String category,
-                                        final double userLat,
-                                        final double userLon,
-                                        final Station station,
-                                        final int remainingMinutes) {
+                                        final String category) {
         return places.stream()
                      .filter(place -> {
                          if (keyword != null && !keyword.isBlank()) {
@@ -267,7 +247,6 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
                                       final Sort sort,
                                       final double userLat,
                                       final double userLon,
-                                      final Station station,
                                       final Double mapLat,
                                       final Double mapLon) {
         if (sort.isUnsorted())
@@ -311,7 +290,6 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
             final Pageable pageable,
             final double userLat,
             final double userLon,
-            final Station station,
             final int remainingMinutes
     ) {
         int start = (int) pageable.getOffset();
@@ -321,7 +299,7 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
                                              .skip(start)
                                              .limit(pageable.getPageSize())
                                              .map(place -> buildAvailablePlace(
-                                                     place, userLat, userLon, station, remainingMinutes
+                                                     place, userLat, userLon, remainingMinutes
                                              ))
                                              .toList();
 
@@ -335,7 +313,6 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
             final GeoPlace geoPlace,
             final double userLat,
             final double userLon,
-            final Station station,
             final int remainingMinutes
     ) {
         PlaceCardCache cardInfo = getPlaceCardCache(geoPlace.getPlaceId())

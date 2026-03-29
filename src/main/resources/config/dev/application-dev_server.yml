@@ -85,6 +85,5 @@ app:
       service-key: ${VISIT_KOREA_SERVICE_KEY:62166eff31104a8a966eff3110ca8a22}
       base-url: ${VISIT_KOREA_BASE_URL:https://apis.data.go.kr/B551011/KorService2}
       max-radius-meters: ${VISIT_KOREA_PLACE_MAX_RADIUS_METERS:3000}
-      default-radius-meters: ${VISIT_KOREA_PLACE_DEFAULT_RADIUS_METERS:1500}
       page-size: ${VISIT_KOREA_PAGE_SIZE:100}
       sync-pages: ${VISIT_KOREA_SYNC_PAGES:5}

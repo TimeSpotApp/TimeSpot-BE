@@ -13,6 +13,5 @@ app:
       service-key: 62166eff31104a8a966eff3110ca8a22
       base-url: https://apis.data.go.kr/B551011/KorService2
       max-radius-meters: 5000
-      default-radius-meters: 1500
       page-size: 100
       sync-pages: 5

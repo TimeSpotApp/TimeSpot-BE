@@ -54,7 +54,9 @@ public class VisitKoreaApiClient {
         factory.setConnectTimeout((int) Duration.ofSeconds(5).toMillis());
         factory.setReadTimeout((int) Duration.ofSeconds(10).toMillis());
 
-        this.restClient = builder.requestFactory(factory).build();
+        this.restClient = builder.requestFactory(factory)
+                                 .baseUrl(properties.getBaseUrl())
+                                 .build();
         this.properties = properties;
     }
 
@@ -181,7 +183,7 @@ public class VisitKoreaApiClient {
                                              final ContentType contentType,
                                              final int pageNo,
                                              final int numOfRows) {
-        return builder.path("/locationBasedList2")
+        return builder.path("locationBasedList2")
                       .queryParam(NUM_OF_ROWS, numOfRows)
                       .queryParam(PAGE_NO, pageNo)
                       .queryParam(MOBILE_OS, "ETC")
@@ -202,17 +204,15 @@ public class VisitKoreaApiClient {
                                              final String encodedKeyword,
                                              final int pageNo,
                                              final int numOfRows) {
-        builder.path("/searchKeyword2")
-               .queryParam(NUM_OF_ROWS, numOfRows)
-               .queryParam(PAGE_NO, pageNo)
-               .queryParam(MOBILE_OS, "ETC")
-               .queryParam(MOBILE_APP, "TimeSpot")
-               .queryParam(SERVICE_KEY, getEncodedServiceKey())
-               .queryParam(RESPONSE_TYPE, "json")
-               .queryParam(ARRANGE, "O")
-               .queryParam(KEYWORD, encodedKeyword);
-
-        return builder;
+        return builder.path("searchKeyword2")
+                      .queryParam(NUM_OF_ROWS, numOfRows)
+                      .queryParam(PAGE_NO, pageNo)
+                      .queryParam(MOBILE_OS, "ETC")
+                      .queryParam(MOBILE_APP, "TimeSpot")
+                      .queryParam(SERVICE_KEY, getEncodedServiceKey())
+                      .queryParam(RESPONSE_TYPE, "json")
+                      .queryParam(ARRANGE, "O")
+                      .queryParam(KEYWORD, encodedKeyword);
     }
 
     /**
@@ -222,7 +222,7 @@ public class VisitKoreaApiClient {
                                            final String contentId,
                                            final int pageNo,
                                            final int numOfRows) {
-        return builder.path("/detailImage2")
+        return builder.path("detailImage2")
                       .queryParam(NUM_OF_ROWS, numOfRows)
                       .queryParam(PAGE_NO, pageNo)
                       .queryParam(MOBILE_OS, "ETC")
@@ -239,7 +239,7 @@ public class VisitKoreaApiClient {
     private UriBuilder buildDetailIntroUri(final UriBuilder builder,
                                            final String contentId,
                                            final ContentType contentType) {
-        return builder.path("/detailIntro2")
+        return builder.path("detailIntro2")
                       .queryParam(NUM_OF_ROWS, 1)
                       .queryParam(PAGE_NO, 1)
                       .queryParam(MOBILE_OS, "ETC")
