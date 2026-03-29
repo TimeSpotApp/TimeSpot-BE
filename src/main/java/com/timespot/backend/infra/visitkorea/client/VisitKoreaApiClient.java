@@ -15,31 +15,34 @@ import static com.timespot.backend.infra.visitkorea.constant.VisitKoreaConst.PAG
 import static com.timespot.backend.infra.visitkorea.constant.VisitKoreaConst.RADIUS;
 import static com.timespot.backend.infra.visitkorea.constant.VisitKoreaConst.RESPONSE_TYPE;
 import static com.timespot.backend.infra.visitkorea.constant.VisitKoreaConst.SERVICE_KEY;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.timespot.backend.common.error.GlobalException;
 import com.timespot.backend.infra.visitkorea.client.properties.VisitKoreaProperties;
-import com.timespot.backend.infra.visitkorea.dto.VisitKoreaResponseDto;
+import com.timespot.backend.infra.visitkorea.dto.VisitKoreaResponseDto.DetailInfoResponse;
+import com.timespot.backend.infra.visitkorea.dto.VisitKoreaResponseDto.ImageListResponse;
+import com.timespot.backend.infra.visitkorea.dto.VisitKoreaResponseDto.LocationBasedListResponse;
+import com.timespot.backend.infra.visitkorea.dto.VisitKoreaResponseDto.SearchKeywordResponse;
 import com.timespot.backend.infra.visitkorea.model.ContentType;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
+import java.net.URI;
 import java.time.Duration;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
-import org.springframework.web.util.UriBuilder;
+import org.springframework.web.util.UriComponentsBuilder;
 
 /**
  * PackageName : com.timespot.backend.infra.visitkorea.client
  * FileName    : VisitKoreaApiClient
  * Author      : loadingKKamo21
  * Date        : 26. 3. 29.
- * Description: 한국관광공사 VisitKorea API 클라이언트
+ * Description : 한국관광공사 VisitKorea API 클라이언트
  * =====================================================================================================================
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------
  * 26. 3. 29.    loadingKKamo21       Initial creation
- * 26. 3. 29.    loadingKKamo21       executeWithFallback 패턴 적용, baseUrl 설정
+ * 26. 3. 29.    loadingKKamo21       executeWithFallback 패턴 적용, baseUrl 설정, 타입별 응답 클래스 사용
  */
 @Component
 @Slf4j
@@ -72,7 +75,7 @@ public class VisitKoreaApiClient {
      * @param numOfRows   페이지당 결과 수 (최대 100)
      * @return 위치 기반 리스트 응답
      */
-    public VisitKoreaResponseDto.InfoListResponse locationBasedList(
+    public LocationBasedListResponse locationBasedList(
             final double mapX,
             final double mapY,
             final int radius,
@@ -80,15 +83,14 @@ public class VisitKoreaApiClient {
             final int pageNo,
             final int numOfRows
     ) {
-        log.debug("VisitKorea 위치 기반 검색: mapX={}, mapY={}, radius={}, typeId={}, page={}",
-                  mapX, mapY, radius, contentType.getContentTypeId(), pageNo);
+        URI uri = buildLocationBasedUri(mapX, mapY, radius, contentType, pageNo, numOfRows);
+        log.info("VisitKorea 위치 기반 검색 요청: uri={}", uri);
+
         return executeWithFallback(
                 () -> restClient.get()
-                                .uri(uriBuilder -> buildLocationBasedUri(
-                                        uriBuilder, mapX, mapY, radius, contentType, pageNo, numOfRows
-                                ).build())
+                                .uri(uri)
                                 .retrieve()
-                                .body(VisitKoreaResponseDto.InfoListResponse.class),
+                                .body(LocationBasedListResponse.class),
                 "/locationBasedList2",
                 "위치 기반 장소 검색"
         );
@@ -103,20 +105,19 @@ public class VisitKoreaApiClient {
      * @param numOfRows 페이지당 결과 수
      * @return 검색어 기반 리스트 응답
      */
-    public VisitKoreaResponseDto.InfoListResponse searchKeyword(
+    public SearchKeywordResponse searchKeyword(
             final String keyword,
             final int pageNo,
             final int numOfRows
     ) {
-        String encodedKeyword = URLEncoder.encode(keyword, StandardCharsets.UTF_8);
-        log.debug("VisitKorea 검색어 기반 검색: keyword={}, encodedKeyword={}", keyword, encodedKeyword);
+        URI uri = buildSearchKeywordUri(keyword, pageNo, numOfRows);
+        log.info("VisitKorea 검색어 기반 검색 요청: uri={}", uri);
+
         return executeWithFallback(
                 () -> restClient.get()
-                                .uri(uriBuilder -> buildSearchKeywordUri(
-                                        uriBuilder, encodedKeyword, pageNo, numOfRows
-                                ).build())
+                                .uri(uri)
                                 .retrieve()
-                                .body(VisitKoreaResponseDto.InfoListResponse.class),
+                                .body(SearchKeywordResponse.class),
                 "/searchKeyword2",
                 "검색어 기반 장소 검색"
         );
@@ -131,18 +132,19 @@ public class VisitKoreaApiClient {
      * @param numOfRows 페이지당 결과 수
      * @return 이미지 리스트 응답
      */
-    public VisitKoreaResponseDto.ImageListResponse detailImage(
+    public ImageListResponse detailImage(
             final String contentId,
             final int pageNo,
             final int numOfRows
     ) {
-        log.debug("VisitKorea 이미지 조회: contentId={}, page={}", contentId, pageNo);
+        URI uri = buildDetailImageUri(contentId, pageNo, numOfRows);
+        log.info("VisitKorea 이미지 조회 요청: uri={}", uri);
+
         return executeWithFallback(
                 () -> restClient.get()
-                                .uri(uriBuilder -> buildDetailImageUri(uriBuilder, contentId, pageNo,
-                                                                       numOfRows).build())
+                                .uri(uri)
                                 .retrieve()
-                                .body(VisitKoreaResponseDto.ImageListResponse.class),
+                                .body(ImageListResponse.class),
                 "/detailImage2",
                 "장소 이미지 조회"
         );
@@ -156,105 +158,112 @@ public class VisitKoreaApiClient {
      * @param contentType 콘텐츠 타입
      * @return 상세 정보 응답
      */
-    public VisitKoreaResponseDto.DetailInfoResponse detailIntro(
+    public DetailInfoResponse detailIntro(
             final String contentId,
             final ContentType contentType
     ) {
-        log.debug("VisitKorea 상세 정보 조회: contentId={}, typeId={}", contentId, contentType.getContentTypeId());
+        URI uri = buildDetailIntroUri(contentId, contentType);
+        log.info("VisitKorea 상세 정보 조회 요청: uri={}", uri);
+
         return executeWithFallback(
                 () -> restClient.get()
-                                .uri(uriBuilder -> buildDetailIntroUri(uriBuilder, contentId, contentType).build())
+                                .uri(uri)
                                 .retrieve()
-                                .body(VisitKoreaResponseDto.DetailInfoResponse.class),
+                                .body(DetailInfoResponse.class),
                 "/detailIntro2",
                 "장소 상세 정보 조회"
         );
     }
 
-    // ========================= URI 빌더 메서드 =========================
+    // ========================= URI 빌드 메서드 =========================
 
     /**
      * 위치 기반 검색 URI 빌드
      */
-    private UriBuilder buildLocationBasedUri(final UriBuilder builder,
-                                             final double mapX,
-                                             final double mapY,
-                                             final int radius,
-                                             final ContentType contentType,
-                                             final int pageNo,
-                                             final int numOfRows) {
-        return builder.path("locationBasedList2")
-                      .queryParam(NUM_OF_ROWS, numOfRows)
-                      .queryParam(PAGE_NO, pageNo)
-                      .queryParam(MOBILE_OS, "ETC")
-                      .queryParam(MOBILE_APP, "TimeSpot")
-                      .queryParam(SERVICE_KEY, getEncodedServiceKey())
-                      .queryParam(RESPONSE_TYPE, "json")
-                      .queryParam(ARRANGE, "S")
-                      .queryParam(MAP_X, mapX)
-                      .queryParam(MAP_Y, mapY)
-                      .queryParam(RADIUS, radius)
-                      .queryParam(CONTENT_TYPE_ID, contentType.getContentTypeId());
+    private URI buildLocationBasedUri(final double mapX,
+                                      final double mapY,
+                                      final int radius,
+                                      final ContentType contentType,
+                                      final int pageNo,
+                                      final int numOfRows) {
+        return UriComponentsBuilder.fromHttpUrl(properties.getBaseUrl())
+                                   .path("/locationBasedList2")
+                                   .queryParam(NUM_OF_ROWS, numOfRows)
+                                   .queryParam(PAGE_NO, pageNo)
+                                   .queryParam(MOBILE_OS, "ETC")
+                                   .queryParam(MOBILE_APP, "TimeSpot")
+                                   .queryParam(SERVICE_KEY, properties.getServiceKey())
+                                   .queryParam(RESPONSE_TYPE, "json")
+                                   .queryParam(ARRANGE, "S")
+                                   .queryParam(MAP_X, mapX)
+                                   .queryParam(MAP_Y, mapY)
+                                   .queryParam(RADIUS, radius)
+                                   .queryParam(CONTENT_TYPE_ID, contentType.getContentTypeId())
+                                   .encode(UTF_8)
+                                   .build()
+                                   .toUri();
     }
 
     /**
      * 검색어 기반 검색 URI 빌드
      */
-    private UriBuilder buildSearchKeywordUri(final UriBuilder builder,
-                                             final String encodedKeyword,
-                                             final int pageNo,
-                                             final int numOfRows) {
-        return builder.path("searchKeyword2")
-                      .queryParam(NUM_OF_ROWS, numOfRows)
-                      .queryParam(PAGE_NO, pageNo)
-                      .queryParam(MOBILE_OS, "ETC")
-                      .queryParam(MOBILE_APP, "TimeSpot")
-                      .queryParam(SERVICE_KEY, getEncodedServiceKey())
-                      .queryParam(RESPONSE_TYPE, "json")
-                      .queryParam(ARRANGE, "O")
-                      .queryParam(KEYWORD, encodedKeyword);
+    private URI buildSearchKeywordUri(final String keyword,
+                                      final int pageNo,
+                                      final int numOfRows) {
+        return UriComponentsBuilder.fromHttpUrl(properties.getBaseUrl())
+                                   .path("/searchKeyword2")
+                                   .queryParam(NUM_OF_ROWS, numOfRows)
+                                   .queryParam(PAGE_NO, pageNo)
+                                   .queryParam(MOBILE_OS, "ETC")
+                                   .queryParam(MOBILE_APP, "TimeSpot")
+                                   .queryParam(SERVICE_KEY, properties.getServiceKey())
+                                   .queryParam(RESPONSE_TYPE, "json")
+                                   .queryParam(ARRANGE, "O")
+                                   .queryParam(KEYWORD, keyword)
+                                   .encode(UTF_8)
+                                   .build()
+                                   .toUri();
     }
 
     /**
      * 이미지 조회 URI 빌드
      */
-    private UriBuilder buildDetailImageUri(final UriBuilder builder,
-                                           final String contentId,
-                                           final int pageNo,
-                                           final int numOfRows) {
-        return builder.path("detailImage2")
-                      .queryParam(NUM_OF_ROWS, numOfRows)
-                      .queryParam(PAGE_NO, pageNo)
-                      .queryParam(MOBILE_OS, "ETC")
-                      .queryParam(MOBILE_APP, "TimeSpot")
-                      .queryParam(SERVICE_KEY, getEncodedServiceKey())
-                      .queryParam(RESPONSE_TYPE, "json")
-                      .queryParam(CONTENT_ID, contentId)
-                      .queryParam(IMAGE_YN, "Y");
+    private URI buildDetailImageUri(final String contentId,
+                                    final int pageNo,
+                                    final int numOfRows) {
+        return UriComponentsBuilder.fromHttpUrl(properties.getBaseUrl())
+                                   .path("/detailImage2")
+                                   .queryParam(NUM_OF_ROWS, numOfRows)
+                                   .queryParam(PAGE_NO, pageNo)
+                                   .queryParam(MOBILE_OS, "ETC")
+                                   .queryParam(MOBILE_APP, "TimeSpot")
+                                   .queryParam(SERVICE_KEY, properties.getServiceKey())
+                                   .queryParam(RESPONSE_TYPE, "json")
+                                   .queryParam(CONTENT_ID, contentId)
+                                   .queryParam(IMAGE_YN, "Y")
+                                   .encode(UTF_8)
+                                   .build()
+                                   .toUri();
     }
 
     /**
      * 상세 정보 조회 URI 빌드
      */
-    private UriBuilder buildDetailIntroUri(final UriBuilder builder,
-                                           final String contentId,
-                                           final ContentType contentType) {
-        return builder.path("detailIntro2")
-                      .queryParam(NUM_OF_ROWS, 1)
-                      .queryParam(PAGE_NO, 1)
-                      .queryParam(MOBILE_OS, "ETC")
-                      .queryParam(MOBILE_APP, "TimeSpot")
-                      .queryParam(SERVICE_KEY, getEncodedServiceKey())
-                      .queryParam(RESPONSE_TYPE, "json")
-                      .queryParam(CONTENT_ID, contentId)
-                      .queryParam(CONTENT_TYPE_ID, contentType.getContentTypeId());
-    }
-
-    /**
-     * ServiceKey URL 인코딩
-     */
-    private String getEncodedServiceKey() {
-        return URLEncoder.encode(properties.getServiceKey(), StandardCharsets.UTF_8);
+    private URI buildDetailIntroUri(final String contentId,
+                                    final ContentType contentType) {
+        return UriComponentsBuilder.fromHttpUrl(properties.getBaseUrl())
+                                   .path("/detailCommon")
+                                   .queryParam(NUM_OF_ROWS, 1)
+                                   .queryParam(PAGE_NO, 1)
+                                   .queryParam(MOBILE_OS, "ETC")
+                                   .queryParam(MOBILE_APP, "TimeSpot")
+                                   .queryParam(SERVICE_KEY, properties.getServiceKey())
+                                   .queryParam(RESPONSE_TYPE, "json")
+                                   .queryParam(CONTENT_ID, contentId)
+                                   .queryParam(CONTENT_TYPE_ID, contentType.getContentTypeId())
+                                   .encode(UTF_8)
+                                   .build()
+                                   .toUri();
     }
 
     /**

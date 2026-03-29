@@ -22,10 +22,12 @@ import com.timespot.backend.infra.redis.model.PlaceCardCache;
 import com.timespot.backend.infra.redis.model.PlaceDetailCache;
 import com.timespot.backend.infra.visitkorea.client.VisitKoreaApiClient;
 import com.timespot.backend.infra.visitkorea.client.properties.VisitKoreaProperties;
-import com.timespot.backend.infra.visitkorea.dto.VisitKoreaResponseDto;
 import com.timespot.backend.infra.visitkorea.dto.VisitKoreaResponseDto.DetailInfoItem;
+import com.timespot.backend.infra.visitkorea.dto.VisitKoreaResponseDto.DetailInfoResponse;
+import com.timespot.backend.infra.visitkorea.dto.VisitKoreaResponseDto.ImageListItem;
 import com.timespot.backend.infra.visitkorea.dto.VisitKoreaResponseDto.ImageListResponse;
-import com.timespot.backend.infra.visitkorea.dto.VisitKoreaResponseDto.Item;
+import com.timespot.backend.infra.visitkorea.dto.VisitKoreaResponseDto.LocationBasedListItem;
+import com.timespot.backend.infra.visitkorea.dto.VisitKoreaResponseDto.LocationBasedListResponse;
 import com.timespot.backend.infra.visitkorea.model.Category1Type;
 import com.timespot.backend.infra.visitkorea.model.ContentType;
 import java.time.Duration;
@@ -167,9 +169,9 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
         Set<String>    placeIdSet = new HashSet<>();
         String         geoKey     = "place:geo:" + station.getId();
 
-        for (ContentType contentType : ContentType.getAllContentTypes()) {
+        for (ContentType contentType : ContentType.getAllContentTypes())
             for (int page = 1; page <= visitKoreaProperties.getSyncPages(); page++) {
-                VisitKoreaResponseDto.InfoListResponse response = visitKoreaApiClient.locationBasedList(
+                LocationBasedListResponse response = visitKoreaApiClient.locationBasedList(
                         station.getLongitude(),
                         station.getLatitude(),
                         searchRadius,
@@ -178,40 +180,39 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
                         visitKoreaProperties.getPageSize()
                 );
 
-                if (!response.isSuccess() || response.body().items().item() == null) break;
+                if (!response.isSuccess() || response.getBody().getItems().getItem() == null) break;
 
-                for (Item item : response.body().items().item()) {
-                    if (item.mapX() == null || item.mapY() == null) continue;
-                    if (item.dist() != null && item.dist() > searchRadius) continue;
+                for (LocationBasedListItem item : response.getBody().getItems().getItem()) {
+                    if (item.getMapX() == null || item.getMapY() == null) continue;
+                    if (item.getDist() != null && item.getDist() > searchRadius) continue;
 
-                    String placeId = item.contentId();
+                    String placeId = item.getContentId();
                     if (!placeIdSet.add(placeId)) continue;
 
-                    redisGeoRepository.addPlace(geoKey, placeId, item.mapX(), item.mapY());
+                    redisGeoRepository.addPlace(geoKey, placeId, item.getMapX(), item.getMapY());
 
                     PlaceCardCache cache = new PlaceCardCache(
                             placeId,
                             item.getName(),
-                            mapCat1ToCategory(item.cat1()),
+                            mapCat1ToCategory(item.getCat1()),
                             item.getFullAddress(),
-                            item.mapY(),
-                            item.mapX(),
-                            item.dist() != null ? item.dist() : 0.0,
-                            item.firstImage()
+                            item.getMapY(),
+                            item.getMapX(),
+                            item.getDist() != null ? item.getDist() : 0.0,
+                            item.getFirstImage()
                     );
                     savePlaceCardCache(placeId, cache);
 
                     allPlaces.add(GeoPlace.builder()
                                           .placeId(placeId)
-                                          .latitude(item.mapY())
-                                          .longitude(item.mapX())
-                                          .distance(item.dist() != null ? item.dist() : 0.0)
+                                          .latitude(item.getMapY())
+                                          .longitude(item.getMapX())
+                                          .distance(item.getDist() != null ? item.getDist() : 0.0)
                                           .build());
                 }
 
-                if (response.body().items().item().size() < visitKoreaProperties.getPageSize()) break;
+                if (response.getBody().getItems().getItem().size() < visitKoreaProperties.getPageSize()) break;
             }
-        }
         log.info("VisitKorea 동기화 완료: stationId={}, count={}", station.getId(), allPlaces.size());
 
         return allPlaces;
@@ -255,7 +256,7 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
         for (Sort.Order order : sort) {
             String property = order.getProperty();
 
-            if ("distanceFromUser".equals(property)) {
+            if ("distanceFromUser".equals(property))
                 return places.stream()
                              .sorted(Comparator.comparingDouble(
                                      place -> calculateDistance(userLat,
@@ -264,7 +265,6 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
                                                                 place.getLongitude())
                              ))
                              .toList();
-            }
 
             if ("distanceFromCenter".equals(property) && mapLat != null && mapLon != null)
                 return places.stream()
@@ -293,7 +293,6 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
             final int remainingMinutes
     ) {
         int start = (int) pageable.getOffset();
-        int end   = Math.min(start + pageable.getPageSize(), places.size());
 
         List<AvailablePlace> content = places.stream()
                                              .skip(start)
@@ -361,22 +360,28 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
 
         return switch (category) {
             case "관광지" -> buildTouristPlaceDetail(
-                    cardInfo, detailInfo, station, distanceFromStation, walkTimeFromStation, stayableMinutes, visitable, leaveTime
+                    cardInfo, detailInfo, station, distanceFromStation, walkTimeFromStation, stayableMinutes, visitable,
+                    leaveTime
             );
             case "음식점" -> buildRestaurantDetail(
-                    cardInfo, detailInfo, station, distanceFromStation, walkTimeFromStation, stayableMinutes, visitable, leaveTime
+                    cardInfo, detailInfo, station, distanceFromStation, walkTimeFromStation, stayableMinutes, visitable,
+                    leaveTime
             );
             case "문화시설" -> buildCulturePlaceDetail(
-                    cardInfo, detailInfo, station, distanceFromStation, walkTimeFromStation, stayableMinutes, visitable, leaveTime
+                    cardInfo, detailInfo, station, distanceFromStation, walkTimeFromStation, stayableMinutes, visitable,
+                    leaveTime
             );
             case "레포츠" -> buildSportsPlaceDetail(
-                    cardInfo, detailInfo, station, distanceFromStation, walkTimeFromStation, stayableMinutes, visitable, leaveTime
+                    cardInfo, detailInfo, station, distanceFromStation, walkTimeFromStation, stayableMinutes, visitable,
+                    leaveTime
             );
             case "쇼핑" -> buildShoppingPlaceDetail(
-                    cardInfo, detailInfo, station, distanceFromStation, walkTimeFromStation, stayableMinutes, visitable, leaveTime
+                    cardInfo, detailInfo, station, distanceFromStation, walkTimeFromStation, stayableMinutes, visitable,
+                    leaveTime
             );
             default -> buildTouristPlaceDetail(
-                    cardInfo, detailInfo, station, distanceFromStation, walkTimeFromStation, stayableMinutes, visitable, leaveTime
+                    cardInfo, detailInfo, station, distanceFromStation, walkTimeFromStation, stayableMinutes, visitable,
+                    leaveTime
             );
         };
     }
@@ -632,7 +637,7 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
         String contentTypeId = extractContentTypeId(cardInfo.getCategory());
 
         // 상세 정보 조회
-        VisitKoreaResponseDto.DetailInfoResponse detailResponse = visitKoreaApiClient.detailIntro(
+        DetailInfoResponse detailResponse = visitKoreaApiClient.detailIntro(
                 placeId, ContentType.from(contentTypeId)
         );
 
@@ -654,67 +659,65 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
         String openTime          = null, saleItem = null, shopGuide = null;
         String scaleShopping     = null, fairDay = null;
 
-        if (detailResponse.isSuccess() && detailResponse.body().items().item() != null &&
-            !detailResponse.body().items().item().isEmpty()) {
-            DetailInfoItem detail = detailResponse.body().items().item().get(0);
+        if (detailResponse.isSuccess() && detailResponse.getBody().getItems().getItem() != null &&
+            !detailResponse.getBody().getItems().getItem().isEmpty()) {
+            DetailInfoItem detail = detailResponse.getBody().getItems().getItem().get(0);
 
             // 공통 필드
-            infoCenter = detail.infoCenter();
-            restDate = detail.restDate();
-            scale = detail.scale();
+            infoCenter = detail.getInfoCenter();
+            restDate = detail.getRestDate();
+            scale = detail.getScale();
 
             // 타입별 필드 추출
-            openDate = detail.openDate();
-            useSeason = detail.useSeason();
-            expAgeRange = detail.expAgeRange();
-            expGuide = detail.expGuide();
-            heritage1 = detail.heritage1();
-            accomCount = detail.accomCount();
-            chkBabyCarriage = detail.chkBabyCarriage();
-            chkPet = detail.chkPet();
+            openDate = detail.getOpenDate();
+            useSeason = detail.getUseSeason();
+            expAgeRange = detail.getExpAgeRange();
+            expGuide = detail.getExpGuide();
+            heritage1 = detail.getHeritage1();
+            accomCount = detail.getAccomCount();
+            chkBabyCarriage = detail.getChkBabyCarriage();
+            chkPet = detail.getChkPet();
 
-            firstMenu = detail.firstMenu();
-            treatMenu = detail.treatMenu();
-            seat = detail.seat();
-            smoking = detail.smoking();
-            packing = detail.packing();
-            kidsFacility = detail.kidsFacility();
-            openDateFood = detail.openDateFood();
+            firstMenu = detail.getFirstMenu();
+            treatMenu = detail.getTreatMenu();
+            seat = detail.getSeat();
+            smoking = detail.getSmoking();
+            packing = detail.getPacking();
+            kidsFacility = detail.getKidsFacility();
+            openDateFood = detail.getOpenDateFood();
 
-            spendTime = detail.spendTime();
-            useFee = detail.useFee();
-            discountInfo = detail.discountInfo();
-            accomCountCulture = detail.accomCountCulture();
-            parkingCulture = detail.parkingCulture();
+            spendTime = detail.getSpendTime();
+            useFee = detail.getUseFee();
+            discountInfo = detail.getDiscountInfo();
+            accomCountCulture = detail.getAccomCountCulture();
+            parkingCulture = detail.getParkingCulture();
 
-            openPeriod = detail.openPeriod();
-            useFeeLeports = detail.useFeeLeports();
-            reservation = detail.reservation();
-            scaleLeports = detail.scaleLeports();
-            expAgeRangeLeports = detail.expAgeRangeLeports();
+            openPeriod = detail.getOpenPeriod();
+            useFeeLeports = detail.getUseFeeLeports();
+            reservation = detail.getReservation();
+            scaleLeports = detail.getScaleLeports();
+            expAgeRangeLeports = detail.getExpAgeRangeLeports();
 
-            openTime = detail.openTime();
-            saleItem = detail.saleItem();
-            shopGuide = detail.shopGuide();
-            scaleShopping = detail.scaleShopping();
-            fairDay = detail.fairDay();
+            openTime = detail.getOpenTime();
+            saleItem = detail.getSaleItem();
+            shopGuide = detail.getShopGuide();
+            scaleShopping = detail.getScaleShopping();
+            fairDay = detail.getFairDay();
 
             // 이용시간은 타입별로 필드가 다름
             useTime = getUseTimeByContentType(detail, contentTypeId);
         }
 
         List<String> images = new ArrayList<>();
-        if (cardInfo.getImageUrl() != null && !cardInfo.getImageUrl().isEmpty()) {
-            images.add(cardInfo.getImageUrl());
-        }
+        if (cardInfo.getImageUrl() != null && !cardInfo.getImageUrl().isEmpty()) images.add(cardInfo.getImageUrl());
 
         try {
             ImageListResponse imageResponse = visitKoreaApiClient.detailImage(placeId, 1, 10);
 
-            if (imageResponse.isSuccess() && imageResponse.body().items().item() != null) {
-                imageResponse.body().items().item().stream()
-                             .map(VisitKoreaResponseDto.ImageItem::originImgUrl)
-                             .filter(url -> url != null && !url.isEmpty())
+            if (imageResponse.isSuccess() && imageResponse.getBody().getItems().getItem() != null) {
+                imageResponse.getBody().getItems().getItem().stream()
+                             .map(ImageListItem::getOriginImgUrl)
+                             .filter(url -> url != null && !url.isBlank())
                              .forEach(images::add);
             }
         } catch (Exception e) {
@@ -789,11 +792,11 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
      */
     private String getUseTimeByContentType(final DetailInfoItem detail, final String contentTypeId) {
         return switch (contentTypeId) {
-            case "12" -> detail.useTime();
-            case "14" -> detail.useTimeCulture();
-            case "28" -> detail.useTimeLeports();
-            case "38" -> detail.openTime();
-            case "39" -> detail.openTimeFood();
+            case "12" -> detail.getUseTime();
+            case "14" -> detail.getUseTimeCulture();
+            case "28" -> detail.getUseTimeLeports();
+            case "38" -> detail.getOpenTime();
+            case "39" -> detail.getOpenTimeFood();
             default -> null;
         };
     }
