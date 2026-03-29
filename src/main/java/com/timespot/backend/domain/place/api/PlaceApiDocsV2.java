@@ -12,10 +12,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
 
 /**
  * PackageName : com.timespot.backend.domain.place.api
@@ -127,6 +127,9 @@ public interface PlaceApiDocsV2 {
             description = """
                           특정 장소의 상세 정보를 조회합니다.
                           
+                          ## 경로 변수 (Path Variable)
+                          - `/api/v2/places/{placeId}` 형태로 호출
+                          
                           ## 장소 ID (placeId)
                           - VisitKorea API 의 contentId 를 그대로 사용 (숫자만)
                           - 예: "126644"
@@ -161,8 +164,7 @@ public interface PlaceApiDocsV2 {
     })
     ResponseEntity<BaseResponse<PlaceDetail>> getPlaceDetail(
             @Parameter(description = "장소 ID", required = true, example = "126644")
-            @NotBlank(message = "장소 ID 는 필수입니다.")
-            String placeId,
+            @PathVariable String placeId,
 
             @Parameter(description = "출발 역 ID", required = true, example = "1")
             @NotNull(message = "출발 역 ID 는 필수입니다.")

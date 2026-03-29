@@ -14,6 +14,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -36,7 +37,7 @@ public class PlaceControllerV2 implements PlaceApiDocsV2 {
 
     private final PlaceServiceV2 placeServiceV2;
 
-    @GetMapping(params = "!placeId")
+    @GetMapping
     @CustomPageResponse(
             numberOfElements = false,
             empty = false,
@@ -76,10 +77,10 @@ public class PlaceControllerV2 implements PlaceApiDocsV2 {
         return ResponseEntity.ok(BaseResponse.success(PLACE_GET_AVAILABLE_PLACES_SUCCESS, responseData));
     }
 
-    @GetMapping(params = "placeId")
+    @GetMapping("/{placeId}")
     @Override
     public ResponseEntity<BaseResponse<PlaceDetail>> getPlaceDetail(
-            @RequestParam String placeId,
+            @PathVariable String placeId,
             @RequestParam Long stationId,
             @RequestParam double userLat,
             @RequestParam double userLon,
