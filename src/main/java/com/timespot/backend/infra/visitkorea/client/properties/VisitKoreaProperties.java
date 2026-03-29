@@ -27,6 +27,8 @@ public class VisitKoreaProperties {
     private String  baseUrl;
     private Integer maxRadiusMeters;
     private Integer defaultRadiusMeters;
+    private Integer pageSize;
+    private Integer syncPages;
 
     public String getServiceKeyEncoded() {
         return URLEncoder.encode(serviceKey, UTF_8);

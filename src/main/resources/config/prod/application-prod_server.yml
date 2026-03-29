@@ -84,5 +84,7 @@ app:
     visit-korea:
       service-key: ${VISIT_KOREA_SERVICE_KEY}
       base-url: ${VISIT_KOREA_BASE_URL}
-      max-radius-meters: ${PLACE_MAX_RADIUS_METERS}
-      default-radius-meters: ${PLACE_DEFAULT_RADIUS_METERS}
+      max-radius-meters: ${VISIT_KOREA_PLACE_MAX_RADIUS_METERS}
+      default-radius-meters: ${VISIT_KOREA_PLACE_DEFAULT_RADIUS_METERS}
+      page-size: ${VISIT_KOREA_PAGE_SIZE}
+      sync-pages: ${VISIT_KOREA_SYNC_PAGES}
