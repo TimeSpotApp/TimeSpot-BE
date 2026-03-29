@@ -70,6 +70,9 @@ public abstract class PlaceResponseDtoV2 {
         @Schema(description = "체류 가능 시간 (분)", example = "25")
         private final Integer stayableMinutes;
 
+        @Schema(description = "방문 가능 여부", example = "true")
+        private final Boolean visitable;
+
         @Schema(description = "대표 이미지 URL", example = "https://...")
         private final String imageUrl;
 
@@ -130,6 +133,9 @@ public abstract class PlaceResponseDtoV2 {
         @Schema(description = "체류 가능 시간 (분)", example = "25")
         private final Integer stayableMinutes;
 
+        @Schema(description = "방문 가능 여부", example = "true")
+        private final Boolean visitable;
+
         @Schema(description = "기준 역 위도", example = "37.5546")
         private final Double stationLatitude;
 
@@ -161,6 +167,7 @@ public abstract class PlaceResponseDtoV2 {
                               final Integer distanceFromStation,
                               final Integer walkTimeFromStation,
                               final Integer stayableMinutes,
+                              final Boolean visitable,
                               final Double stationLatitude,
                               final Double stationLongitude,
                               final LocalDateTime leaveTime,
@@ -178,6 +185,7 @@ public abstract class PlaceResponseDtoV2 {
             this.distanceFromStation = distanceFromStation;
             this.walkTimeFromStation = walkTimeFromStation;
             this.stayableMinutes = stayableMinutes;
+            this.visitable = visitable;
             this.stationLatitude = stationLatitude;
             this.stationLongitude = stationLongitude;
             this.leaveTime = leaveTime;
@@ -229,6 +237,7 @@ public abstract class PlaceResponseDtoV2 {
                                   final Integer distanceFromStation,
                                   final Integer walkTimeFromStation,
                                   final Integer stayableMinutes,
+                                  final Boolean visitable,
                                   final Double stationLatitude,
                                   final Double stationLongitude,
                                   final LocalDateTime leaveTime,
@@ -245,7 +254,7 @@ public abstract class PlaceResponseDtoV2 {
                                   final String chkBabyCarriage,
                                   final String chkPet) {
             super("TOURIST", placeId, name, category, address, latitude, longitude, distanceFromStation,
-                  walkTimeFromStation, stayableMinutes, stationLatitude, stationLongitude, leaveTime, images,
+                  walkTimeFromStation, stayableMinutes, visitable, stationLatitude, stationLongitude, leaveTime, images,
                   phoneNumber, restDate, useTime);
             this.openDate = openDate;
             this.useSeason = useSeason;
@@ -296,6 +305,7 @@ public abstract class PlaceResponseDtoV2 {
                                 final Integer distanceFromStation,
                                 final Integer walkTimeFromStation,
                                 final Integer stayableMinutes,
+                                final Boolean visitable,
                                 final Double stationLatitude,
                                 final Double stationLongitude,
                                 final LocalDateTime leaveTime,
@@ -311,7 +321,7 @@ public abstract class PlaceResponseDtoV2 {
                                 final String kidsFacility,
                                 final String openDateFood) {
             super("RESTAURANT", placeId, name, category, address, latitude, longitude, distanceFromStation,
-                  walkTimeFromStation, stayableMinutes, stationLatitude, stationLongitude, leaveTime, images,
+                  walkTimeFromStation, stayableMinutes, visitable, stationLatitude, stationLongitude, leaveTime, images,
                   phoneNumber, restDate, useTime);
             this.firstMenu = firstMenu;
             this.treatMenu = treatMenu;
@@ -355,6 +365,7 @@ public abstract class PlaceResponseDtoV2 {
                                   final Integer distanceFromStation,
                                   final Integer walkTimeFromStation,
                                   final Integer stayableMinutes,
+                                  final Boolean visitable,
                                   final Double stationLatitude,
                                   final Double stationLongitude,
                                   final LocalDateTime leaveTime,
@@ -368,7 +379,7 @@ public abstract class PlaceResponseDtoV2 {
                                   final String accomCountCulture,
                                   final String parkingCulture) {
             super("CULTURE", placeId, name, category, address, latitude, longitude, distanceFromStation,
-                  walkTimeFromStation, stayableMinutes, stationLatitude, stationLongitude, leaveTime, images,
+                  walkTimeFromStation, stayableMinutes, visitable, stationLatitude, stationLongitude, leaveTime, images,
                   phoneNumber, restDate, useTime);
             this.spendTime = spendTime;
             this.useFee = useFee;
@@ -410,6 +421,7 @@ public abstract class PlaceResponseDtoV2 {
                                  final Integer distanceFromStation,
                                  final Integer walkTimeFromStation,
                                  final Integer stayableMinutes,
+                                 final Boolean visitable,
                                  final Double stationLatitude,
                                  final Double stationLongitude,
                                  final LocalDateTime leaveTime,
@@ -423,7 +435,7 @@ public abstract class PlaceResponseDtoV2 {
                                  final String scaleLeports,
                                  final String expAgeRangeLeports) {
             super("SPORTS", placeId, name, category, address, latitude, longitude, distanceFromStation,
-                  walkTimeFromStation, stayableMinutes, stationLatitude, stationLongitude, leaveTime, images,
+                  walkTimeFromStation, stayableMinutes, visitable, stationLatitude, stationLongitude, leaveTime, images,
                   phoneNumber, restDate, useTime);
             this.openPeriod = openPeriod;
             this.useFeeLeports = useFeeLeports;
@@ -465,6 +477,7 @@ public abstract class PlaceResponseDtoV2 {
                                    final Integer distanceFromStation,
                                    final Integer walkTimeFromStation,
                                    final Integer stayableMinutes,
+                                   final Boolean visitable,
                                    final Double stationLatitude,
                                    final Double stationLongitude,
                                    final LocalDateTime leaveTime,
@@ -478,7 +491,7 @@ public abstract class PlaceResponseDtoV2 {
                                    final String scaleShopping,
                                    final String fairDay) {
             super("SHOPPING", placeId, name, category, address, latitude, longitude, distanceFromStation,
-                  walkTimeFromStation, stayableMinutes, stationLatitude, stationLongitude, leaveTime, images,
+                  walkTimeFromStation, stayableMinutes, visitable, stationLatitude, stationLongitude, leaveTime, images,
                   phoneNumber, restDate, useTime);
             this.openTime = openTime;
             this.saleItem = saleItem;

@@ -238,7 +238,7 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
     }
 
     /**
-     * 장소 필터링 (키워드, 카테고리, 체류 시간)
+     * 장소 필터링 (키워드, 카테고리)
      */
     private List<GeoPlace> filterPlaces(final List<GeoPlace> places,
                                         final String keyword,
@@ -260,11 +260,6 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
                          if (category == null || "전체".equals(category)) return true;
                          PlaceCardCache cache = getPlaceCardCache(place.getPlaceId()).orElse(null);
                          return cache != null && category.equals(cache.getCategory());
-                     })
-                     .filter(place -> {
-                         int walkTimeToStation = calculateWalkTime(place.getDistance());
-                         int stayableMinutes   = calculateStayableMinutes(remainingMinutes, walkTimeToStation);
-                         return stayableMinutes >= MINIMUM_STAY_TIME;
                      })
                      .toList();
     }
@@ -357,6 +352,8 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
         int walkTimeFromStation = calculateWalkTime(geoPlace.getDistance());
         int stayableMinutes     = calculateStayableMinutes(remainingMinutes, walkTimeFromStation);
 
+        boolean visitable = stayableMinutes >= 0;
+
         return new AvailablePlace(
                 geoPlace.getPlaceId(),
                 cardInfo.getName(),
@@ -368,6 +365,7 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
                 geoPlace.getDistance(),
                 walkTimeFromStation,
                 stayableMinutes,
+                visitable,
                 cardInfo.getImageUrl()
         );
     }
@@ -386,24 +384,26 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
     ) {
         String category = cardInfo.getCategory();
 
+        boolean visitable = stayableMinutes >= 0;
+
         return switch (category) {
             case "관광지" -> buildTouristPlaceDetail(
-                    cardInfo, detailInfo, station, distanceFromStation, walkTimeFromStation, stayableMinutes, leaveTime
+                    cardInfo, detailInfo, station, distanceFromStation, walkTimeFromStation, stayableMinutes, visitable, leaveTime
             );
             case "음식점" -> buildRestaurantDetail(
-                    cardInfo, detailInfo, station, distanceFromStation, walkTimeFromStation, stayableMinutes, leaveTime
+                    cardInfo, detailInfo, station, distanceFromStation, walkTimeFromStation, stayableMinutes, visitable, leaveTime
             );
             case "문화시설" -> buildCulturePlaceDetail(
-                    cardInfo, detailInfo, station, distanceFromStation, walkTimeFromStation, stayableMinutes, leaveTime
+                    cardInfo, detailInfo, station, distanceFromStation, walkTimeFromStation, stayableMinutes, visitable, leaveTime
             );
             case "레포츠" -> buildSportsPlaceDetail(
-                    cardInfo, detailInfo, station, distanceFromStation, walkTimeFromStation, stayableMinutes, leaveTime
+                    cardInfo, detailInfo, station, distanceFromStation, walkTimeFromStation, stayableMinutes, visitable, leaveTime
             );
             case "쇼핑" -> buildShoppingPlaceDetail(
-                    cardInfo, detailInfo, station, distanceFromStation, walkTimeFromStation, stayableMinutes, leaveTime
+                    cardInfo, detailInfo, station, distanceFromStation, walkTimeFromStation, stayableMinutes, visitable, leaveTime
             );
             default -> buildTouristPlaceDetail(
-                    cardInfo, detailInfo, station, distanceFromStation, walkTimeFromStation, stayableMinutes, leaveTime
+                    cardInfo, detailInfo, station, distanceFromStation, walkTimeFromStation, stayableMinutes, visitable, leaveTime
             );
         };
     }
@@ -418,6 +418,7 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
             final double distanceFromStation,
             final int walkTimeFromStation,
             final int stayableMinutes,
+            final boolean visitable,
             final LocalDateTime leaveTime
     ) {
         return new TouristPlaceDetail(
@@ -430,6 +431,7 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
                 (int) distanceFromStation,
                 walkTimeFromStation,
                 stayableMinutes,
+                visitable,
                 station.getLatitude(),
                 station.getLongitude(),
                 leaveTime,
@@ -458,6 +460,7 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
             final double distanceFromStation,
             final int walkTimeFromStation,
             final int stayableMinutes,
+            final boolean visitable,
             final LocalDateTime leaveTime
     ) {
         return new RestaurantDetail(
@@ -470,6 +473,7 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
                 (int) distanceFromStation,
                 walkTimeFromStation,
                 stayableMinutes,
+                visitable,
                 station.getLatitude(),
                 station.getLongitude(),
                 leaveTime,
@@ -497,6 +501,7 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
             final double distanceFromStation,
             final int walkTimeFromStation,
             final int stayableMinutes,
+            final boolean visitable,
             final LocalDateTime leaveTime
     ) {
         return new CulturePlaceDetail(
@@ -509,6 +514,7 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
                 (int) distanceFromStation,
                 walkTimeFromStation,
                 stayableMinutes,
+                visitable,
                 station.getLatitude(),
                 station.getLongitude(),
                 leaveTime,
@@ -534,6 +540,7 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
             final double distanceFromStation,
             final int walkTimeFromStation,
             final int stayableMinutes,
+            final boolean visitable,
             final LocalDateTime leaveTime
     ) {
         return new SportsPlaceDetail(
@@ -546,6 +553,7 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
                 (int) distanceFromStation,
                 walkTimeFromStation,
                 stayableMinutes,
+                visitable,
                 station.getLatitude(),
                 station.getLongitude(),
                 leaveTime,
@@ -571,6 +579,7 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
             final double distanceFromStation,
             final int walkTimeFromStation,
             final int stayableMinutes,
+            final boolean visitable,
             final LocalDateTime leaveTime
     ) {
         return new ShoppingPlaceDetail(
@@ -583,6 +592,7 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
                 (int) distanceFromStation,
                 walkTimeFromStation,
                 stayableMinutes,
+                visitable,
                 station.getLatitude(),
                 station.getLongitude(),
                 leaveTime,
