@@ -19,8 +19,7 @@ import lombok.Getter;
 @Getter
 public class PlaceDetailCache {
 
-    private final String       placeId;         // 장소 고유 식별자
-    private final String       contentId;       // VisitKorea 콘텐츠 ID
+    private final String       placeId;         // 장소 고유 식별자 (VisitKorea contentId 와 동일)
     private final String       contentTypeId;   // 콘텐츠 타입 ID (12, 14, 28, 38, 39)
     private final String       phoneNumber;     // 전화번호 (문의처)
     private final List<String> images;          // 이미지 목록
@@ -72,7 +71,6 @@ public class PlaceDetailCache {
 
     @Builder
     public PlaceDetailCache(final String placeId,
-                            final String contentId,
                             final String contentTypeId,
                             final String phoneNumber,
                             final List<String> images,
@@ -110,7 +108,6 @@ public class PlaceDetailCache {
                             final String scaleShopping,
                             final String fairDay) {
         this.placeId = placeId;
-        this.contentId = contentId;
         this.contentTypeId = contentTypeId;
         this.phoneNumber = phoneNumber;
         this.images = images;

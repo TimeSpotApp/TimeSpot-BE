@@ -2,7 +2,6 @@ package com.timespot.backend.domain.place.service;
 
 import static com.timespot.backend.common.response.ErrorCode.PLACE_NOT_FOUND;
 import static com.timespot.backend.common.response.ErrorCode.STATION_NOT_FOUND;
-import static com.timespot.backend.domain.place.constant.PlaceConst.MINIMUM_STAY_TIME;
 import static com.timespot.backend.domain.place.constant.PlaceConst.PLATFORM_WAIT_TIME;
 import static com.timespot.backend.domain.place.constant.PlaceConst.TOTAL_BUFFER_TIME;
 import static com.timespot.backend.domain.place.constant.PlaceConst.WALK_SPEED_PER_MINUTE;
@@ -25,6 +24,8 @@ import com.timespot.backend.infra.redis.model.PlaceDetailCache;
 import com.timespot.backend.infra.visitkorea.client.VisitKoreaApiClient;
 import com.timespot.backend.infra.visitkorea.client.properties.VisitKoreaProperties;
 import com.timespot.backend.infra.visitkorea.dto.VisitKoreaResponseDto;
+import com.timespot.backend.infra.visitkorea.dto.VisitKoreaResponseDto.DetailInfoItem;
+import com.timespot.backend.infra.visitkorea.dto.VisitKoreaResponseDto.ImageListResponse;
 import com.timespot.backend.infra.visitkorea.dto.VisitKoreaResponseDto.Item;
 import com.timespot.backend.infra.visitkorea.model.Category1Type;
 import com.timespot.backend.infra.visitkorea.model.ContentType;
@@ -626,7 +627,7 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
     /**
      * PlaceCardCache 조회
      */
-    private Optional<PlaceCardCache> getPlaceCardCache(String placeId) {
+    private Optional<PlaceCardCache> getPlaceCardCache(final String placeId) {
         String key = "place:card:" + placeId;
         return redisRepository.getValue(key, PlaceCardCache.class);
     }
@@ -634,7 +635,7 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
     /**
      * PlaceCardCache 저장
      */
-    private void savePlaceCardCache(String placeId, PlaceCardCache cache) {
+    private void savePlaceCardCache(final String placeId, final PlaceCardCache cache) {
         String key = "place:card:" + placeId;
         redisRepository.setValue(key, cache, PLACE_CACHE_TTL);
     }
@@ -642,7 +643,7 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
     /**
      * PlaceDetailCache 조회
      */
-    private Optional<PlaceDetailCache> getPlaceDetailCache(String placeId) {
+    private Optional<PlaceDetailCache> getPlaceDetailCache(final String placeId) {
         String key = "place:detail:" + placeId;
         return redisRepository.getValue(key, PlaceDetailCache.class);
     }
@@ -659,8 +660,9 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
         String contentTypeId = extractContentTypeId(cardInfo.getCategory());
 
         // 상세 정보 조회
-        VisitKoreaResponseDto.DetailInfoResponse detailResponse =
-                visitKoreaApiClient.detailIntro(placeId, ContentType.from(contentTypeId));
+        VisitKoreaResponseDto.DetailInfoResponse detailResponse = visitKoreaApiClient.detailIntro(
+                placeId, ContentType.from(contentTypeId)
+        );
 
         // 공통 필드 초기화
         String infoCenter = null;
@@ -682,7 +684,7 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
 
         if (detailResponse.isSuccess() && detailResponse.body().items().item() != null &&
             !detailResponse.body().items().item().isEmpty()) {
-            VisitKoreaResponseDto.DetailInfoItem detail = detailResponse.body().items().item().get(0);
+            DetailInfoItem detail = detailResponse.body().items().item().get(0);
 
             // 공통 필드
             infoCenter = detail.infoCenter();
@@ -729,15 +731,13 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
             useTime = getUseTimeByContentType(detail, contentTypeId);
         }
 
-        // 이미지 조회
         List<String> images = new ArrayList<>();
         if (cardInfo.getImageUrl() != null && !cardInfo.getImageUrl().isEmpty()) {
             images.add(cardInfo.getImageUrl());
         }
 
         try {
-            VisitKoreaResponseDto.ImageListResponse imageResponse =
-                    visitKoreaApiClient.detailImage(contentId, 1, 10);
+            ImageListResponse imageResponse = visitKoreaApiClient.detailImage(placeId, 1, 10);
 
             if (imageResponse.isSuccess() && imageResponse.body().items().item() != null) {
                 imageResponse.body().items().item().stream()
@@ -746,13 +746,12 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
                              .forEach(images::add);
             }
         } catch (Exception e) {
-            log.warn("이미지 조회 실패: contentId={}, error={}", contentId, e.getMessage());
+            log.warn("이미지 조회 실패: placeId={}, error={}", placeId, e.getMessage());
         }
 
         // 캐시 저장
         PlaceDetailCache detailCache = PlaceDetailCache.builder()
                                                        .placeId(placeId)
-                                                       .contentId(contentId)
                                                        .contentTypeId(contentTypeId)
                                                        .phoneNumber(infoCenter)
                                                        .images(images)
@@ -800,7 +799,7 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
     /**
      * 카테고리명으로 콘텐츠 타입 ID 추출
      */
-    private String extractContentTypeId(String category) {
+    private String extractContentTypeId(final String category) {
         if (category == null) return "12";
 
         return switch (category) {
@@ -816,7 +815,7 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
     /**
      * 콘텐츠 타입별 이용시간 필드 추출
      */
-    private String getUseTimeByContentType(VisitKoreaResponseDto.DetailInfoItem detail, String contentTypeId) {
+    private String getUseTimeByContentType(final DetailInfoItem detail, final String contentTypeId) {
         return switch (contentTypeId) {
             case "12" -> detail.useTime();
             case "14" -> detail.useTimeCulture();
@@ -830,7 +829,7 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
     /**
      * VisitKorea cat1 → 서비스 카테고리 매핑
      */
-    private String mapCat1ToCategory(String cat1) {
+    private String mapCat1ToCategory(final String cat1) {
         if (cat1 == null) return "기타";
 
         try {
@@ -844,8 +843,7 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
     /**
      * 두 좌표 간 거리 계산 (Haversine 공식, 단위: 미터)
      */
-    private double calculateDistance(final double lat1, final double lon1,
-                                     final double lat2, final double lon2) {
+    private double calculateDistance(final double lat1, final double lon1, final double lat2, final double lon2) {
         final int R = 6371000; // 지구 반지름 (미터)
 
         double dLat = Math.toRadians(lat2 - lat1);
