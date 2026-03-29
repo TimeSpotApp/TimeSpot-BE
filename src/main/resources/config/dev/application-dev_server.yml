@@ -80,3 +80,9 @@ app:
       - path-pattern: "/api/v1/users"
         capacity: ${RATE_LIMIT_CAPACITY_USERS:60}
         duration-minutes: ${RATE_LIMIT_DURATION_MINUTES_USERS:1}
+  api:
+    visit-korea:
+      service-key: ${VISIT_KOREA_SERVICE_KEY:62166eff31104a8a966eff3110ca8a22}
+      base-url: ${VISIT_KOREA_BASE_URL:https://apis.data.go.kr/B551011/KorService2}
+      max-radius-meters: ${PLACE_MAX_RADIUS_METERS:5000}
+      default-radius-meters: ${PLACE_DEFAULT_RADIUS_METERS:1500}

@@ -80,3 +80,9 @@ app:
       - path-pattern: "/api/v1/users"
         capacity: ${RATE_LIMIT_CAPACITY_USERS:60}
         duration-minutes: ${RATE_LIMIT_DURATION_MINUTES_USERS:1}
+  api:
+    visit-korea:
+      service-key: ${VISIT_KOREA_SERVICE_KEY}
+      base-url: ${VISIT_KOREA_BASE_URL}
+      max-radius-meters: ${PLACE_MAX_RADIUS_METERS}
+      default-radius-meters: ${PLACE_DEFAULT_RADIUS_METERS}
