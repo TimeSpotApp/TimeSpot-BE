@@ -77,8 +77,8 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
             final Long stationId,
             final double userLat,
             final double userLon,
-            final Double centerLat,
-            final Double centerLon,
+            final Double mapLat,
+            final Double mapLon,
             final int remainingMinutes,
             final String keyword,
             final String category,
@@ -95,7 +95,7 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
         );
 
         List<GeoPlace> sorted = sortPlaces(
-                filtered, pageable.getSort(), userLat, userLon, station, centerLat, centerLon
+                filtered, pageable.getSort(), userLat, userLon, station, mapLat, mapLon
         );
 
         return buildAvailablePlacePage(sorted, pageable, userLat, userLon, station, remainingMinutes);
@@ -204,7 +204,7 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
                     if (item.mapX() == null || item.mapY() == null) continue;
                     if (item.dist() != null && item.dist() > searchRadius) continue;
 
-                    String placeId = "visitkorea:" + item.contentId();
+                    String placeId = item.contentId();
                     if (!placeIdSet.add(placeId)) continue;
 
                     redisGeoRepository.addPlace(geoKey, placeId, item.mapX(), item.mapY());
@@ -272,8 +272,8 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
                                       final double userLat,
                                       final double userLon,
                                       final Station station,
-                                      final Double centerLat,
-                                      final Double centerLon) {
+                                      final Double mapLat,
+                                      final Double mapLon) {
         if (sort.isUnsorted())
             return places.stream().sorted(Comparator.comparingDouble(GeoPlace::getDistance)).toList();
 
@@ -291,11 +291,11 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
                              .toList();
             }
 
-            if ("distanceFromCenter".equals(property) && centerLat != null && centerLon != null)
+            if ("distanceFromCenter".equals(property) && mapLat != null && mapLon != null)
                 return places.stream()
                              .sorted(Comparator.comparingDouble(
-                                     place -> calculateDistance(centerLat,
-                                                                centerLon,
+                                     place -> calculateDistance(mapLat,
+                                                                mapLon,
                                                                 place.getLatitude(),
                                                                 place.getLongitude())
                              ))
@@ -656,12 +656,11 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
     ) {
         log.debug("장소 상세 정보 조회: placeId={}", placeId);
 
-        String contentId     = placeId.replace("visitkorea:", "");
         String contentTypeId = extractContentTypeId(cardInfo.getCategory());
 
         // 상세 정보 조회
         VisitKoreaResponseDto.DetailInfoResponse detailResponse =
-                visitKoreaApiClient.detailIntro(contentId, ContentType.from(contentTypeId));
+                visitKoreaApiClient.detailIntro(placeId, ContentType.from(contentTypeId));
 
         // 공통 필드 초기화
         String infoCenter = null;

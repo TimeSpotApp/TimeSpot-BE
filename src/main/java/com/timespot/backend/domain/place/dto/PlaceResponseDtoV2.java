@@ -106,7 +106,7 @@ public abstract class PlaceResponseDtoV2 {
         @JsonProperty("placeType")
         protected final String placeType;
 
-        @Schema(description = "장소 ID", example = "visitkorea:126644")
+        @Schema(description = "장소 ID", example = "126644")
         private final String placeId;
 
         @Schema(description = "장소 이름", example = "남산서울타워")

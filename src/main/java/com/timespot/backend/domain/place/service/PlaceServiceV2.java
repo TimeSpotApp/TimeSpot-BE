@@ -25,8 +25,8 @@ public interface PlaceServiceV2 {
      * @param stationId        출발 역 ID
      * @param userLat          사용자 위도
      * @param userLon          사용자 경도
-     * @param centerLat        지도 중심 위도 (선택, null 이면 역 중심)
-     * @param centerLon        지도 중심 경도 (선택, null 이면 역 중심)
+     * @param mapLat           지도 중심 위도 (선택, null 이면 역 중심)
+     * @param mapLon           지도 중심 경도 (선택, null 이면 역 중심)
      * @param remainingMinutes 열차 출발까지 남은 시간 (분)
      * @param keyword          검색 키워드 (선택)
      * @param category         카테고리 (전체, 관광지, 문화시설, 레포츠, 쇼핑, 음식점)
@@ -37,8 +37,8 @@ public interface PlaceServiceV2 {
             Long stationId,
             double userLat,
             double userLon,
-            Double centerLat,
-            Double centerLon,
+            Double mapLat,
+            Double mapLon,
             int remainingMinutes,
             String keyword,
             String category,
