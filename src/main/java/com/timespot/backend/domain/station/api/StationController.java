@@ -57,6 +57,7 @@ public class StationController implements StationApiDocs {
     @GetMapping
     @CustomPageResponse(
             numberOfElements = false,
+            sort = false,
             empty = false,
             hasContent = false,
             first = false,
@@ -119,6 +120,7 @@ public class StationController implements StationApiDocs {
     @GetMapping("/favorites")
     @CustomPageResponse(
             numberOfElements = false,
+            sort = false,
             empty = false,
             hasContent = false,
             first = false,

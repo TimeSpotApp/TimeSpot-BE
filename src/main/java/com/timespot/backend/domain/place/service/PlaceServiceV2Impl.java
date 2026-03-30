@@ -2,6 +2,7 @@ package com.timespot.backend.domain.place.service;
 
 import static com.timespot.backend.common.response.ErrorCode.PLACE_NOT_FOUND;
 import static com.timespot.backend.common.response.ErrorCode.STATION_NOT_FOUND;
+import static com.timespot.backend.domain.place.constant.PlaceConst.MINIMUM_STAY_TIME;
 import static com.timespot.backend.domain.place.constant.PlaceConst.PLATFORM_WAIT_TIME;
 import static com.timespot.backend.domain.place.constant.PlaceConst.WALK_SPEED_PER_MINUTE;
 
@@ -13,6 +14,7 @@ import com.timespot.backend.domain.place.dto.PlaceResponseDtoV2.RestaurantDetail
 import com.timespot.backend.domain.place.dto.PlaceResponseDtoV2.ShoppingPlaceDetail;
 import com.timespot.backend.domain.place.dto.PlaceResponseDtoV2.SportsPlaceDetail;
 import com.timespot.backend.domain.place.dto.PlaceResponseDtoV2.TouristPlaceDetail;
+import com.timespot.backend.domain.place.model.PlaceCategory;
 import com.timespot.backend.domain.station.dao.StationRepository;
 import com.timespot.backend.domain.station.model.Station;
 import com.timespot.backend.infra.redis.dao.RedisGeoRepository;
@@ -310,25 +312,114 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
 
     /**
      * 장소 필터링 (키워드, 카테고리)
+     * <p>
+     * 클라이언트 요청 카테고리 (etc, shopping, activity, restaurant, cafe) 를
+     * 서버 내부 카테고리 (관광지, 문화시설, 레포츠, 쇼핑, 음식점) 로 매핑하여 필터링합니다.
+     * </p>
+     * <p>
+     * - ETC: 문화시설 + 관광지<br>
+     * - SHOPPING: 쇼핑<br>
+     * - ACTIVITY: 레포츠<br>
+     * - RESTAURANT: 음식점 (카페 키워드 제외)<br>
+     * - CAFE: 음식점 중 '카페' 키워드 포함
+     * </p>
      */
     private List<GeoPlace> filterPlaces(final List<GeoPlace> places,
                                         final String keyword,
                                         final String category) {
+        // 카테고리가 null 이나 "전체"이면 필터링 안 함
+        if (category == null || category.isBlank() || "전체".equals(category)) {
+            return filterByKeywordOnly(places, keyword);
+        }
+
+        // 클라이언트 요청 카테고리를 PlaceCategory 로 변환
+        PlaceCategory placeCategory;
+        try {
+            placeCategory = PlaceCategory.from(category);
+        } catch (GlobalException e) {
+            log.warn("지원하지 않는 카테고리: category={}", category);
+            return filterByKeywordOnly(places, keyword);
+        }
+
+        log.debug("카테고리 필터링 적용: category={}, serverCategories={}",
+                  placeCategory.name(), placeCategory.getServerCategories());
+
         return places.stream()
-                     .filter(place -> {
-                         if (keyword != null && !keyword.isBlank()) {
-                             PlaceCardCache cache = getPlaceCardCache(place.getPlaceId()).orElse(null);
-                             if (cache == null) return false;
-                             return cache.getName().contains(keyword) || cache.getCategory().contains(keyword);
-                         }
-                         return true;
-                     })
-                     .filter(place -> {
-                         if (category == null || "전체".equals(category)) return true;
-                         PlaceCardCache cache = getPlaceCardCache(place.getPlaceId()).orElse(null);
-                         return cache != null && category.equals(cache.getCategory());
-                     })
+                     // 키워드 필터링 (먼저 적용)
+                     .filter(place -> matchesKeyword(place, keyword))
+                     // 카테고리 필터링
+                     .filter(place -> matchesCategory(place, placeCategory))
+                     // 카페/레스토랑 키워드 필터링 (필요한 경우)
+                     .filter(place -> matchesCafeKeyword(place, placeCategory))
                      .toList();
+    }
+
+    /**
+     * 카테고리 미지정 시 키워드만 필터링
+     */
+    private List<GeoPlace> filterByKeywordOnly(final List<GeoPlace> places, final String keyword) {
+        if (keyword == null || keyword.isBlank()) {
+            return places;
+        }
+        log.debug("키워드 필터링만 수행: keyword={}", keyword);
+        return places.stream()
+                     .filter(place -> matchesKeyword(place, keyword))
+                     .toList();
+    }
+
+    /**
+     * 키워드 매칭 확인 (장소명 또는 카테고리)
+     */
+    private boolean matchesKeyword(final GeoPlace place, final String keyword) {
+        if (keyword == null || keyword.isBlank()) {
+            return true;
+        }
+        PlaceCardCache cache = getPlaceCardCache(place.getPlaceId()).orElse(null);
+        if (cache == null) return false;
+        return cache.getName().contains(keyword) || cache.getCategory().contains(keyword);
+    }
+
+    /**
+     * 서버 카테고리 매칭 확인
+     */
+    private boolean matchesCategory(final GeoPlace place, final PlaceCategory placeCategory) {
+        PlaceCardCache cache = getPlaceCardCache(place.getPlaceId()).orElse(null);
+        if (cache == null) return false;
+
+        // CAFE 는 음식점 카테고리에서 검색하므로 별도 처리
+        if (placeCategory == PlaceCategory.CAFE) {
+            return "음식점".equals(cache.getCategory());
+        }
+
+        return placeCategory.getServerCategories().contains(cache.getCategory());
+    }
+
+    /**
+     * 카페 키워드 필터링
+     * - RESTAURANT: '카페' 키워드 제외
+     * - CAFE: '카페' 키워드 포함만
+     */
+    private boolean matchesCafeKeyword(final GeoPlace place, final PlaceCategory placeCategory) {
+        if (!placeCategory.requiresCafeKeywordFilter()) {
+            return true; // 필터링 불필요
+        }
+
+        PlaceCardCache cache = getPlaceCardCache(place.getPlaceId()).orElse(null);
+        if (cache == null) return false;
+
+        String name     = cache.getName();
+        String category = cache.getCategory();
+
+        boolean isCafeCategory   = "카페".equals(category);
+        boolean nameContainsCafe = name != null && name.contains("카페");
+
+        if (placeCategory.isCafeOnly()) {
+            // CAFE: '카페' 키워드 포함만
+            return isCafeCategory || nameContainsCafe;
+        } else {
+            // RESTAURANT: '카페' 키워드 제외
+            return !isCafeCategory && !nameContainsCafe;
+        }
     }
 
     /**
@@ -430,7 +521,7 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
         int walkTimeFromStation = calculateWalkTime(geoPlace.getDistance());
         int stayableMinutes     = calculateStayableMinutes(remainingMinutes, walkTimeFromStation);
 
-        boolean visitable = stayableMinutes >= 0;
+        boolean visitable = stayableMinutes >= MINIMUM_STAY_TIME;
 
         log.debug("AvailablePlace 빌드 완료: placeId={}, visitable={}, stayableMinutes={}",
                   geoPlace.getPlaceId(), visitable, stayableMinutes);
@@ -465,7 +556,7 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
     ) {
         String category = cardInfo.getCategory();
 
-        boolean visitable = stayableMinutes >= 0;
+        boolean visitable = stayableMinutes >= MINIMUM_STAY_TIME;
 
         return switch (category) {
             case "관광지" -> buildTouristPlaceDetail(
@@ -827,21 +918,18 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
         }
 
         List<String> images = new ArrayList<>();
-        if (cardInfo.getImageUrl() != null && !cardInfo.getImageUrl().isEmpty()) images.add(cardInfo.getImageUrl());
+        if (cardInfo.getImageUrl() != null && !cardInfo.getImageUrl().isEmpty()) {
+            images.add(cardInfo.getImageUrl());
+        }
 
         try {
-            ImageListResponse imageResponse = visitKoreaApiClient.detailImage(placeId, 1, 10);
+            ImageListResponse imageResponse = visitKoreaApiClient.detailImage(placeId, 1, 20);
 
-            if (imageResponse.isSuccess() && imageResponse.getBody().getItems().getItem() != null) {
-                int maxImages = 5;
-                int remainingSlots = maxImages - images.size();
-
+            if (imageResponse.isSuccess() && imageResponse.getBody().getItems().getItem() != null)
                 imageResponse.getBody().getItems().getItem().stream()
                              .map(ImageListItem::getOriginImgUrl)
                              .filter(url -> url != null && !url.isBlank())
-                             .limit(remainingSlots)
                              .forEach(images::add);
-            }
         } catch (Exception e) {
             log.warn("이미지 조회 실패: placeId={}, error={}", placeId, e.getMessage());
         }

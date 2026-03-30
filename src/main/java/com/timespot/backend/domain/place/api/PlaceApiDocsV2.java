@@ -34,21 +34,21 @@ import org.springframework.web.bind.annotation.PathVariable;
         name = "Place V2 API",
         description = """
                       ## 장소 (Place) API V2
-                      
+
                       ### 개요
                       VisitKorea(한국관광공사) 공공데이터를 기반으로, 역에서 방문 가능한 장소 정보를 제공합니다.
-                      
+
                       ### 주요 기능
                       - **방문 가능 장소 목록 조회**: 사용자 위치, 역, 남은 시간을 기반으로 방문 가능한 장소를 조회합니다.
                       - **장소 상세 정보 조회**: 특정 장소의 상세 정보 (이미지, 휴무일, 이용시간, 타입별 특화 정보) 를 조회합니다.
-                      
+
                       ### 인증 방식
                       - **비인증 가능**: 모든 API 는 인증 없이 이용 가능합니다.
-                      
+
                       ### 데이터 소스
                       - **내부 DB**: 역 정보, 장소 위치 (위경도), 카테고리
                       - **VisitKorea API**: 장소 상세 정보, 이미지, 휴무일, 이용시간
-                      
+
                       ### 캐싱 전략
                       - **Redis GEO**: 역 기준 반경 3km 이내 장소 저장 (24 시간 TTL)
                       - **PlaceCardCache**: 장소 기본 정보 캐시 (24 시간 TTL)
@@ -62,7 +62,7 @@ public interface PlaceApiDocsV2 {
             summary = "방문 가능 장소 목록 조회",
             description = """
                           ### 사용자 위치와 역, 남은 시간을 입력받아 방문 가능한 장소 목록을 조회합니다.
-                          
+
                           #### 요청 파라미터
                           - `stationId`: 출발 역 ID - 필수
                           - `userLat`: 사용자 현재 위치 위도 - 필수
@@ -75,33 +75,42 @@ public interface PlaceApiDocsV2 {
                           - `page`: 페이지 번호 (1 부터 시작) - 선택 (기본값: 1)
                           - `size`: 페이지 크기 - 선택 (기본값: 50)
                           - `sort`: 정렬 기준 - 선택 (기본값: distanceFromStation,ASC)
-                          
+
                           #### 카테고리 (category)
                           | 값 | 설명 |
                           |------|------|
-                          | `전체` | 모든 카테고리 (기본값) |
-                          | `관광지` | 관광명소, 문화관광, 레포츠관광 등 |
-                          | `음식점` | 음식점, 카페 |
-                          | `문화시설` | 박물관, 미술관, 공연장 |
-                          | `레포츠` | 스포츠 시설, 액티비티 |
-                          | `쇼핑` | 쇼핑몰, 시장, 면세점 |
-                          
+                          | `etc` | 문화시설 + 관광지 (기본값: 전체) |
+                          | `shopping` | 쇼핑 (쇼핑몰, 시장, 면세점) |
+                          | `activity` | 레포츠 (스포츠 시설, 액티비티) |
+                          | `restaurant` | 음식점 (카페 제외) |
+                          | `cafe` | 카페 (음식점 중 '카페' 키워드 포함) |
+                          | `전체` | 모든 카테고리 (레거시 호환) |
+
+                          #### 카테고리 매핑 규칙
+                          - **`etc`**: 서버의 `문화시설`, `관광지` 카테고리를 모두 포함
+                          - **`shopping`**: 서버의 `쇼핑` 카테고리
+                          - **`activity`**: 서버의 `레포츠` 카테고리
+                          - **`restaurant`**: 서버의 `음식점` 카테고리에서 '카페' 키워드가 **제외**된 항목
+                          - **`cafe`**: 서버의 `음식점` 카테고리에서 이름에 '카페'가 **포함**된 항목
+
                           #### 정렬 기준 (sort)
                           | 값 | 설명 | 사용 상황 |
                           |------|------|------|
                           | `distanceFromStation,ASC` | 역에서 가까운 순 (기본값) | 기본 정렬 |
                           | `distanceFromUser,ASC` | 사용자 위치에서 가까운 순 | 사용자 기준 탐색 |
                           | `distanceFromCenter,ASC` | 지도 중심에서 가까운 순 | 지도에서 장소 탐색 시 (mapLat/mapLon 필수) |
-                          
+
                           #### 체류 시간 계산 로직
                           1. **왕복 도보 시간 계산**: 사용자 → 장소 → 역 (왕복)
                           2. **플랫폼 대기 시간**: 10 분 (역 도착 후 열차 탑승까지)
                           3. **체류 가능 시간**: `남은 시간 - 왕복 도보 시간 - 플랫폼 대기 시간`
-                          
+
                           #### 방문 가능 여부 (visitable)
-                          - `stayableMinutes >= 0` → `true` (방문 가능)
-                          - `stayableMinutes < 0` → `false` (시간 부족)
-                          
+                          - **체류 가능 시간** = `남은 시간 - 왕복 도보 시간 - 플랫폼 대기 시간 (10 분)`
+                          - **최소 체류 시간**: 10 분
+                          - `stayableMinutes >= 10` → `visitable = true` (방문 가능)
+                          - `stayableMinutes < 10` → `visitable = false` (시간 부족)
+
                           #### 응답 데이터
                           - `content`: 장소 목록 (페이지 크기만큼)
                           - `number`: 현재 페이지 번호 (0-based, API 는 1-based 입력)
@@ -298,9 +307,9 @@ public interface PlaceApiDocsV2 {
             String keyword,
 
             @Parameter(
-                    description = "카테고리 필터 (전체, 관광지, 음식점, 문화시설, 레포츠, 쇼핑)",
+                    description = "카테고리 필터 (etc, shopping, activity, restaurant, cafe, 전체)",
                     required = false,
-                    example = "전체"
+                    example = "etc"
             )
             String category,
 
@@ -333,22 +342,22 @@ public interface PlaceApiDocsV2 {
             summary = "장소 상세 정보 조회",
             description = """
                           ### 특정 장소의 상세 정보를 조회합니다.
-                          
+
                           #### 경로 변수 (Path Variable)
                           - `/api/v2/places/{placeId}` 형태로 호출
-                          
+
                           #### 요청 파라미터
                           - `placeId`: 장소 ID (VisitKorea contentId) - 필수 (경로 변수)
                           - `stationId`: 출발 역 ID - 필수
                           - `userLat`: 사용자 현재 위치 위도 - 필수
                           - `userLon`: 사용자 현재 위치 경도 - 필수
                           - `remainingMinutes`: 열차 출발까지 남은 시간 (분) - 필수
-                          
+
                           #### 장소 ID (placeId)
                           - VisitKorea API 의 `contentId` 를 그대로 사용
                           - 모든 콘텐츠 타입에서 고유한 숫자 문자열
                           - 예: "2495561" (서울로 7017)
-                          
+
                           #### 제공 정보
                           - **기본 정보**: 이름, 카테고리, 주소, 위경도
                           - **거리 정보**:
@@ -357,8 +366,10 @@ public interface PlaceApiDocsV2 {
                           - **시간 정보**:
                             - `stayableMinutes`: 체류 가능 시간 (분)
                             - `leaveTime`: 역으로 출발해야 하는 시간
-                          - **방문 가능 여부**: `visitable` (체류 가능 시간 기준)
-                          - **이미지 목록**: 최대 5 개 (대표 이미지 + VisitKorea API 이미지)
+                          - **방문 가능 여부**: `visitable`
+                            - `stayableMinutes >= 10` → `true` (최소 10 분 이상 체류 가능)
+                            - `stayableMinutes < 10` → `false` (시간 부족)
+                          - **이미지 목록**: 무제한 (대표 이미지 + VisitKorea API 전체 이미지)
                           - **휴무일**: `restDate`
                           - **이용시간**: `useTime` (타입별로 필드명 상이)
                           - **타입별 특화 정보**:
@@ -367,11 +378,11 @@ public interface PlaceApiDocsV2 {
                             - **문화시설 (14)**: 관람소요시간, 이용요금, 할인정보, 수용인원, 주차시설
                             - **레포츠 (28)**: 개장기간, 입장료, 예약안내, 규모, 체험가능연령
                             - **쇼핑 (38)**: 영업시간, 판매품목, 매장안내, 규모, 장서는날
-                          
+
                           #### 응답 데이터 (타입별 상이)
                           - 모든 타입이 공통 필드를 가지며, 타입별 특화 필드가 추가됩니다.
                           - `category` 필드로 타입을 구분할 수 있습니다.
-                          
+
                           #### 체류 시간 계산
                           ```
                           왕복 도보 시간 = 편도 도보 시간 × 2
