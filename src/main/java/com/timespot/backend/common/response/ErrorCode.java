@@ -81,6 +81,7 @@ public enum ErrorCode {
     PLACE_API_CALL_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "PL004", "장소 API 호출 실패입니다."),
     PLACE_API_CONTENT_TYPE_NOT_SUPPORTED(HttpStatus.BAD_REQUEST, "PL005", "장소 API에서 지원하지 않는 콘텐츠 타입입니다."),
     PLACE_API_CATEGORY1_TYPE_NOT_SUPPORTED(HttpStatus.BAD_REQUEST, "PL006", "장소 API에서 지원하지 않는 카테고리 타입입니다."),
+    PLACE_CATEGORY_TYPE_NOT_SUPPORTED(HttpStatus.BAD_REQUEST, "PL007", "지원하지 않는 장소 카테고리 타입입니다."),
 
     // Visiting History
     HISTORY_NOT_FOUND(HttpStatus.NOT_FOUND, "HI001", "방문 이력을 찾을 수 없습니다."),
