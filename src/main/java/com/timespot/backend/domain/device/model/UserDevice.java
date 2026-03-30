@@ -34,7 +34,7 @@ public class UserDevice extends BaseAuditingEntity {
     private Long id;
 
     @ManyToOne(fetch = LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id")
     private User user;
 
     @Column(name = "device_uuid", nullable = false)
