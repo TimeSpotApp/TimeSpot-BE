@@ -18,7 +18,7 @@ public enum NotificationTiming {
     BEFORE_10_MINUTES("before_10_minutes", 10, "10분 뒤면 역으로 출발해야 해요!", "10_min_before"),
     BEFORE_15_MINUTES("before_15_minutes", 15, "역으로 출발하기까지 15분 남았어요!", "15_min_before");
 
-    private static final String NOTIFICATION_SCHEMA_PREFIX = "timespot://notifications/";
+    private static final String NOTIFICATION_SCHEMA_PREFIX = "timespot://";
 
     private final String code;
     private final Integer beforeMinutes;
