@@ -16,6 +16,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.Min;
 import java.util.List;
+
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.web.PageableDefault;
@@ -433,16 +435,7 @@ public interface PlaceApiDocs {
                     required = false,
                     example = "126.9780"
             ) @RequestParam(required = false) Double mapLon,
-            @Parameter(
-                    description = "페이지 번호 (0 부터 시작)",
-                    example = "{\n" +
-                            "  \"page\": 0,\n" +
-                            "  \"size\": 30,\n" +
-                            "  \"sort\": [\n" +
-                            "    \"\"\n" +
-                            "  ]\n" +
-                            "}"
-            ) @PageableDefault(size = 200) Pageable pageable
+            @ParameterObject @PageableDefault(size = 200) Pageable pageable
     );
 
 }
