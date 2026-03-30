@@ -3,6 +3,7 @@ package com.timespot.backend.infra.redis.dao;
 import com.timespot.backend.infra.redis.model.GeoPlace;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.geo.Circle;
@@ -11,7 +12,9 @@ import org.springframework.data.geo.GeoResult;
 import org.springframework.data.geo.GeoResults;
 import org.springframework.data.geo.Metrics;
 import org.springframework.data.geo.Point;
-import org.springframework.data.redis.connection.RedisGeoCommands;
+import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
+import org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs;
+import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -41,11 +44,19 @@ public class RedisGeoRepositoryImpl implements RedisGeoRepository {
         log.debug("GEO 에 장소 추가: key={}, placeId={}, lat={}, lon={}",
                   key, placeId, latitude, longitude);
 
-        redisTemplateForGeo.opsForGeo().add(
-                key,
-                new Point(longitude, latitude), // Redis 는 (경도, 위도) 순서
-                placeId
-        );
+        try {
+            Long result = redisTemplateForGeo.opsForGeo().add(
+                    key, new Point(longitude, latitude), placeId
+            );
+            if (result != null && result > 0)
+                log.debug("GEO 저장 완료: key={}, placeId={}, addedCount={}", key, placeId, result);
+            else if (result != null && result == 0)
+                log.debug("GEO 저장: 기존 멤버 위치 업데이트 - key={}, placeId={}", key, placeId);
+        } catch (Exception e) {
+            log.error("GEO 저장 실패: key={}, placeId={}, lat={}, lon={}, error={}",
+                      key, placeId, latitude, longitude, e.getMessage(), e);
+            throw e;
+        }
     }
 
     @Override
@@ -53,24 +64,40 @@ public class RedisGeoRepositoryImpl implements RedisGeoRepository {
                                                  final double longitude,
                                                  final double latitude,
                                                  final double radiusMeters) {
-        Circle within = new Circle(
-                new Point(longitude, latitude),
-                new Distance(radiusMeters / 1000.0, Metrics.KILOMETERS)
-        );
+        try {
+            log.debug("GEO 검색: key={}, lat={}, lon={}, radius={}m", key, latitude, longitude, radiusMeters);
 
-        log.debug("GEO 검색: key={}, lat={}, lon={}, radius={}m", key, latitude, longitude, radiusMeters);
+            GeoResults<GeoLocation<byte[]>> geoResults = redisTemplateForGeo.execute(
+                    (RedisCallback<GeoResults<GeoLocation<byte[]>>>) connection -> {
+                        Circle circle = new Circle(
+                                new Point(longitude, latitude),
+                                new Distance(radiusMeters / 1000.0, Metrics.KILOMETERS)
+                        );
+                        return connection.geoCommands().geoRadius(
+                                key.getBytes(),
+                                circle,
+                                GeoRadiusCommandArgs.newGeoRadiusArgs().includeCoordinates().includeDistance()
+                        );
+                    }
+            );
 
-        GeoResults<RedisGeoCommands.GeoLocation<String>> results = redisTemplateForGeo.opsForGeo().search(key, within);
+            if (geoResults == null || geoResults.getContent() == null || geoResults.getContent().isEmpty()) {
+                log.debug("GEO 검색 결과 없음: key={}", key);
+                return List.of();
+            }
 
-        if (results == null || results.getContent().isEmpty()) {
-            log.debug("GEO 검색 결과 없음: key={}", key);
-            return List.of();
+            List<GeoPlace> results = geoResults.getContent().stream()
+                                               .map(this::mapToGeoPlace)
+                                               .filter(Objects::nonNull)
+                                               .collect(Collectors.toList());
+
+            log.debug("GEO 검색 결과: key={}, count={}", key, results.size());
+            return results;
+        } catch (Exception e) {
+            log.error("GEO 검색 실패: key={}, lat={}, lon={}, radius={}m, error={}",
+                      key, latitude, longitude, radiusMeters, e.getMessage(), e);
+            throw e;
         }
-
-        return results.getContent().stream()
-                      .map(this::mapToGeoPlace)
-                      .filter(Objects::nonNull)
-                      .toList();
     }
 
     @Override
@@ -84,10 +111,10 @@ public class RedisGeoRepositoryImpl implements RedisGeoRepository {
     /**
      * GeoResult 를 GeoPlace 로 매핑
      */
-    private GeoPlace mapToGeoPlace(final GeoResult<RedisGeoCommands.GeoLocation<String>> result) {
+    private GeoPlace mapToGeoPlace(final GeoResult<GeoLocation<byte[]>> result) {
         try {
-            RedisGeoCommands.GeoLocation<String> content = result.getContent();
-            String                               placeId = content.getName();
+            GeoLocation<byte[]> content = result.getContent();
+            String              placeId = new String(content.getName());
 
             Point point = content.getPoint();
             if (point == null) return null;

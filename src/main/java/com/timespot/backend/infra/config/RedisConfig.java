@@ -26,6 +26,7 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------
  * 26. 2. 27.    loadingKKamo21       Initial creation
+ * 26. 3. 30.    loadingKKamo21       GEO 전용 RedisTemplate 설정
  */
 @Profile("!test")
 @Configuration
@@ -63,6 +64,20 @@ public class RedisConfig {
         template.setValueSerializer(new GenericJackson2JsonRedisSerializer(copiedObjectMapper));
         template.setHashKeySerializer(new StringRedisSerializer());
         template.setHashValueSerializer(new GenericJackson2JsonRedisSerializer(copiedObjectMapper));
+
+        return template;
+    }
+
+    @Bean
+    public RedisTemplate<String, String> redisTemplateForGeo(final RedisConnectionFactory redisGeoConnectionFactory) {
+        RedisTemplate<String, String> template = new RedisTemplate<>();
+        template.setConnectionFactory(redisGeoConnectionFactory);
+
+        // GEO 는 모두 String 직렬화 사용 (키, 값, 멤버 모두 String)
+        template.setKeySerializer(new StringRedisSerializer());
+        template.setValueSerializer(new StringRedisSerializer());
+        template.setHashKeySerializer(new StringRedisSerializer());
+        template.setHashValueSerializer(new StringRedisSerializer());
 
         return template;
     }

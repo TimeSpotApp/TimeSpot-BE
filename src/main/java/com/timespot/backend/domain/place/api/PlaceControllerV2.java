@@ -48,17 +48,17 @@ public class PlaceControllerV2 implements PlaceApiDocsV2 {
     )
     @Override
     public ResponseEntity<BaseResponse<Page<AvailablePlace>>> findAvailablePlaces(
-            @RequestParam Long stationId,
-            @RequestParam double userLat,
-            @RequestParam double userLon,
-            @RequestParam(required = false) Double mapLat,
-            @RequestParam(required = false) Double mapLon,
-            @RequestParam int remainingMinutes,
-            @RequestParam(required = false, defaultValue = "") String keyword,
-            @RequestParam(required = false, defaultValue = "전체") String category,
-            @RequestParam(required = false, defaultValue = "1") int page,
-            @RequestParam(required = false, defaultValue = "20") int size,
-            @RequestParam(required = false, defaultValue = "distanceFromStation,ASC") String sort
+            @RequestParam final Long stationId,
+            @RequestParam final double userLat,
+            @RequestParam final double userLon,
+            @RequestParam(required = false) final Double mapLat,
+            @RequestParam(required = false) final Double mapLon,
+            @RequestParam final int remainingMinutes,
+            @RequestParam(required = false, defaultValue = "") final String keyword,
+            @RequestParam(required = false, defaultValue = "전체") final String category,
+            @RequestParam(required = false, defaultValue = "1") final int page,
+            @RequestParam(required = false, defaultValue = "50") final int size,
+            @RequestParam(required = false, defaultValue = "distanceFromStation,ASC") final String sort
     ) {
         Pageable pageable = SortUtils.createPageable(page, size, sort);
 
@@ -80,11 +80,11 @@ public class PlaceControllerV2 implements PlaceApiDocsV2 {
     @GetMapping("/{placeId}")
     @Override
     public ResponseEntity<BaseResponse<PlaceDetail>> getPlaceDetail(
-            @PathVariable String placeId,
-            @RequestParam Long stationId,
-            @RequestParam double userLat,
-            @RequestParam double userLon,
-            @RequestParam int remainingMinutes
+            @PathVariable final String placeId,
+            @RequestParam final Long stationId,
+            @RequestParam final double userLat,
+            @RequestParam final double userLon,
+            @RequestParam final int remainingMinutes
     ) {
         PlaceDetail responseData = placeServiceV2.getPlaceDetail(
                 placeId, stationId, userLat, userLon, remainingMinutes

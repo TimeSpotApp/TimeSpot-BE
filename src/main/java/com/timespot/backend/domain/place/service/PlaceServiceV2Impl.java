@@ -28,7 +28,6 @@ import com.timespot.backend.infra.visitkorea.dto.VisitKoreaResponseDto.ImageList
 import com.timespot.backend.infra.visitkorea.dto.VisitKoreaResponseDto.ImageListResponse;
 import com.timespot.backend.infra.visitkorea.dto.VisitKoreaResponseDto.LocationBasedListItem;
 import com.timespot.backend.infra.visitkorea.dto.VisitKoreaResponseDto.LocationBasedListResponse;
-import com.timespot.backend.infra.visitkorea.model.Category1Type;
 import com.timespot.backend.infra.visitkorea.model.ContentType;
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -36,6 +35,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
@@ -85,19 +85,43 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
             final String category,
             final Pageable pageable
     ) {
+        log.info("방문 가능 장소 조회: stationId={}, keyword={}, category={}, pageable={}",
+                 stationId, keyword, category, pageable);
+
         Station station = validateStation(stationId);
 
         int searchRadius = visitKoreaProperties.getMaxRadiusMeters();
 
         List<GeoPlace> geoPlaces = getPlacesFromGeoOrApi(station, searchRadius);
 
+        if (geoPlaces.isEmpty()) {
+            log.info("GEO 에 데이터가 없어 VisitKorea API 동기화 수행: stationId={}", station.getId());
+            List<GeoPlace> syncedPlaces = syncFromVisitKorea(station, searchRadius);
+            log.info("동기화 완료 후 반환받은 장소 수: stationId={}, count={}", station.getId(), syncedPlaces.size());
+
+            geoPlaces = syncedPlaces;
+            log.info("동기화된 GEO 데이터 사용: stationId={}, count={}", station.getId(), geoPlaces.size());
+        }
+
+        log.info("GEO 장소 필터링 시작: totalCount={}, keyword={}, category={}",
+                 geoPlaces.size(), keyword, category);
+
         List<GeoPlace> filtered = filterPlaces(geoPlaces, keyword, category);
+
+        log.info("GEO 장소 필터링 완료: filteredCount={}", filtered.size());
 
         List<GeoPlace> sorted = sortPlaces(
                 filtered, pageable.getSort(), userLat, userLon, mapLat, mapLon
         );
 
-        return buildAvailablePlacePage(sorted, pageable, userLat, userLon, remainingMinutes);
+        log.info("GEO 장소 정렬 완료: sortedCount={}", sorted.size());
+
+        Page<AvailablePlace> result = buildAvailablePlacePage(sorted, pageable, userLat, userLon, remainingMinutes);
+
+        log.info("방문 가능 장소 조회 완료: totalElements={}, page={}, size={}, totalPages={}",
+                 result.getTotalElements(), result.getNumber(), result.getSize(), result.getTotalPages());
+
+        return result;
     }
 
     @Override
@@ -142,7 +166,7 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
     }
 
     /**
-     * GEO 에서 장소 조회 (캐시 없으면 API 호출)
+     * GEO 에서 장소 조회
      */
     private List<GeoPlace> getPlacesFromGeoOrApi(final Station station, final int searchRadius) {
         String geoKey = "place:geo:" + station.getId();
@@ -154,8 +178,6 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
         );
         log.info("GEO 검색 결과: stationId={}, count={}", station.getId(), geoPlaces.size());
 
-        if (geoPlaces.isEmpty()) return syncFromVisitKorea(station, searchRadius);
-
         return geoPlaces;
     }
 
@@ -163,14 +185,35 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
      * VisitKorea API 에서 장소 동기화
      */
     private List<GeoPlace> syncFromVisitKorea(final Station station, final int searchRadius) {
-        log.info("VisitKorea API 동기화 시작: stationId={}, radius={}", station.getId(), searchRadius);
+        String geoKey = "place:geo:" + station.getId();
+
+        log.info("GEO 캐시 확인 시작: key={}, stationId={}", geoKey, station.getId());
+        List<GeoPlace> existingPlaces = redisGeoRepository.findPlacesWithinRadius(
+                geoKey, station.getLongitude(), station.getLatitude(), searchRadius
+        );
+        log.info("GEO 캐시 확인 결과: stationId={}, count={}", station.getId(), existingPlaces.size());
+
+        if (!existingPlaces.isEmpty()) {
+            log.info("이미 캐시된 GEO 데이터 존재, 동기화 스킵: stationId={}, count={}", station.getId(), existingPlaces.size());
+            return existingPlaces;
+        }
+        log.info("GEO 캐시 없음, VisitKorea API 동기화 시작: stationId={}, radius={}", station.getId(), searchRadius);
 
         List<GeoPlace> allPlaces  = new ArrayList<>();
         Set<String>    placeIdSet = new HashSet<>();
-        String         geoKey     = "place:geo:" + station.getId();
 
-        for (ContentType contentType : ContentType.getAllContentTypes())
+        List<GeoPlace>       geoBatch  = new ArrayList<>();
+        List<PlaceCardCache> cardBatch = new ArrayList<>();
+
+        Set<String> validCategories = Set.of("관광지", "음식점", "문화시설", "레포츠", "쇼핑");
+
+        for (ContentType contentType : ContentType.getAllContentTypes()) {
+            log.debug("VisitKorea API 요청: stationId={}, contentType={}, pages={}",
+                      station.getId(), contentType, visitKoreaProperties.getSyncPages());
+
             for (int page = 1; page <= visitKoreaProperties.getSyncPages(); page++) {
+                log.debug("VisitKorea API 페이지 요청: page={}", page);
+
                 LocationBasedListResponse response = visitKoreaApiClient.locationBasedList(
                         station.getLongitude(),
                         station.getLatitude(),
@@ -180,28 +223,61 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
                         visitKoreaProperties.getPageSize()
                 );
 
-                if (!response.isSuccess() || response.getBody().getItems().getItem() == null) break;
+                if (!response.isSuccess()) {
+                    log.error("VisitKorea API 응답 실패: stationId={}, contentType={}, page={}",
+                              station.getId(), contentType, page);
+                    break;
+                }
 
-                for (LocationBasedListItem item : response.getBody().getItems().getItem()) {
-                    if (item.getMapX() == null || item.getMapY() == null) continue;
-                    if (item.getDist() != null && item.getDist() > searchRadius) continue;
+                if (response.getBody().getItems().getItem() == null) {
+                    log.debug("VisitKorea API 항목 없음: stationId={}, contentType={}, page={}",
+                              station.getId(), contentType, page);
+                    break;
+                }
+
+                List<LocationBasedListItem> items = response.getBody().getItems().getItem();
+                log.debug("VisitKorea API 항목 수: page={}, count={}", page, items.size());
+
+                for (LocationBasedListItem item : items) {
+                    if (item.getMapX() == null || item.getMapY() == null) {
+                        log.debug("좌표 없음: contentId={}", item.getContentId());
+                        continue;
+                    }
+                    if (item.getDist() != null && item.getDist() > searchRadius) {
+                        log.debug("반경 초과: contentId={}, dist={}", item.getContentId(), item.getDist());
+                        continue;
+                    }
 
                     String placeId = item.getContentId();
-                    if (!placeIdSet.add(placeId)) continue;
+                    if (!placeIdSet.add(placeId)) {
+                        log.debug("중복 장소: contentId={}", placeId);
+                        continue;
+                    }
 
-                    redisGeoRepository.addPlace(geoKey, placeId, item.getMapX(), item.getMapY());
+                    String category = mapContentTypeIdToCategory(item.getContentTypeId());
+                    if (!validCategories.contains(category)) {
+                        log.debug("유효하지 않은 카테고리 스킵: placeId={}, contentTypeId={}, category={}",
+                                  placeId, item.getContentTypeId(), category);
+                        continue;
+                    }
 
-                    PlaceCardCache cache = new PlaceCardCache(
+                    geoBatch.add(GeoPlace.builder()
+                                         .placeId(placeId)
+                                         .latitude(item.getMapY())
+                                         .longitude(item.getMapX())
+                                         .distance(item.getDist() != null ? item.getDist() : 0.0)
+                                         .build());
+
+                    cardBatch.add(new PlaceCardCache(
                             placeId,
                             item.getName(),
-                            mapCat1ToCategory(item.getCat1()),
+                            category,
                             item.getFullAddress(),
                             item.getMapY(),
                             item.getMapX(),
                             item.getDist() != null ? item.getDist() : 0.0,
                             item.getFirstImage()
-                    );
-                    savePlaceCardCache(placeId, cache);
+                    ));
 
                     allPlaces.add(GeoPlace.builder()
                                           .placeId(placeId)
@@ -211,9 +287,23 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
                                           .build());
                 }
 
-                if (response.getBody().getItems().getItem().size() < visitKoreaProperties.getPageSize()) break;
+                if (items.size() < visitKoreaProperties.getPageSize()) {
+                    log.info("마지막 페이지 도달: page={}, itemCount={}", page, items.size());
+                    break;
+                }
             }
-        log.info("VisitKorea 동기화 완료: stationId={}, count={}", station.getId(), allPlaces.size());
+        }
+
+        log.info("GEO 배치 저장 시작: count={}", geoBatch.size());
+        for (GeoPlace place : geoBatch)
+            redisGeoRepository.addPlace(geoKey, place.getPlaceId(), place.getLongitude(), place.getLatitude());
+
+        log.info("PlaceCard 배치 저장 시작: count={}", cardBatch.size());
+        for (PlaceCardCache cache : cardBatch)
+            savePlaceCardCache(cache.getPlaceId(), cache);
+
+        log.info("VisitKorea 동기화 완료: stationId={}, totalPlaces={}, filteredPlaces={}",
+                 station.getId(), allPlaces.size(), placeIdSet.size());
 
         return allPlaces;
     }
@@ -297,9 +387,18 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
         List<AvailablePlace> content = places.stream()
                                              .skip(start)
                                              .limit(pageable.getPageSize())
-                                             .map(place -> buildAvailablePlace(
-                                                     place, userLat, userLon, remainingMinutes
-                                             ))
+                                             .map(place -> {
+                                                 try {
+                                                     return buildAvailablePlace(
+                                                             place, userLat, userLon, remainingMinutes
+                                                     );
+                                                 } catch (Exception e) {
+                                                     log.warn("AvailablePlace 빌드 실패: placeId={}, error={}",
+                                                              place.getPlaceId(), e.getMessage());
+                                                     return null;
+                                                 }
+                                             })
+                                             .filter(Objects::nonNull)
                                              .toList();
 
         return new PageImpl<>(content, pageable, places.size());
@@ -314,8 +413,15 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
             final double userLon,
             final int remainingMinutes
     ) {
+        log.debug("AvailablePlace 빌드 시작: placeId={}", geoPlace.getPlaceId());
+
         PlaceCardCache cardInfo = getPlaceCardCache(geoPlace.getPlaceId())
-                .orElseThrow(() -> new GlobalException(PLACE_NOT_FOUND));
+                .orElseThrow(() -> {
+                    log.error("PlaceCardCache 없음: placeId={}", geoPlace.getPlaceId());
+                    return new GlobalException(PLACE_NOT_FOUND);
+                });
+
+        log.debug("PlaceCardCache 조회 성공: placeId={}, name={}", geoPlace.getPlaceId(), cardInfo.getName());
 
         double distanceFromUser = calculateDistance(
                 userLat, userLon, geoPlace.getLatitude(), geoPlace.getLongitude()
@@ -325,6 +431,9 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
         int stayableMinutes     = calculateStayableMinutes(remainingMinutes, walkTimeFromStation);
 
         boolean visitable = stayableMinutes >= 0;
+
+        log.debug("AvailablePlace 빌드 완료: placeId={}, visitable={}, stayableMinutes={}",
+                  geoPlace.getPlaceId(), visitable, stayableMinutes);
 
         return new AvailablePlace(
                 geoPlace.getPlaceId(),
@@ -606,7 +715,16 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
      */
     private Optional<PlaceCardCache> getPlaceCardCache(final String placeId) {
         String key = "place:card:" + placeId;
-        return redisRepository.getValue(key, PlaceCardCache.class);
+        log.debug("PlaceCardCache 조회: key={}", key);
+
+        Optional<PlaceCardCache> result = redisRepository.getValue(key, PlaceCardCache.class);
+
+        if (result.isPresent())
+            log.debug("PlaceCardCache 조회 성공: key={}, name={}", key, result.get().getName());
+        else
+            log.warn("PlaceCardCache 조회 실패: key={}", key);
+
+        return result;
     }
 
     /**
@@ -802,14 +920,21 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
     }
 
     /**
-     * VisitKorea cat1 → 서비스 카테고리 매핑
+     * VisitKorea contentTypeId → 서비스 카테고리 매핑
      */
-    private String mapCat1ToCategory(final String cat1) {
-        if (cat1 == null) return "기타";
+    private String mapContentTypeIdToCategory(final String contentTypeId) {
+        if (contentTypeId == null) return "기타";
 
         try {
-            Category1Type category1Type = Category1Type.from(cat1);
-            return category1Type.getDescription();
+            ContentType contentType = ContentType.from(contentTypeId);
+            return switch (contentType.getContentTypeId()) {
+                case "12" -> "관광지";
+                case "14" -> "문화시설";
+                case "28" -> "레포츠";
+                case "38" -> "쇼핑";
+                case "39" -> "음식점";
+                default -> "기타";
+            };
         } catch (Exception e) {
             return "기타";
         }

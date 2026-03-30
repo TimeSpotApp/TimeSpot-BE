@@ -1,7 +1,8 @@
 package com.timespot.backend.infra.redis.model;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
 /**
  * PackageName : com.timespot.backend.infra.redis.model
@@ -15,7 +16,6 @@ import lombok.RequiredArgsConstructor;
  * 26. 3. 29.    loadingKKamo21       Initial creation
  */
 @Getter
-@RequiredArgsConstructor
 public class PlaceCardCache {
 
     private final String placeId;   // 장소 고유 식별자
@@ -26,5 +26,26 @@ public class PlaceCardCache {
     private final Double longitude; // 경도
     private final Double distance;  // 거리 (미터)
     private final String imageUrl;  // 대표 이미지 URL
+
+    @JsonCreator
+    public PlaceCardCache(
+            @JsonProperty("placeId") String placeId,
+            @JsonProperty("name") String name,
+            @JsonProperty("category") String category,
+            @JsonProperty("address") String address,
+            @JsonProperty("latitude") Double latitude,
+            @JsonProperty("longitude") Double longitude,
+            @JsonProperty("distance") Double distance,
+            @JsonProperty("imageUrl") String imageUrl
+    ) {
+        this.placeId = placeId;
+        this.name = name;
+        this.category = category;
+        this.address = address;
+        this.latitude = latitude;
+        this.longitude = longitude;
+        this.distance = distance;
+        this.imageUrl = imageUrl;
+    }
 
 }

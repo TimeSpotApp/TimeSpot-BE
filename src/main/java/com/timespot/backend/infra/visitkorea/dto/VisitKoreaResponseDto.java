@@ -26,6 +26,20 @@ import lombok.Setter;
 public abstract class VisitKoreaResponseDto {
 
     /**
+     * 최상위 래퍼 클래스
+     */
+    @Getter
+    @Setter
+    @NoArgsConstructor(access = PROTECTED)
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class VisitKoreaEnvelope {
+
+        @JsonProperty("response")
+        private LocationBasedListResponse response;
+
+    }
+
+    /**
      * 응답 헤더 (공통)
      */
     @Getter
@@ -51,18 +65,41 @@ public abstract class VisitKoreaResponseDto {
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class LocationBasedListResponse {
 
-        @JsonProperty("header")
-        private Header header;
-
-        @JsonProperty("body")
-        private LocationBasedListBody body;
+        @JsonProperty("response")
+        private ResponseWrapper response;
 
         /**
          * 응답 성공 여부
          */
         public boolean isSuccess() {
-            return header != null && "0000".equals(header.resultCode);
+            return response != null
+                   && response.getHeader() != null
+                   && "0000".equals(response.getHeader().getResultCode());
         }
+
+        /**
+         * 바디 직접 접근
+         */
+        public LocationBasedListBody getBody() {
+            return response != null ? response.getBody() : null;
+        }
+
+    }
+
+    /**
+     * 실제 API 응답 래퍼
+     */
+    @Getter
+    @Setter
+    @NoArgsConstructor(access = PROTECTED)
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class ResponseWrapper {
+
+        @JsonProperty("header")
+        private Header header;
+
+        @JsonProperty("body")
+        private LocationBasedListBody body;
 
     }
 
@@ -178,18 +215,41 @@ public abstract class VisitKoreaResponseDto {
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class SearchKeywordResponse {
 
-        @JsonProperty("header")
-        private Header header;
-
-        @JsonProperty("body")
-        private SearchKeywordBody body;
+        @JsonProperty("response")
+        private SearchKeywordResponseWrapper response;
 
         /**
          * 응답 성공 여부
          */
         public boolean isSuccess() {
-            return header != null && "0000".equals(header.resultCode);
+            return response != null
+                   && response.getHeader() != null
+                   && "0000".equals(response.getHeader().getResultCode());
         }
+
+        /**
+         * 바디 직접 접근 (기존 코드 호환성)
+         */
+        public SearchKeywordBody getBody() {
+            return response != null ? response.getBody() : null;
+        }
+
+    }
+
+    /**
+     * 검색어 기반 검색 응답 래퍼
+     */
+    @Getter
+    @Setter
+    @NoArgsConstructor(access = PROTECTED)
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class SearchKeywordResponseWrapper {
+
+        @JsonProperty("header")
+        private Header header;
+
+        @JsonProperty("body")
+        private SearchKeywordBody body;
 
     }
 
@@ -296,18 +356,41 @@ public abstract class VisitKoreaResponseDto {
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class ImageListResponse {
 
-        @JsonProperty("header")
-        private Header header;
-
-        @JsonProperty("body")
-        private ImageListBody body;
+        @JsonProperty("response")
+        private ImageListResponseWrapper response;
 
         /**
          * 응답 성공 여부
          */
         public boolean isSuccess() {
-            return header != null && "0000".equals(header.resultCode);
+            return response != null
+                   && response.getHeader() != null
+                   && "0000".equals(response.getHeader().getResultCode());
         }
+
+        /**
+         * 바디 직접 접근 (기존 코드 호환성)
+         */
+        public ImageListBody getBody() {
+            return response != null ? response.getBody() : null;
+        }
+
+    }
+
+    /**
+     * 이미지 리스트 응답 래퍼
+     */
+    @Getter
+    @Setter
+    @NoArgsConstructor(access = PROTECTED)
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class ImageListResponseWrapper {
+
+        @JsonProperty("header")
+        private Header header;
+
+        @JsonProperty("body")
+        private ImageListBody body;
 
     }
 
@@ -380,18 +463,41 @@ public abstract class VisitKoreaResponseDto {
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class DetailInfoResponse {
 
-        @JsonProperty("header")
-        private Header header;
-
-        @JsonProperty("body")
-        private DetailInfoBody body;
+        @JsonProperty("response")
+        private DetailInfoResponseWrapper response;
 
         /**
          * 응답 성공 여부
          */
         public boolean isSuccess() {
-            return header != null && "0000".equals(header.resultCode);
+            return response != null
+                   && response.getHeader() != null
+                   && "0000".equals(response.getHeader().getResultCode());
         }
+
+        /**
+         * 바디 직접 접근 (기존 코드 호환성)
+         */
+        public DetailInfoBody getBody() {
+            return response != null ? response.getBody() : null;
+        }
+
+    }
+
+    /**
+     * 상세 정보 응답 래퍼
+     */
+    @Getter
+    @Setter
+    @NoArgsConstructor(access = PROTECTED)
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class DetailInfoResponseWrapper {
+
+        @JsonProperty("header")
+        private Header header;
+
+        @JsonProperty("body")
+        private DetailInfoBody body;
 
     }
 
