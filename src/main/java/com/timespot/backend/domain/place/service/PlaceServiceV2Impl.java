@@ -2,6 +2,7 @@ package com.timespot.backend.domain.place.service;
 
 import static com.timespot.backend.common.response.ErrorCode.PLACE_NOT_FOUND;
 import static com.timespot.backend.common.response.ErrorCode.STATION_NOT_FOUND;
+import static com.timespot.backend.domain.place.constant.PlaceConst.MINIMUM_STAY_TIME;
 import static com.timespot.backend.domain.place.constant.PlaceConst.PLATFORM_WAIT_TIME;
 import static com.timespot.backend.domain.place.constant.PlaceConst.WALK_SPEED_PER_MINUTE;
 
@@ -520,7 +521,7 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
         int walkTimeFromStation = calculateWalkTime(geoPlace.getDistance());
         int stayableMinutes     = calculateStayableMinutes(remainingMinutes, walkTimeFromStation);
 
-        boolean visitable = stayableMinutes >= 0;
+        boolean visitable = stayableMinutes >= MINIMUM_STAY_TIME;
 
         log.debug("AvailablePlace 빌드 완료: placeId={}, visitable={}, stayableMinutes={}",
                   geoPlace.getPlaceId(), visitable, stayableMinutes);
@@ -555,7 +556,7 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
     ) {
         String category = cardInfo.getCategory();
 
-        boolean visitable = stayableMinutes >= 0;
+        boolean visitable = stayableMinutes >= MINIMUM_STAY_TIME;
 
         return switch (category) {
             case "관광지" -> buildTouristPlaceDetail(

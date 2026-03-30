@@ -106,8 +106,10 @@ public interface PlaceApiDocsV2 {
                           3. **체류 가능 시간**: `남은 시간 - 왕복 도보 시간 - 플랫폼 대기 시간`
 
                           #### 방문 가능 여부 (visitable)
-                          - `stayableMinutes >= 0` → `true` (방문 가능)
-                          - `stayableMinutes < 0` → `false` (시간 부족)
+                          - **체류 가능 시간** = `남은 시간 - 왕복 도보 시간 - 플랫폼 대기 시간 (10 분)`
+                          - **최소 체류 시간**: 10 분
+                          - `stayableMinutes >= 10` → `visitable = true` (방문 가능)
+                          - `stayableMinutes < 10` → `visitable = false` (시간 부족)
 
                           #### 응답 데이터
                           - `content`: 장소 목록 (페이지 크기만큼)
@@ -364,7 +366,9 @@ public interface PlaceApiDocsV2 {
                           - **시간 정보**:
                             - `stayableMinutes`: 체류 가능 시간 (분)
                             - `leaveTime`: 역으로 출발해야 하는 시간
-                          - **방문 가능 여부**: `visitable` (체류 가능 시간 기준)
+                          - **방문 가능 여부**: `visitable`
+                            - `stayableMinutes >= 10` → `true` (최소 10 분 이상 체류 가능)
+                            - `stayableMinutes < 10` → `false` (시간 부족)
                           - **이미지 목록**: 무제한 (대표 이미지 + VisitKorea API 전체 이미지)
                           - **휴무일**: `restDate`
                           - **이용시간**: `useTime` (타입별로 필드명 상이)
