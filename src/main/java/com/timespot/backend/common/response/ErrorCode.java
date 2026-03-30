@@ -78,6 +78,9 @@ public enum ErrorCode {
     PLACE_NOT_FOUND(HttpStatus.NOT_FOUND, "PL001", "장소를 찾을 수 없습니다."),
     PLACE_INSUFFICIENT_REMAINING_TIME(HttpStatus.BAD_REQUEST, "PL002", "체류 가능한 시간이 부족합니다."),
     PLACE_INVALID_MAP(HttpStatus.BAD_REQUEST, "PL003", "유효하지 않은 지도 좌표입니다."),
+    PLACE_API_CALL_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "PL004", "장소 API 호출 실패입니다."),
+    PLACE_API_CONTENT_TYPE_NOT_SUPPORTED(HttpStatus.BAD_REQUEST, "PL005", "장소 API에서 지원하지 않는 콘텐츠 타입입니다."),
+    PLACE_API_CATEGORY1_TYPE_NOT_SUPPORTED(HttpStatus.BAD_REQUEST, "PL006", "장소 API에서 지원하지 않는 카테고리 타입입니다."),
 
     // Visiting History
     HISTORY_NOT_FOUND(HttpStatus.NOT_FOUND, "HI001", "방문 이력을 찾을 수 없습니다."),

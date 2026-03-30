@@ -8,3 +8,10 @@ app:
       capacity: 10
       duration-minutes: 1
       refill-strategy: greedy
+  api:
+    visit-korea:
+      service-key: 62166eff31104a8a966eff3110ca8a22
+      base-url: https://apis.data.go.kr/B551011/KorService2
+      max-radius-meters: 5000
+      page-size: 100
+      sync-pages: 5

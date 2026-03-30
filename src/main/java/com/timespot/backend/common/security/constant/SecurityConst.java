@@ -38,6 +38,8 @@ public abstract class SecurityConst {
             "/api/v1/place",
             "/api/v1/place/detail",
             "/api/v1/place/search",
+            "/api/v2/places",
+            "/api/v2/places/**",
             // Station
             "/api/v1/stations",
     };
