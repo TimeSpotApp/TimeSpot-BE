@@ -79,12 +79,12 @@ public interface PlaceApiDocsV2 {
                           #### 카테고리 (category)
                           | 값 | 설명 |
                           |------|------|
-                          | `etc` | 문화시설 + 관광지 (기본값: 전체) |
+                          | `etc` | 문화시설 + 관광지 |
                           | `shopping` | 쇼핑 (쇼핑몰, 시장, 면세점) |
                           | `activity` | 레포츠 (스포츠 시설, 액티비티) |
                           | `restaurant` | 음식점 (카페 제외) |
                           | `cafe` | 카페 (음식점 중 '카페' 키워드 포함) |
-                          | `전체` | 모든 카테고리 (레거시 호환) |
+                          | *없음* | 모든 카테고리 (기본값) |
 
                           #### 카테고리 매핑 규칙
                           - **`etc`**: 서버의 `문화시설`, `관광지` 카테고리를 모두 포함
@@ -92,6 +92,7 @@ public interface PlaceApiDocsV2 {
                           - **`activity`**: 서버의 `레포츠` 카테고리
                           - **`restaurant`**: 서버의 `음식점` 카테고리에서 '카페' 키워드가 **제외**된 항목
                           - **`cafe`**: 서버의 `음식점` 카테고리에서 이름에 '카페'가 **포함**된 항목
+                          - **`없음`** (파라미터 미전송): 모든 카테고리 반환 (기본값)
 
                           #### 정렬 기준 (sort)
                           | 값 | 설명 | 사용 상황 |
@@ -307,7 +308,7 @@ public interface PlaceApiDocsV2 {
             String keyword,
 
             @Parameter(
-                    description = "카테고리 필터 (etc, shopping, activity, restaurant, cafe, 전체)",
+                    description = "카테고리 필터 (etc, shopping, activity, restaurant, cafe). 미전송 시 모든 카테고리",
                     required = false,
                     example = "etc"
             )
