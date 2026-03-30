@@ -833,9 +833,13 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
             ImageListResponse imageResponse = visitKoreaApiClient.detailImage(placeId, 1, 10);
 
             if (imageResponse.isSuccess() && imageResponse.getBody().getItems().getItem() != null) {
+                int maxImages = 5;
+                int remainingSlots = maxImages - images.size();
+
                 imageResponse.getBody().getItems().getItem().stream()
                              .map(ImageListItem::getOriginImgUrl)
                              .filter(url -> url != null && !url.isBlank())
+                             .limit(remainingSlots)
                              .forEach(images::add);
             }
         } catch (Exception e) {

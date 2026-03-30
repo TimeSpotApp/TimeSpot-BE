@@ -1,5 +1,7 @@
 package com.timespot.backend.infra.redis.model;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 import lombok.Builder;
 import lombok.Getter;
@@ -70,43 +72,46 @@ public class PlaceDetailCache {
     private final String fairDay;        // 장서는날
 
     @Builder
-    public PlaceDetailCache(final String placeId,
-                            final String contentTypeId,
-                            final String phoneNumber,
-                            final List<String> images,
-                            final String restDate,
-                            final String useTime,
-                            final String scale,
-                            final String openDate,
-                            final String useSeason,
-                            final String expAgeRange,
-                            final String expGuide,
-                            final String heritage1,
-                            final String accomCount,
-                            final String chkBabyCarriage,
-                            final String chkPet,
-                            final String firstMenu,
-                            final String treatMenu,
-                            final String seat,
-                            final String smoking,
-                            final String packing,
-                            final String kidsFacility,
-                            final String openDateFood,
-                            final String spendTime,
-                            final String useFee,
-                            final String discountInfo,
-                            final String accomCountCulture,
-                            final String parkingCulture,
-                            final String openPeriod,
-                            final String useFeeLeports,
-                            final String reservation,
-                            final String scaleLeports,
-                            final String expAgeRangeLeports,
-                            final String openTime,
-                            final String saleItem,
-                            final String shopGuide,
-                            final String scaleShopping,
-                            final String fairDay) {
+    @JsonCreator
+    public PlaceDetailCache(
+            @JsonProperty("placeId") final String placeId,
+            @JsonProperty("contentTypeId") final String contentTypeId,
+            @JsonProperty("phoneNumber") final String phoneNumber,
+            @JsonProperty("images") final List<String> images,
+            @JsonProperty("restDate") final String restDate,
+            @JsonProperty("useTime") final String useTime,
+            @JsonProperty("scale") final String scale,
+            @JsonProperty("openDate") final String openDate,
+            @JsonProperty("useSeason") final String useSeason,
+            @JsonProperty("expAgeRange") final String expAgeRange,
+            @JsonProperty("expGuide") final String expGuide,
+            @JsonProperty("heritage1") final String heritage1,
+            @JsonProperty("accomCount") final String accomCount,
+            @JsonProperty("chkBabyCarriage") final String chkBabyCarriage,
+            @JsonProperty("chkPet") final String chkPet,
+            @JsonProperty("firstMenu") final String firstMenu,
+            @JsonProperty("treatMenu") final String treatMenu,
+            @JsonProperty("seat") final String seat,
+            @JsonProperty("smoking") final String smoking,
+            @JsonProperty("packing") final String packing,
+            @JsonProperty("kidsFacility") final String kidsFacility,
+            @JsonProperty("openDateFood") final String openDateFood,
+            @JsonProperty("spendTime") final String spendTime,
+            @JsonProperty("useFee") final String useFee,
+            @JsonProperty("discountInfo") final String discountInfo,
+            @JsonProperty("accomCountCulture") final String accomCountCulture,
+            @JsonProperty("parkingCulture") final String parkingCulture,
+            @JsonProperty("openPeriod") final String openPeriod,
+            @JsonProperty("useFeeLeports") final String useFeeLeports,
+            @JsonProperty("reservation") final String reservation,
+            @JsonProperty("scaleLeports") final String scaleLeports,
+            @JsonProperty("expAgeRangeLeports") final String expAgeRangeLeports,
+            @JsonProperty("openTime") final String openTime,
+            @JsonProperty("saleItem") final String saleItem,
+            @JsonProperty("shopGuide") final String shopGuide,
+            @JsonProperty("scaleShopping") final String scaleShopping,
+            @JsonProperty("fairDay") final String fairDay
+    ) {
         this.placeId = placeId;
         this.contentTypeId = contentTypeId;
         this.phoneNumber = phoneNumber;
