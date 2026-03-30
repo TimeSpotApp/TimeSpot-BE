@@ -455,7 +455,7 @@ public abstract class VisitKoreaResponseDto {
     }
 
     /**
-     * 장소 상세 정보 응답 (detailCommon)
+     * 장소 상세 정보 응답 (detailIntro2)
      */
     @Getter
     @Setter

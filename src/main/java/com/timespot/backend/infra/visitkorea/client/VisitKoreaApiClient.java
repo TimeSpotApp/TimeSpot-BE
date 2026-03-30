@@ -252,7 +252,7 @@ public class VisitKoreaApiClient {
     private URI buildDetailIntroUri(final String contentId,
                                     final ContentType contentType) {
         return UriComponentsBuilder.fromHttpUrl(properties.getBaseUrl())
-                                   .path("/detailCommon")
+                                   .path("/detailIntro2")
                                    .queryParam(NUM_OF_ROWS, 1)
                                    .queryParam(PAGE_NO, 1)
                                    .queryParam(MOBILE_OS, "ETC")
