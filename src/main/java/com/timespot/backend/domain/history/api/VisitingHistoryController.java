@@ -78,6 +78,7 @@ public class VisitingHistoryController implements VisitingHistoryApiDocs {
     @GetMapping
     @CustomPageResponse(
             numberOfElements = false,
+            sort = false,
             empty = false,
             hasContent = false,
             first = false,

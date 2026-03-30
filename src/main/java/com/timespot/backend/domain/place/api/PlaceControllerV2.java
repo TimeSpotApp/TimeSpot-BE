@@ -40,6 +40,7 @@ public class PlaceControllerV2 implements PlaceApiDocsV2 {
     @GetMapping
     @CustomPageResponse(
             numberOfElements = false,
+            sort = false,
             empty = false,
             hasContent = false,
             first = false,
