@@ -60,7 +60,7 @@ public class PlaceControllerV2 implements PlaceApiDocsV2 {
             @RequestParam(required = false, defaultValue = "50") final int size,
             @RequestParam(required = false, defaultValue = "distanceFromStation,ASC") final String sort
     ) {
-        Pageable pageable = SortUtils.createPageable(page - 1, size, sort);
+        Pageable pageable = SortUtils.createPageable(page, size, sort);
 
         Page<AvailablePlace> responseData = placeServiceV2.findAvailablePlaces(
                 stationId,
