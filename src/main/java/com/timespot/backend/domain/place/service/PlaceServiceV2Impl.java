@@ -17,6 +17,8 @@ import com.timespot.backend.domain.place.dto.PlaceResponseDtoV2.TouristPlaceDeta
 import com.timespot.backend.domain.place.model.PlaceCategory;
 import com.timespot.backend.domain.station.dao.StationRepository;
 import com.timespot.backend.domain.station.model.Station;
+import com.timespot.backend.infra.google.places.client.GooglePlacesApiClient;
+import com.timespot.backend.infra.google.places.dto.GooglePlacesResponse;
 import com.timespot.backend.infra.redis.dao.RedisGeoRepository;
 import com.timespot.backend.infra.redis.dao.RedisRepository;
 import com.timespot.backend.infra.redis.model.GeoPlace;
@@ -68,12 +70,14 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
 
     private static final Duration PLACE_CACHE_TTL  = Duration.ofHours(24);
     private static final Duration DETAIL_CACHE_TTL = Duration.ofDays(7);
+    private static final Duration GOOGLE_CACHE_TTL = Duration.ofDays(30);
 
-    private final StationRepository    stationRepository;
-    private final RedisRepository      redisRepository;
-    private final RedisGeoRepository   redisGeoRepository;
-    private final VisitKoreaApiClient  visitKoreaApiClient;
-    private final VisitKoreaProperties visitKoreaProperties;
+    private final StationRepository     stationRepository;
+    private final RedisRepository       redisRepository;
+    private final RedisGeoRepository    redisGeoRepository;
+    private final VisitKoreaApiClient   visitKoreaApiClient;
+    private final VisitKoreaProperties  visitKoreaProperties;
+    private final GooglePlacesApiClient googlePlacesApiClient;
 
     @Override
     public Page<AvailablePlace> findAvailablePlaces(
@@ -145,8 +149,10 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
         Station station = validateStation(stationId);
 
         double distanceFromStation = calculateDistance(
-                station.getLatitude(), station.getLongitude(),
-                cardInfo.getLatitude(), cardInfo.getLongitude()
+                station.getLatitude(),
+                station.getLongitude(),
+                cardInfo.getLatitude(),
+                cardInfo.getLongitude()
         );
         int walkTimeFromStation = calculateWalkTime(distanceFromStation);
 
@@ -327,12 +333,8 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
     private List<GeoPlace> filterPlaces(final List<GeoPlace> places,
                                         final String keyword,
                                         final String category) {
-        // 카테고리가 null 이나 "전체"이면 필터링 안 함
-        if (category == null || category.isBlank() || "전체".equals(category)) {
-            return filterByKeywordOnly(places, keyword);
-        }
+        if (category == null || category.isBlank()) return filterByKeywordOnly(places, keyword);
 
-        // 클라이언트 요청 카테고리를 PlaceCategory 로 변환
         PlaceCategory placeCategory;
         try {
             placeCategory = PlaceCategory.from(category);
@@ -345,11 +347,8 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
                   placeCategory.name(), placeCategory.getServerCategories());
 
         return places.stream()
-                     // 키워드 필터링 (먼저 적용)
                      .filter(place -> matchesKeyword(place, keyword))
-                     // 카테고리 필터링
                      .filter(place -> matchesCategory(place, placeCategory))
-                     // 카페/레스토랑 키워드 필터링 (필요한 경우)
                      .filter(place -> matchesCafeKeyword(place, placeCategory))
                      .toList();
     }
@@ -358,9 +357,7 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
      * 카테고리 미지정 시 키워드만 필터링
      */
     private List<GeoPlace> filterByKeywordOnly(final List<GeoPlace> places, final String keyword) {
-        if (keyword == null || keyword.isBlank()) {
-            return places;
-        }
+        if (keyword == null || keyword.isBlank()) return places;
         log.debug("키워드 필터링만 수행: keyword={}", keyword);
         return places.stream()
                      .filter(place -> matchesKeyword(place, keyword))
@@ -371,9 +368,7 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
      * 키워드 매칭 확인 (장소명 또는 카테고리)
      */
     private boolean matchesKeyword(final GeoPlace place, final String keyword) {
-        if (keyword == null || keyword.isBlank()) {
-            return true;
-        }
+        if (keyword == null || keyword.isBlank()) return true;
         PlaceCardCache cache = getPlaceCardCache(place.getPlaceId()).orElse(null);
         if (cache == null) return false;
         return cache.getName().contains(keyword) || cache.getCategory().contains(keyword);
@@ -386,23 +381,18 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
         PlaceCardCache cache = getPlaceCardCache(place.getPlaceId()).orElse(null);
         if (cache == null) return false;
 
-        // CAFE 는 음식점 카테고리에서 검색하므로 별도 처리
-        if (placeCategory == PlaceCategory.CAFE) {
-            return "음식점".equals(cache.getCategory());
-        }
+        if (placeCategory == PlaceCategory.CAFE) return "음식점".equals(cache.getCategory());
 
         return placeCategory.getServerCategories().contains(cache.getCategory());
     }
 
     /**
      * 카페 키워드 필터링
-     * - RESTAURANT: '카페' 키워드 제외
-     * - CAFE: '카페' 키워드 포함만
+     * RESTAURANT: '카페' 키워드 제외
+     * CAFE: '카페' 키워드 포함만
      */
     private boolean matchesCafeKeyword(final GeoPlace place, final PlaceCategory placeCategory) {
-        if (!placeCategory.requiresCafeKeywordFilter()) {
-            return true; // 필터링 불필요
-        }
+        if (!placeCategory.requiresCafeKeywordFilter()) return true;
 
         PlaceCardCache cache = getPlaceCardCache(place.getPlaceId()).orElse(null);
         if (cache == null) return false;
@@ -413,13 +403,8 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
         boolean isCafeCategory   = "카페".equals(category);
         boolean nameContainsCafe = name != null && name.contains("카페");
 
-        if (placeCategory.isCafeOnly()) {
-            // CAFE: '카페' 키워드 포함만
-            return isCafeCategory || nameContainsCafe;
-        } else {
-            // RESTAURANT: '카페' 키워드 제외
-            return !isCafeCategory && !nameContainsCafe;
-        }
+        if (placeCategory.isCafeOnly()) return isCafeCategory || nameContainsCafe;
+        else return !isCafeCategory && !nameContainsCafe;
     }
 
     /**
@@ -600,6 +585,7 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
             final LocalDateTime leaveTime
     ) {
         return new TouristPlaceDetail(
+                "TOURIST",
                 cardInfo.getPlaceId(),
                 cardInfo.getName(),
                 cardInfo.getCategory(),
@@ -617,6 +603,9 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
                 detailInfo.getPhoneNumber(),
                 detailInfo.getRestDate(),
                 detailInfo.getUseTime(),
+                detailInfo.getGoogleOpeningStatus(),
+                detailInfo.getGoogleNextClosingTime(),
+                detailInfo.getGoogleWeekdayDescriptions(),
                 detailInfo.getOpenDate(),
                 detailInfo.getUseSeason(),
                 detailInfo.getExpAgeRange(),
@@ -642,6 +631,7 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
             final LocalDateTime leaveTime
     ) {
         return new RestaurantDetail(
+                "RESTAURANT",
                 cardInfo.getPlaceId(),
                 cardInfo.getName(),
                 cardInfo.getCategory(),
@@ -659,6 +649,9 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
                 detailInfo.getPhoneNumber(),
                 detailInfo.getRestDate(),
                 detailInfo.getUseTime(),
+                detailInfo.getGoogleOpeningStatus(),
+                detailInfo.getGoogleNextClosingTime(),
+                detailInfo.getGoogleWeekdayDescriptions(),
                 detailInfo.getFirstMenu(),
                 detailInfo.getTreatMenu(),
                 detailInfo.getSeat(),
@@ -683,6 +676,7 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
             final LocalDateTime leaveTime
     ) {
         return new CulturePlaceDetail(
+                "CULTURE",
                 cardInfo.getPlaceId(),
                 cardInfo.getName(),
                 cardInfo.getCategory(),
@@ -700,6 +694,9 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
                 detailInfo.getPhoneNumber(),
                 detailInfo.getRestDate(),
                 detailInfo.getUseTime(),
+                detailInfo.getGoogleOpeningStatus(),
+                detailInfo.getGoogleNextClosingTime(),
+                detailInfo.getGoogleWeekdayDescriptions(),
                 detailInfo.getSpendTime(),
                 detailInfo.getUseFee(),
                 detailInfo.getDiscountInfo(),
@@ -722,6 +719,7 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
             final LocalDateTime leaveTime
     ) {
         return new SportsPlaceDetail(
+                "SPORTS",
                 cardInfo.getPlaceId(),
                 cardInfo.getName(),
                 cardInfo.getCategory(),
@@ -739,6 +737,9 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
                 detailInfo.getPhoneNumber(),
                 detailInfo.getRestDate(),
                 detailInfo.getUseTime(),
+                detailInfo.getGoogleOpeningStatus(),
+                detailInfo.getGoogleNextClosingTime(),
+                detailInfo.getGoogleWeekdayDescriptions(),
                 detailInfo.getOpenPeriod(),
                 detailInfo.getUseFeeLeports(),
                 detailInfo.getReservation(),
@@ -761,6 +762,7 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
             final LocalDateTime leaveTime
     ) {
         return new ShoppingPlaceDetail(
+                "SHOPPING",
                 cardInfo.getPlaceId(),
                 cardInfo.getName(),
                 cardInfo.getCategory(),
@@ -778,6 +780,9 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
                 detailInfo.getPhoneNumber(),
                 detailInfo.getRestDate(),
                 detailInfo.getUseTime(),
+                detailInfo.getGoogleOpeningStatus(),
+                detailInfo.getGoogleNextClosingTime(),
+                detailInfo.getGoogleWeekdayDescriptions(),
                 detailInfo.getOpenTime(),
                 detailInfo.getSaleItem(),
                 detailInfo.getShopGuide(),
@@ -934,7 +939,41 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
             log.warn("이미지 조회 실패: placeId={}, error={}", placeId, e.getMessage());
         }
 
-        // 캐시 저장
+        // Google Places API 에서 영업 상태 및 운영 시간 조회
+        String        googleOpeningStatus       = null;
+        LocalDateTime googleNextClosingTime     = null;
+        String[]      googleWeekdayDescriptions = null;
+
+        try {
+            log.info("Google Places API 조회 시작: placeName={}, location=({}, {})",
+                     cardInfo.getName(), cardInfo.getLatitude(), cardInfo.getLongitude());
+
+            List<GooglePlacesResponse> searchResults = googlePlacesApiClient.searchByPlaceNameAndLocation(
+                    cardInfo.getName(),
+                    cardInfo.getLatitude(),
+                    cardInfo.getLongitude()
+            );
+
+            if (searchResults != null && !searchResults.isEmpty()) {
+                GooglePlacesResponse googlePlace = searchResults.get(0);
+
+                googleOpeningStatus = googlePlace.getOpeningStatusKorean();
+                googleNextClosingTime = googlePlace.getNextClosingTimeAsLocalDateTime();
+                googleWeekdayDescriptions = googlePlace.getWeekdayDescriptions();
+
+                log.info("Google Places 정보 조회 성공: placeName={}, status={}, nextClosingTime={}",
+                         cardInfo.getName(), googleOpeningStatus, googleNextClosingTime);
+            } else {
+                log.warn("Google Places 검색 결과 없음: placeName={}", cardInfo.getName());
+            }
+        } catch (GlobalException e) {
+            log.warn("Google Places API 호출 실패: placeId={}, placeName={}, errorCode={}",
+                     placeId, cardInfo.getName(), e.getErrorCode());
+        } catch (Exception e) {
+            log.warn("Google Places API 호출 실패: placeId={}, placeName={}, error={}",
+                     placeId, cardInfo.getName(), e.getMessage());
+        }
+
         PlaceDetailCache detailCache = PlaceDetailCache.builder()
                                                        .placeId(placeId)
                                                        .contentTypeId(contentTypeId)
@@ -973,6 +1012,9 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
                                                        .shopGuide(shopGuide)
                                                        .scaleShopping(scaleShopping)
                                                        .fairDay(fairDay)
+                                                       .googleOpeningStatus(googleOpeningStatus)
+                                                       .googleNextClosingTime(googleNextClosingTime)
+                                                       .googleWeekdayDescriptions(googleWeekdayDescriptions)
                                                        .build();
 
         String detailKey = "place:detail:" + placeId;
