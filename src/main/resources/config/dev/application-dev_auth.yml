@@ -33,3 +33,4 @@ app:
 google:
   places:
     api-key: ${GOOGLE_PLACES_API_KEY:GOOGLE_PLACES_API_KEY}
+    base-url: ${GOOGLE_PLACES_API_BASE_URL:https://places.googleapis.com}

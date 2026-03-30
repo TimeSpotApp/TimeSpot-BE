@@ -157,6 +157,15 @@ public abstract class PlaceResponseDtoV2 {
         @Schema(description = "이용시간/영업시간", example = "09:00 - 18:00")
         private final String useTime;
 
+        @Schema(description = "Google 영업 상태", example = "영업 중")
+        private final String googleOpeningStatus;
+
+        @Schema(description = "Google 다음 닫는 시간 (yyyy-MM-dd HH:mm:ss)", example = "2026-03-30 22:00:00")
+        private final LocalDateTime googleNextClosingTime;
+
+        @Schema(description = "Google 요일별 운영 시간", example = "[\"월요일: 오전 9:00 ~ 오후 6:00\", \"화요일: 오전 9:00 ~ 오후 6:00\"]")
+        private final String[] googleWeekdayDescriptions;
+
         protected PlaceDetail(final String placeType,
                               final String placeId,
                               final String name,
@@ -174,7 +183,10 @@ public abstract class PlaceResponseDtoV2 {
                               final List<String> images,
                               final String phoneNumber,
                               final String restDate,
-                              final String useTime) {
+                              final String useTime,
+                              final String googleOpeningStatus,
+                              final LocalDateTime googleNextClosingTime,
+                              final String[] googleWeekdayDescriptions) {
             this.placeType = placeType;
             this.placeId = placeId;
             this.name = name;
@@ -193,6 +205,9 @@ public abstract class PlaceResponseDtoV2 {
             this.phoneNumber = phoneNumber;
             this.restDate = restDate;
             this.useTime = useTime;
+            this.googleOpeningStatus = googleOpeningStatus;
+            this.googleNextClosingTime = googleNextClosingTime;
+            this.googleWeekdayDescriptions = googleWeekdayDescriptions;
         }
 
     }
@@ -253,9 +268,45 @@ public abstract class PlaceResponseDtoV2 {
                                   final String accomCount,
                                   final String chkBabyCarriage,
                                   final String chkPet) {
-            super("TOURIST", placeId, name, category, address, latitude, longitude, distanceFromStation,
+            this("TOURIST", placeId, name, category, address, latitude, longitude, distanceFromStation,
+                 walkTimeFromStation, stayableMinutes, visitable, stationLatitude, stationLongitude, leaveTime, images,
+                 phoneNumber, restDate, useTime, null, null, null, openDate, useSeason, expAgeRange, expGuide,
+                 heritage1, accomCount, chkBabyCarriage, chkPet);
+        }
+
+        public TouristPlaceDetail(final String placeType,
+                                  final String placeId,
+                                  final String name,
+                                  final String category,
+                                  final String address,
+                                  final Double latitude,
+                                  final Double longitude,
+                                  final Integer distanceFromStation,
+                                  final Integer walkTimeFromStation,
+                                  final Integer stayableMinutes,
+                                  final Boolean visitable,
+                                  final Double stationLatitude,
+                                  final Double stationLongitude,
+                                  final LocalDateTime leaveTime,
+                                  final List<String> images,
+                                  final String phoneNumber,
+                                  final String restDate,
+                                  final String useTime,
+                                  final String googleOpeningStatus,
+                                  final LocalDateTime googleNextClosingTime,
+                                  final String[] googleWeekdayDescriptions,
+                                  final String openDate,
+                                  final String useSeason,
+                                  final String expAgeRange,
+                                  final String expGuide,
+                                  final String heritage1,
+                                  final String accomCount,
+                                  final String chkBabyCarriage,
+                                  final String chkPet) {
+            super(placeType, placeId, name, category, address, latitude, longitude, distanceFromStation,
                   walkTimeFromStation, stayableMinutes, visitable, stationLatitude, stationLongitude, leaveTime, images,
-                  phoneNumber, restDate, useTime);
+                  phoneNumber, restDate, useTime, googleOpeningStatus, googleNextClosingTime,
+                  googleWeekdayDescriptions);
             this.openDate = openDate;
             this.useSeason = useSeason;
             this.expAgeRange = expAgeRange;
@@ -320,9 +371,44 @@ public abstract class PlaceResponseDtoV2 {
                                 final String packing,
                                 final String kidsFacility,
                                 final String openDateFood) {
-            super("RESTAURANT", placeId, name, category, address, latitude, longitude, distanceFromStation,
+            this("RESTAURANT", placeId, name, category, address, latitude, longitude, distanceFromStation,
+                 walkTimeFromStation, stayableMinutes, visitable, stationLatitude, stationLongitude, leaveTime, images,
+                 phoneNumber, restDate, useTime, null, null, null, firstMenu, treatMenu, seat, smoking, packing,
+                 kidsFacility, openDateFood);
+        }
+
+        public RestaurantDetail(final String placeType,
+                                final String placeId,
+                                final String name,
+                                final String category,
+                                final String address,
+                                final Double latitude,
+                                final Double longitude,
+                                final Integer distanceFromStation,
+                                final Integer walkTimeFromStation,
+                                final Integer stayableMinutes,
+                                final Boolean visitable,
+                                final Double stationLatitude,
+                                final Double stationLongitude,
+                                final LocalDateTime leaveTime,
+                                final List<String> images,
+                                final String phoneNumber,
+                                final String restDate,
+                                final String useTime,
+                                final String googleOpeningStatus,
+                                final LocalDateTime googleNextClosingTime,
+                                final String[] googleWeekdayDescriptions,
+                                final String firstMenu,
+                                final String treatMenu,
+                                final String seat,
+                                final String smoking,
+                                final String packing,
+                                final String kidsFacility,
+                                final String openDateFood) {
+            super(placeType, placeId, name, category, address, latitude, longitude, distanceFromStation,
                   walkTimeFromStation, stayableMinutes, visitable, stationLatitude, stationLongitude, leaveTime, images,
-                  phoneNumber, restDate, useTime);
+                  phoneNumber, restDate, useTime, googleOpeningStatus, googleNextClosingTime,
+                  googleWeekdayDescriptions);
             this.firstMenu = firstMenu;
             this.treatMenu = treatMenu;
             this.seat = seat;
@@ -378,9 +464,42 @@ public abstract class PlaceResponseDtoV2 {
                                   final String discountInfo,
                                   final String accomCountCulture,
                                   final String parkingCulture) {
-            super("CULTURE", placeId, name, category, address, latitude, longitude, distanceFromStation,
+            this("CULTURE", placeId, name, category, address, latitude, longitude, distanceFromStation,
+                 walkTimeFromStation, stayableMinutes, visitable, stationLatitude, stationLongitude, leaveTime, images,
+                 phoneNumber, restDate, useTime, null, null, null, spendTime, useFee, discountInfo, accomCountCulture,
+                 parkingCulture);
+        }
+
+        public CulturePlaceDetail(final String placeType,
+                                  final String placeId,
+                                  final String name,
+                                  final String category,
+                                  final String address,
+                                  final Double latitude,
+                                  final Double longitude,
+                                  final Integer distanceFromStation,
+                                  final Integer walkTimeFromStation,
+                                  final Integer stayableMinutes,
+                                  final Boolean visitable,
+                                  final Double stationLatitude,
+                                  final Double stationLongitude,
+                                  final LocalDateTime leaveTime,
+                                  final List<String> images,
+                                  final String phoneNumber,
+                                  final String restDate,
+                                  final String useTime,
+                                  final String googleOpeningStatus,
+                                  final LocalDateTime googleNextClosingTime,
+                                  final String[] googleWeekdayDescriptions,
+                                  final String spendTime,
+                                  final String useFee,
+                                  final String discountInfo,
+                                  final String accomCountCulture,
+                                  final String parkingCulture) {
+            super(placeType, placeId, name, category, address, latitude, longitude, distanceFromStation,
                   walkTimeFromStation, stayableMinutes, visitable, stationLatitude, stationLongitude, leaveTime, images,
-                  phoneNumber, restDate, useTime);
+                  phoneNumber, restDate, useTime, googleOpeningStatus, googleNextClosingTime,
+                  googleWeekdayDescriptions);
             this.spendTime = spendTime;
             this.useFee = useFee;
             this.discountInfo = discountInfo;
@@ -434,9 +553,42 @@ public abstract class PlaceResponseDtoV2 {
                                  final String reservation,
                                  final String scaleLeports,
                                  final String expAgeRangeLeports) {
-            super("SPORTS", placeId, name, category, address, latitude, longitude, distanceFromStation,
+            this("SPORTS", placeId, name, category, address, latitude, longitude, distanceFromStation,
+                 walkTimeFromStation, stayableMinutes, visitable, stationLatitude, stationLongitude, leaveTime, images,
+                 phoneNumber, restDate, useTime, null, null, null, openPeriod, useFeeLeports, reservation, scaleLeports,
+                 expAgeRangeLeports);
+        }
+
+        public SportsPlaceDetail(final String placeType,
+                                 final String placeId,
+                                 final String name,
+                                 final String category,
+                                 final String address,
+                                 final Double latitude,
+                                 final Double longitude,
+                                 final Integer distanceFromStation,
+                                 final Integer walkTimeFromStation,
+                                 final Integer stayableMinutes,
+                                 final Boolean visitable,
+                                 final Double stationLatitude,
+                                 final Double stationLongitude,
+                                 final LocalDateTime leaveTime,
+                                 final List<String> images,
+                                 final String phoneNumber,
+                                 final String restDate,
+                                 final String useTime,
+                                 final String googleOpeningStatus,
+                                 final LocalDateTime googleNextClosingTime,
+                                 final String[] googleWeekdayDescriptions,
+                                 final String openPeriod,
+                                 final String useFeeLeports,
+                                 final String reservation,
+                                 final String scaleLeports,
+                                 final String expAgeRangeLeports) {
+            super(placeType, placeId, name, category, address, latitude, longitude, distanceFromStation,
                   walkTimeFromStation, stayableMinutes, visitable, stationLatitude, stationLongitude, leaveTime, images,
-                  phoneNumber, restDate, useTime);
+                  phoneNumber, restDate, useTime, googleOpeningStatus, googleNextClosingTime,
+                  googleWeekdayDescriptions);
             this.openPeriod = openPeriod;
             this.useFeeLeports = useFeeLeports;
             this.reservation = reservation;
@@ -490,9 +642,42 @@ public abstract class PlaceResponseDtoV2 {
                                    final String shopGuide,
                                    final String scaleShopping,
                                    final String fairDay) {
-            super("SHOPPING", placeId, name, category, address, latitude, longitude, distanceFromStation,
+            this("SHOPPING", placeId, name, category, address, latitude, longitude, distanceFromStation,
+                 walkTimeFromStation, stayableMinutes, visitable, stationLatitude, stationLongitude, leaveTime, images,
+                 phoneNumber, restDate, useTime, null, null, null, openTime, saleItem, shopGuide, scaleShopping,
+                 fairDay);
+        }
+
+        public ShoppingPlaceDetail(final String placeType,
+                                   final String placeId,
+                                   final String name,
+                                   final String category,
+                                   final String address,
+                                   final Double latitude,
+                                   final Double longitude,
+                                   final Integer distanceFromStation,
+                                   final Integer walkTimeFromStation,
+                                   final Integer stayableMinutes,
+                                   final Boolean visitable,
+                                   final Double stationLatitude,
+                                   final Double stationLongitude,
+                                   final LocalDateTime leaveTime,
+                                   final List<String> images,
+                                   final String phoneNumber,
+                                   final String restDate,
+                                   final String useTime,
+                                   final String googleOpeningStatus,
+                                   final LocalDateTime googleNextClosingTime,
+                                   final String[] googleWeekdayDescriptions,
+                                   final String openTime,
+                                   final String saleItem,
+                                   final String shopGuide,
+                                   final String scaleShopping,
+                                   final String fairDay) {
+            super(placeType, placeId, name, category, address, latitude, longitude, distanceFromStation,
                   walkTimeFromStation, stayableMinutes, visitable, stationLatitude, stationLongitude, leaveTime, images,
-                  phoneNumber, restDate, useTime);
+                  phoneNumber, restDate, useTime, googleOpeningStatus, googleNextClosingTime,
+                  googleWeekdayDescriptions);
             this.openTime = openTime;
             this.saleItem = saleItem;
             this.shopGuide = shopGuide;
