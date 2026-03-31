@@ -529,6 +529,11 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
 
     /**
      * 타입별 PlaceDetail 생성
+     * <p>
+     * Google Places API 의 영업 상태를 추가로 반영합니다:
+     * visitable (시간 기준) && 영업 중 → 최종 visitable = true
+     * visitable (시간 기준) 이지만 영업 종료 → 최종 visitable = false
+     * </p>
      */
     private PlaceDetail buildTypedPlaceDetail(
             final PlaceCardCache cardInfo,
@@ -543,30 +548,40 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
 
         boolean visitable = stayableMinutes >= MINIMUM_STAY_TIME;
 
+        String  googleOpeningStatus = detailInfo.getGoogleOpeningStatus();
+        boolean isOpen              = "영업 중".equals(googleOpeningStatus);
+
+        boolean finalVisitable = visitable && isOpen;
+
+        log.debug(
+                "Visitable 결정: placeName={}, stayableMinutes={}, googleStatus={}, visitable={}, isOpen={}, " +
+                "finalVisitable={}",
+                cardInfo.getName(), stayableMinutes, googleOpeningStatus, visitable, isOpen, finalVisitable);
+
         return switch (category) {
             case "관광지" -> buildTouristPlaceDetail(
-                    cardInfo, detailInfo, station, distanceFromStation, walkTimeFromStation, stayableMinutes, visitable,
-                    leaveTime
+                    cardInfo, detailInfo, station, distanceFromStation, walkTimeFromStation, stayableMinutes,
+                    finalVisitable, leaveTime
             );
             case "음식점" -> buildRestaurantDetail(
-                    cardInfo, detailInfo, station, distanceFromStation, walkTimeFromStation, stayableMinutes, visitable,
-                    leaveTime
+                    cardInfo, detailInfo, station, distanceFromStation, walkTimeFromStation, stayableMinutes,
+                    finalVisitable, leaveTime
             );
             case "문화시설" -> buildCulturePlaceDetail(
-                    cardInfo, detailInfo, station, distanceFromStation, walkTimeFromStation, stayableMinutes, visitable,
-                    leaveTime
+                    cardInfo, detailInfo, station, distanceFromStation, walkTimeFromStation, stayableMinutes,
+                    finalVisitable, leaveTime
             );
             case "레포츠" -> buildSportsPlaceDetail(
-                    cardInfo, detailInfo, station, distanceFromStation, walkTimeFromStation, stayableMinutes, visitable,
-                    leaveTime
+                    cardInfo, detailInfo, station, distanceFromStation, walkTimeFromStation, stayableMinutes,
+                    finalVisitable, leaveTime
             );
             case "쇼핑" -> buildShoppingPlaceDetail(
-                    cardInfo, detailInfo, station, distanceFromStation, walkTimeFromStation, stayableMinutes, visitable,
-                    leaveTime
+                    cardInfo, detailInfo, station, distanceFromStation, walkTimeFromStation, stayableMinutes,
+                    finalVisitable, leaveTime
             );
             default -> buildTouristPlaceDetail(
-                    cardInfo, detailInfo, station, distanceFromStation, walkTimeFromStation, stayableMinutes, visitable,
-                    leaveTime
+                    cardInfo, detailInfo, station, distanceFromStation, walkTimeFromStation, stayableMinutes,
+                    finalVisitable, leaveTime
             );
         };
     }
@@ -958,7 +973,6 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
                 GooglePlacesResponse googlePlace = searchResults.get(0);
 
                 googleOpeningStatus = googlePlace.getOpeningStatusKorean();
-                googleNextClosingTime = googlePlace.getNextClosingTimeAsLocalDateTime();
                 googleWeekdayDescriptions = googlePlace.getWeekdayDescriptions();
 
                 log.info("Google Places 정보 조회 성공: placeName={}, status={}, nextClosingTime={}",

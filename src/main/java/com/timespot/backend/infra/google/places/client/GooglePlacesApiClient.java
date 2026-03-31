@@ -7,7 +7,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.timespot.backend.common.error.GlobalException;
 import com.timespot.backend.infra.google.places.client.properties.GooglePlacesProperties;
 import com.timespot.backend.infra.google.places.dto.GooglePlacesResponse;
-import com.timespot.backend.infra.google.places.dto.GooglePlacesSearchRequest;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
@@ -24,10 +23,6 @@ import org.springframework.web.client.RestClient;
  * Author      : loadingKKamo21
  * Date        : 26. 3. 30.
  * Description : Google Places API 클라이언트
- * <p>
- * Google Places API Text Search 를 제공합니다.
- * 장소명과 좌표를 사용하여 반경 내의 장소를 검색합니다.
- * </p>
  * =====================================================================================================================
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------
@@ -53,9 +48,8 @@ public class GooglePlacesApiClient {
         this.restClient = builder.requestFactory(factory)
                                  .baseUrl(properties.getBaseUrl())
                                  .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                                 .defaultHeader("X-Goog-Api-Key", properties.getApiKey())
                                  .defaultHeader("X-Goog-FieldMask",
-                                                "id,displayName,currentOpeningStatus,openingHours,nextClosingTime")
+                                                "places.currentOpeningStatus,places.openingHours")
                                  .build();
         this.properties = properties;
         this.objectMapper = objectMapper;
@@ -80,22 +74,32 @@ public class GooglePlacesApiClient {
                                                                    final double longitude) {
         String query = buildSearchQuery(placeName);
 
-        GooglePlacesSearchRequest request = GooglePlacesSearchRequest.builder()
-                                                                     .textQuery(query)
-                                                                     .latitude(latitude)
-                                                                     .longitude(longitude)
-                                                                     .radius(properties.getSearchRadiusMeters())
-                                                                     .languageCode("ko")
-                                                                     .regionCode("KR")
-                                                                     .build();
-
-        log.info("Google Places 검색 요청: query={}, location=({}, {}), radius={}m",
+        log.info("Google Places Text Search 요청: query={}, location=({}, {}), radius={}m",
                  query, latitude, longitude, properties.getSearchRadiusMeters());
 
         try {
             String responseJson = restClient.post()
-                                            .uri(TEXT_SEARCH_ENDPOINT)
-                                            .body(request)
+                                            .uri(uriBuilder -> uriBuilder
+                                                    .path(TEXT_SEARCH_ENDPOINT)
+                                                    .queryParam("key", properties.getApiKey())
+                                                    .build()
+                                            )
+                                            .body("""
+                                                    {
+                                                        "textQuery": "%s",
+                                                        "locationBias": {
+                                                            "circle": {
+                                                                "center": {
+                                                                    "latitude": %s,
+                                                                    "longitude": %s
+                                                                },
+                                                                "radius": %d
+                                                            }
+                                                        },
+                                                        "languageCode": "ko",
+                                                        "regionCode": "KR"
+                                                    }
+                                                    """.formatted(query, latitude, longitude, properties.getSearchRadiusMeters()))
                                             .retrieve()
                                             .body(String.class);
 
