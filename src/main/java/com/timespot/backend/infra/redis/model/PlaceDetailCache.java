@@ -2,6 +2,7 @@ package com.timespot.backend.infra.redis.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.time.LocalDateTime;
 import java.util.List;
 import lombok.Builder;
 import lombok.Getter;
@@ -17,6 +18,7 @@ import lombok.Getter;
  * ---------------------------------------------------------------------------------------------------------------------
  * 26. 3. 29.    loadingKKamo21       Initial creation
  * 26. 3. 29.    loadingKKamo21       타입별 필드 추가
+ * 26. 3. 30.    loadingKKamo21       Google Places API 정보 필드 추가
  */
 @Getter
 public class PlaceDetailCache {
@@ -71,6 +73,8 @@ public class PlaceDetailCache {
     private final String scaleShopping;  // 규모
     private final String fairDay;        // 장서는날
 
+    private final String[]      googleWeekdayDescriptions;  // 요일별 운영 시간 설명 (캐싱됨)
+
     @Builder
     @JsonCreator
     public PlaceDetailCache(
@@ -110,7 +114,8 @@ public class PlaceDetailCache {
             @JsonProperty("saleItem") final String saleItem,
             @JsonProperty("shopGuide") final String shopGuide,
             @JsonProperty("scaleShopping") final String scaleShopping,
-            @JsonProperty("fairDay") final String fairDay
+            @JsonProperty("fairDay") final String fairDay,
+            @JsonProperty("googleWeekdayDescriptions") final String[] googleWeekdayDescriptions
     ) {
         this.placeId = placeId;
         this.contentTypeId = contentTypeId;
@@ -149,6 +154,7 @@ public class PlaceDetailCache {
         this.shopGuide = shopGuide;
         this.scaleShopping = scaleShopping;
         this.fairDay = fairDay;
+        this.googleWeekdayDescriptions = googleWeekdayDescriptions;
     }
 
     /**

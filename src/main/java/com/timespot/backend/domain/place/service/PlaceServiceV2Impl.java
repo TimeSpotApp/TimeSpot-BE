@@ -17,6 +17,8 @@ import com.timespot.backend.domain.place.dto.PlaceResponseDtoV2.TouristPlaceDeta
 import com.timespot.backend.domain.place.model.PlaceCategory;
 import com.timespot.backend.domain.station.dao.StationRepository;
 import com.timespot.backend.domain.station.model.Station;
+import com.timespot.backend.infra.google.places.client.GooglePlacesApiClient;
+import com.timespot.backend.infra.google.places.dto.GooglePlacesResponse;
 import com.timespot.backend.infra.redis.dao.RedisGeoRepository;
 import com.timespot.backend.infra.redis.dao.RedisRepository;
 import com.timespot.backend.infra.redis.model.GeoPlace;
@@ -33,6 +35,7 @@ import com.timespot.backend.infra.visitkorea.dto.VisitKoreaResponseDto.LocationB
 import com.timespot.backend.infra.visitkorea.model.ContentType;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -68,12 +71,14 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
 
     private static final Duration PLACE_CACHE_TTL  = Duration.ofHours(24);
     private static final Duration DETAIL_CACHE_TTL = Duration.ofDays(7);
+    private static final Duration GOOGLE_CACHE_TTL = Duration.ofDays(30);
 
-    private final StationRepository    stationRepository;
-    private final RedisRepository      redisRepository;
-    private final RedisGeoRepository   redisGeoRepository;
-    private final VisitKoreaApiClient  visitKoreaApiClient;
-    private final VisitKoreaProperties visitKoreaProperties;
+    private final StationRepository     stationRepository;
+    private final RedisRepository       redisRepository;
+    private final RedisGeoRepository    redisGeoRepository;
+    private final VisitKoreaApiClient   visitKoreaApiClient;
+    private final VisitKoreaProperties  visitKoreaProperties;
+    private final GooglePlacesApiClient googlePlacesApiClient;
 
     @Override
     public Page<AvailablePlace> findAvailablePlaces(
@@ -145,8 +150,10 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
         Station station = validateStation(stationId);
 
         double distanceFromStation = calculateDistance(
-                station.getLatitude(), station.getLongitude(),
-                cardInfo.getLatitude(), cardInfo.getLongitude()
+                station.getLatitude(),
+                station.getLongitude(),
+                cardInfo.getLatitude(),
+                cardInfo.getLongitude()
         );
         int walkTimeFromStation = calculateWalkTime(distanceFromStation);
 
@@ -327,12 +334,8 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
     private List<GeoPlace> filterPlaces(final List<GeoPlace> places,
                                         final String keyword,
                                         final String category) {
-        // 카테고리가 null 이나 "전체"이면 필터링 안 함
-        if (category == null || category.isBlank() || "전체".equals(category)) {
-            return filterByKeywordOnly(places, keyword);
-        }
+        if (category == null || category.isBlank()) return filterByKeywordOnly(places, keyword);
 
-        // 클라이언트 요청 카테고리를 PlaceCategory 로 변환
         PlaceCategory placeCategory;
         try {
             placeCategory = PlaceCategory.from(category);
@@ -345,11 +348,8 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
                   placeCategory.name(), placeCategory.getServerCategories());
 
         return places.stream()
-                     // 키워드 필터링 (먼저 적용)
                      .filter(place -> matchesKeyword(place, keyword))
-                     // 카테고리 필터링
                      .filter(place -> matchesCategory(place, placeCategory))
-                     // 카페/레스토랑 키워드 필터링 (필요한 경우)
                      .filter(place -> matchesCafeKeyword(place, placeCategory))
                      .toList();
     }
@@ -358,9 +358,7 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
      * 카테고리 미지정 시 키워드만 필터링
      */
     private List<GeoPlace> filterByKeywordOnly(final List<GeoPlace> places, final String keyword) {
-        if (keyword == null || keyword.isBlank()) {
-            return places;
-        }
+        if (keyword == null || keyword.isBlank()) return places;
         log.debug("키워드 필터링만 수행: keyword={}", keyword);
         return places.stream()
                      .filter(place -> matchesKeyword(place, keyword))
@@ -371,9 +369,7 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
      * 키워드 매칭 확인 (장소명 또는 카테고리)
      */
     private boolean matchesKeyword(final GeoPlace place, final String keyword) {
-        if (keyword == null || keyword.isBlank()) {
-            return true;
-        }
+        if (keyword == null || keyword.isBlank()) return true;
         PlaceCardCache cache = getPlaceCardCache(place.getPlaceId()).orElse(null);
         if (cache == null) return false;
         return cache.getName().contains(keyword) || cache.getCategory().contains(keyword);
@@ -386,23 +382,18 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
         PlaceCardCache cache = getPlaceCardCache(place.getPlaceId()).orElse(null);
         if (cache == null) return false;
 
-        // CAFE 는 음식점 카테고리에서 검색하므로 별도 처리
-        if (placeCategory == PlaceCategory.CAFE) {
-            return "음식점".equals(cache.getCategory());
-        }
+        if (placeCategory == PlaceCategory.CAFE) return "음식점".equals(cache.getCategory());
 
         return placeCategory.getServerCategories().contains(cache.getCategory());
     }
 
     /**
      * 카페 키워드 필터링
-     * - RESTAURANT: '카페' 키워드 제외
-     * - CAFE: '카페' 키워드 포함만
+     * RESTAURANT: '카페' 키워드 제외
+     * CAFE: '카페' 키워드 포함만
      */
     private boolean matchesCafeKeyword(final GeoPlace place, final PlaceCategory placeCategory) {
-        if (!placeCategory.requiresCafeKeywordFilter()) {
-            return true; // 필터링 불필요
-        }
+        if (!placeCategory.requiresCafeKeywordFilter()) return true;
 
         PlaceCardCache cache = getPlaceCardCache(place.getPlaceId()).orElse(null);
         if (cache == null) return false;
@@ -413,13 +404,8 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
         boolean isCafeCategory   = "카페".equals(category);
         boolean nameContainsCafe = name != null && name.contains("카페");
 
-        if (placeCategory.isCafeOnly()) {
-            // CAFE: '카페' 키워드 포함만
-            return isCafeCategory || nameContainsCafe;
-        } else {
-            // RESTAURANT: '카페' 키워드 제외
-            return !isCafeCategory && !nameContainsCafe;
-        }
+        if (placeCategory.isCafeOnly()) return isCafeCategory || nameContainsCafe;
+        else return !isCafeCategory && !nameContainsCafe;
     }
 
     /**
@@ -544,6 +530,11 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
 
     /**
      * 타입별 PlaceDetail 생성
+     * <p>
+     * visitable 과 isOpened 를 분리하여 반환합니다:
+     * visitable: 시간/거리 기반 (캐싱됨)
+     * isOpened: 실시간 영업 상태 (캐싱 제외, 매번 계산)
+     * </p>
      */
     private PlaceDetail buildTypedPlaceDetail(
             final PlaceCardCache cardInfo,
@@ -558,32 +549,203 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
 
         boolean visitable = stayableMinutes >= MINIMUM_STAY_TIME;
 
+        Boolean isOpened            = calculateIsOpened(detailInfo);
+        String  googleOpeningStatus = isOpened != null ? (isOpened ? "영업 중" : "영업 종료") : "알 수 없음";
+
+        log.debug("PlaceDetail 빌드: placeName={}, visitable={}, isOpened={}, googleOpeningStatus={}",
+                  cardInfo.getName(), visitable, isOpened, googleOpeningStatus);
+
         return switch (category) {
             case "관광지" -> buildTouristPlaceDetail(
-                    cardInfo, detailInfo, station, distanceFromStation, walkTimeFromStation, stayableMinutes, visitable,
-                    leaveTime
+                    cardInfo, detailInfo, station, distanceFromStation, walkTimeFromStation, stayableMinutes,
+                    visitable, leaveTime, isOpened, googleOpeningStatus
             );
             case "음식점" -> buildRestaurantDetail(
-                    cardInfo, detailInfo, station, distanceFromStation, walkTimeFromStation, stayableMinutes, visitable,
-                    leaveTime
+                    cardInfo, detailInfo, station, distanceFromStation, walkTimeFromStation, stayableMinutes,
+                    visitable, leaveTime, isOpened, googleOpeningStatus
             );
             case "문화시설" -> buildCulturePlaceDetail(
-                    cardInfo, detailInfo, station, distanceFromStation, walkTimeFromStation, stayableMinutes, visitable,
-                    leaveTime
+                    cardInfo, detailInfo, station, distanceFromStation, walkTimeFromStation, stayableMinutes,
+                    visitable, leaveTime, isOpened, googleOpeningStatus
             );
             case "레포츠" -> buildSportsPlaceDetail(
-                    cardInfo, detailInfo, station, distanceFromStation, walkTimeFromStation, stayableMinutes, visitable,
-                    leaveTime
+                    cardInfo, detailInfo, station, distanceFromStation, walkTimeFromStation, stayableMinutes,
+                    visitable, leaveTime, isOpened, googleOpeningStatus
             );
             case "쇼핑" -> buildShoppingPlaceDetail(
-                    cardInfo, detailInfo, station, distanceFromStation, walkTimeFromStation, stayableMinutes, visitable,
-                    leaveTime
+                    cardInfo, detailInfo, station, distanceFromStation, walkTimeFromStation, stayableMinutes,
+                    visitable, leaveTime, isOpened, googleOpeningStatus
             );
             default -> buildTouristPlaceDetail(
-                    cardInfo, detailInfo, station, distanceFromStation, walkTimeFromStation, stayableMinutes, visitable,
-                    leaveTime
+                    cardInfo, detailInfo, station, distanceFromStation, walkTimeFromStation, stayableMinutes,
+                    visitable, leaveTime, isOpened, googleOpeningStatus
             );
         };
+    }
+
+    /**
+     * 실시간 영업 상태 (isOpened) 계산
+     * <p>
+     * 캐싱된 요일별 영업 시간으로 현재 시간과 비교
+     * </p>
+     *
+     * @param detailInfo 장소 상세 정보 캐시
+     * @return 현재 영업 중 여부 (null 일 수 있음)
+     */
+    private Boolean calculateIsOpened(final PlaceDetailCache detailInfo) {
+        if (detailInfo.getGoogleWeekdayDescriptions() != null &&
+            detailInfo.getGoogleWeekdayDescriptions().length > 0) {
+            Boolean isOpen = calculateIsOpenedFromWeekday(detailInfo.getGoogleWeekdayDescriptions());
+            if (isOpen != null) {
+                log.debug("isOpened 계산: Google 영업 시간 사용={}", isOpen);
+                return isOpen;
+            }
+        }
+
+        log.debug("isOpened 계산: 정보 없음 (null)");
+        return null;
+    }
+
+    /**
+     * 요일별 영업 시간으로 현재 영업 중 여부 계산
+     *
+     * @param weekdayDescriptions 요일별 영업 시간 (예: "월요일: 오전 9:00 ~ 오후 6:00")
+     * @return 영업 중 여부 (파싱 실패 시 null)
+     */
+    private Boolean calculateIsOpenedFromWeekday(final String[] weekdayDescriptions) {
+        try {
+            LocalDateTime now       = LocalDateTime.now();
+            String        todayDesc = getTodayWeekdayDescription(weekdayDescriptions, now);
+
+            log.info("오늘의 영업 시간: todayDesc={}", todayDesc);
+
+            if (todayDesc == null || todayDesc.isBlank()) {
+                log.warn("오늘의 영업 시간을 찾을 수 없음");
+                return null;
+            }
+
+            Boolean result = parseOpeningHours(todayDesc, now);
+            log.info("영업 상태 계산 결과: now={}, todayDesc={}, isOpened={}", now, todayDesc, result);
+            return result;
+        } catch (Exception e) {
+            log.warn("요일별 영업 시간 파싱 실패: error={}", e.getMessage(), e);
+            return null;
+        }
+    }
+
+    /**
+     * 오늘 요일에 해당하는 영업 시간 설명 추출
+     */
+    private String getTodayWeekdayDescription(final String[] weekdayDescriptions,
+                                              final LocalDateTime now) {
+        int      dayOfWeek   = now.getDayOfWeek().getValue();  // 1 (월) ~ 7 (일)
+        String[] koreanDays  = {"월요일", "화요일", "수요일", "목요일", "금요일", "토요일", "일요일"};
+        String   todayKorean = koreanDays[dayOfWeek - 1];
+
+        log.info("요일 매칭 시도: now={}, dayOfWeek={}, todayKorean={}", now, dayOfWeek, todayKorean);
+
+        for (String desc : weekdayDescriptions) {
+            log.info("요일 확인: desc={}", desc);
+            if (desc.contains(todayKorean)) {
+                String result = desc.contains(":") ? desc.substring(desc.indexOf(":") + 1).trim() : desc;
+                log.info("요일 매칭 성공: todayKorean={}, result={}", todayKorean, result);
+                return result;
+            }
+        }
+
+        log.warn("요일 매칭 실패: todayKorean={}, weekdayDescriptions={}", todayKorean, (Object) weekdayDescriptions);
+        return null;
+    }
+
+    /**
+     * 영업 시간 문자열 파싱 (예: "오전 9:00 ~ 오후 6:00", "AM 5:23 ~ PM 5:23")
+     *
+     * @param timeDesc 영업 시간 설명
+     * @param now      현재 시간
+     * @return 영업 중 여부
+     */
+    private Boolean parseOpeningHours(final String timeDesc, final LocalDateTime now) {
+        try {
+            log.info("영업 시간 파싱 시작: timeDesc={}, now={}", timeDesc, now);
+
+            String[] parts = timeDesc.split("~");
+            if (parts.length != 2) {
+                log.warn("영업 시간 형식 오류: timeDesc={}, parts.length={}", timeDesc, parts.length);
+                return null;
+            }
+
+            LocalTime openTime  = parseKoreanTime(parts[0].trim());
+            LocalTime closeTime = parseKoreanTime(parts[1].trim());
+
+            log.info("영업 시간 파싱 완료: openTime={}, closeTime={}", openTime, closeTime);
+
+            if (openTime == null || closeTime == null) {
+                log.warn("영업 시간 파싱 실패: openTime={}, closeTime={}", openTime, closeTime);
+                return null;
+            }
+
+            LocalTime currentTime = now.toLocalTime();
+            log.info("현재 시간 비교: currentTime={}, openTime={}, closeTime={}", currentTime, openTime, closeTime);
+
+            boolean isOpen;
+            if (closeTime.isBefore(openTime)) isOpen = currentTime.isAfter(openTime) || currentTime.isBefore(closeTime);
+            else isOpen = !currentTime.isBefore(openTime) && currentTime.isBefore(closeTime);
+
+            log.info("영업 상태 판단: isOpen={}", isOpen);
+            return isOpen;
+        } catch (Exception e) {
+            log.warn("영업 시간 파싱 중 예외: error={}", e.getMessage(), e);
+            return null;
+        }
+    }
+
+    /**
+     * 한국어/영어 시간 문자열 파싱 (예: "오전 9:00", "오후 6:00", "AM 5:23", "PM 5:23")
+     */
+    private LocalTime parseKoreanTime(final String timeStr) {
+        try {
+            String time = timeStr.trim().toUpperCase();
+
+            if (time.startsWith("AM") || time.startsWith("PM")) {
+                boolean isPM = time.startsWith("PM");
+                time = time.replace("AM", "").replace("PM", "").trim();
+
+                String[] parts  = time.split(":");
+                int      hour   = Integer.parseInt(parts[0].trim());
+                int      minute = parts.length > 1 ? Integer.parseInt(parts[1].trim()) : 0;
+
+                if (isPM && hour != 12) hour += 12;
+                else if (!isPM && hour == 12) hour = 0;
+
+                log.debug("시간 파싱 (AM/PM): {} -> {}:{}", timeStr, hour, minute);
+                return LocalTime.of(hour, minute);
+            }
+
+            if (time.contains("오전") || time.contains("오후")) {
+                boolean isPM = time.contains("오후");
+                time = time.replace("오전", "").replace("오후", "").trim();
+
+                String[] parts  = time.split(":");
+                int      hour   = Integer.parseInt(parts[0].trim());
+                int      minute = parts.length > 1 ? Integer.parseInt(parts[1].trim()) : 0;
+
+                if (isPM && hour != 12) hour += 12;
+                else if (!isPM && hour == 12) hour = 0;
+
+                log.debug("시간 파싱 (오전/오후): {} -> {}:{}", timeStr, hour, minute);
+                return LocalTime.of(hour, minute);
+            }
+
+            String[] parts  = time.split(":");
+            int      hour   = Integer.parseInt(parts[0].trim());
+            int      minute = parts.length > 1 ? Integer.parseInt(parts[1].trim()) : 0;
+
+            log.debug("시간 파싱 (숫자만): {} -> {}:{}", timeStr, hour, minute);
+            return LocalTime.of(hour, minute);
+        } catch (Exception e) {
+            log.warn("시간 파싱 실패: timeStr={}, error={}", timeStr, e.getMessage());
+            return null;
+        }
     }
 
     /**
@@ -597,9 +759,12 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
             final int walkTimeFromStation,
             final int stayableMinutes,
             final boolean visitable,
-            final LocalDateTime leaveTime
+            final LocalDateTime leaveTime,
+            final Boolean isOpened,
+            final String googleOpeningStatus
     ) {
         return new TouristPlaceDetail(
+                "TOURIST",
                 cardInfo.getPlaceId(),
                 cardInfo.getName(),
                 cardInfo.getCategory(),
@@ -617,6 +782,9 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
                 detailInfo.getPhoneNumber(),
                 detailInfo.getRestDate(),
                 detailInfo.getUseTime(),
+                detailInfo.getGoogleWeekdayDescriptions(),
+                isOpened,
+                googleOpeningStatus,
                 detailInfo.getOpenDate(),
                 detailInfo.getUseSeason(),
                 detailInfo.getExpAgeRange(),
@@ -639,9 +807,12 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
             final int walkTimeFromStation,
             final int stayableMinutes,
             final boolean visitable,
-            final LocalDateTime leaveTime
+            final LocalDateTime leaveTime,
+            final Boolean isOpened,
+            final String googleOpeningStatus
     ) {
         return new RestaurantDetail(
+                "RESTAURANT",
                 cardInfo.getPlaceId(),
                 cardInfo.getName(),
                 cardInfo.getCategory(),
@@ -659,6 +830,9 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
                 detailInfo.getPhoneNumber(),
                 detailInfo.getRestDate(),
                 detailInfo.getUseTime(),
+                detailInfo.getGoogleWeekdayDescriptions(),
+                isOpened,
+                googleOpeningStatus,
                 detailInfo.getFirstMenu(),
                 detailInfo.getTreatMenu(),
                 detailInfo.getSeat(),
@@ -680,9 +854,12 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
             final int walkTimeFromStation,
             final int stayableMinutes,
             final boolean visitable,
-            final LocalDateTime leaveTime
+            final LocalDateTime leaveTime,
+            final Boolean isOpened,
+            final String googleOpeningStatus
     ) {
         return new CulturePlaceDetail(
+                "CULTURE",
                 cardInfo.getPlaceId(),
                 cardInfo.getName(),
                 cardInfo.getCategory(),
@@ -700,6 +877,9 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
                 detailInfo.getPhoneNumber(),
                 detailInfo.getRestDate(),
                 detailInfo.getUseTime(),
+                detailInfo.getGoogleWeekdayDescriptions(),
+                isOpened,
+                googleOpeningStatus,
                 detailInfo.getSpendTime(),
                 detailInfo.getUseFee(),
                 detailInfo.getDiscountInfo(),
@@ -719,9 +899,12 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
             final int walkTimeFromStation,
             final int stayableMinutes,
             final boolean visitable,
-            final LocalDateTime leaveTime
+            final LocalDateTime leaveTime,
+            final Boolean isOpened,
+            final String googleOpeningStatus
     ) {
         return new SportsPlaceDetail(
+                "SPORTS",
                 cardInfo.getPlaceId(),
                 cardInfo.getName(),
                 cardInfo.getCategory(),
@@ -739,6 +922,9 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
                 detailInfo.getPhoneNumber(),
                 detailInfo.getRestDate(),
                 detailInfo.getUseTime(),
+                detailInfo.getGoogleWeekdayDescriptions(),
+                isOpened,
+                googleOpeningStatus,
                 detailInfo.getOpenPeriod(),
                 detailInfo.getUseFeeLeports(),
                 detailInfo.getReservation(),
@@ -758,9 +944,12 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
             final int walkTimeFromStation,
             final int stayableMinutes,
             final boolean visitable,
-            final LocalDateTime leaveTime
+            final LocalDateTime leaveTime,
+            final Boolean isOpened,
+            final String googleOpeningStatus
     ) {
         return new ShoppingPlaceDetail(
+                "SHOPPING",
                 cardInfo.getPlaceId(),
                 cardInfo.getName(),
                 cardInfo.getCategory(),
@@ -778,6 +967,9 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
                 detailInfo.getPhoneNumber(),
                 detailInfo.getRestDate(),
                 detailInfo.getUseTime(),
+                detailInfo.getGoogleWeekdayDescriptions(),
+                isOpened,
+                googleOpeningStatus,
                 detailInfo.getOpenTime(),
                 detailInfo.getSaleItem(),
                 detailInfo.getShopGuide(),
@@ -934,7 +1126,37 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
             log.warn("이미지 조회 실패: placeId={}, error={}", placeId, e.getMessage());
         }
 
-        // 캐시 저장
+        String[] googleWeekdayDescriptions = null;
+
+        try {
+            log.info("Google Places API 조회 시작: placeName={}, location=({}, {})",
+                     cardInfo.getName(), cardInfo.getLatitude(), cardInfo.getLongitude());
+
+            List<GooglePlacesResponse> searchResults = googlePlacesApiClient.searchByPlaceNameAndLocation(
+                    cardInfo.getName(),
+                    cardInfo.getLatitude(),
+                    cardInfo.getLongitude()
+            );
+
+            if (searchResults != null && !searchResults.isEmpty()) {
+                GooglePlacesResponse googlePlace = searchResults.get(0);
+
+                googleWeekdayDescriptions = googlePlace.getWeekdayDescriptions();
+
+                log.info("Google Places 정보 조회 성공: placeName={}, weekdayDescriptions count={}",
+                         cardInfo.getName(),
+                         googleWeekdayDescriptions != null ? googleWeekdayDescriptions.length : 0);
+            } else {
+                log.warn("Google Places 검색 결과 없음: placeName={}", cardInfo.getName());
+            }
+        } catch (GlobalException e) {
+            log.warn("Google Places API 호출 실패: placeId={}, placeName={}, errorCode={}",
+                     placeId, cardInfo.getName(), e.getErrorCode());
+        } catch (Exception e) {
+            log.warn("Google Places API 호출 실패: placeId={}, placeName={}, error={}",
+                     placeId, cardInfo.getName(), e.getMessage());
+        }
+
         PlaceDetailCache detailCache = PlaceDetailCache.builder()
                                                        .placeId(placeId)
                                                        .contentTypeId(contentTypeId)
@@ -973,10 +1195,12 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
                                                        .shopGuide(shopGuide)
                                                        .scaleShopping(scaleShopping)
                                                        .fairDay(fairDay)
+                                                       .googleWeekdayDescriptions(googleWeekdayDescriptions)
                                                        .build();
 
         String detailKey = "place:detail:" + placeId;
-        redisRepository.setValue(detailKey, detailCache, DETAIL_CACHE_TTL);
+
+        redisRepository.setValue(detailKey, detailCache, GOOGLE_CACHE_TTL);
 
         return detailCache;
     }

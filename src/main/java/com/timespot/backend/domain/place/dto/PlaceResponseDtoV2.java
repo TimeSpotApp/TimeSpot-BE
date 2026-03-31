@@ -157,6 +157,15 @@ public abstract class PlaceResponseDtoV2 {
         @Schema(description = "이용시간/영업시간", example = "09:00 - 18:00")
         private final String useTime;
 
+        @Schema(description = "Google 요일별 운영 시간", example = "[\"월요일: 오전 9:00 ~ 오후 6:00\", \"화요일: 오전 9:00 ~ 오후 6:00\"]")
+        private final String[] googleWeekdayDescriptions;
+
+        @Schema(description = "현재 영업 중 여부 (실시간)", example = "true", nullable = true)
+        private final Boolean isOpened;
+
+        @Schema(description = "Google 영업 상태 (문자열)", example = "영업 중", allowableValues = {"영업 중", "영업 종료", "알 수 없음"})
+        private final String googleOpeningStatus;
+
         protected PlaceDetail(final String placeType,
                               final String placeId,
                               final String name,
@@ -174,7 +183,10 @@ public abstract class PlaceResponseDtoV2 {
                               final List<String> images,
                               final String phoneNumber,
                               final String restDate,
-                              final String useTime) {
+                              final String useTime,
+                              final String[] googleWeekdayDescriptions,
+                              final Boolean isOpened,
+                              final String googleOpeningStatus) {
             this.placeType = placeType;
             this.placeId = placeId;
             this.name = name;
@@ -193,6 +205,9 @@ public abstract class PlaceResponseDtoV2 {
             this.phoneNumber = phoneNumber;
             this.restDate = restDate;
             this.useTime = useTime;
+            this.googleWeekdayDescriptions = googleWeekdayDescriptions;
+            this.isOpened = isOpened;
+            this.googleOpeningStatus = googleOpeningStatus;
         }
 
     }
@@ -228,7 +243,8 @@ public abstract class PlaceResponseDtoV2 {
         @Schema(description = "애완동물동반가능정보", example = "불가")
         private final String chkPet;
 
-        public TouristPlaceDetail(final String placeId,
+        public TouristPlaceDetail(final String placeType,
+                                  final String placeId,
                                   final String name,
                                   final String category,
                                   final String address,
@@ -245,6 +261,9 @@ public abstract class PlaceResponseDtoV2 {
                                   final String phoneNumber,
                                   final String restDate,
                                   final String useTime,
+                                  final String[] googleWeekdayDescriptions,
+                                  final Boolean isOpened,
+                                  final String googleOpeningStatus,
                                   final String openDate,
                                   final String useSeason,
                                   final String expAgeRange,
@@ -253,9 +272,9 @@ public abstract class PlaceResponseDtoV2 {
                                   final String accomCount,
                                   final String chkBabyCarriage,
                                   final String chkPet) {
-            super("TOURIST", placeId, name, category, address, latitude, longitude, distanceFromStation,
+            super(placeType, placeId, name, category, address, latitude, longitude, distanceFromStation,
                   walkTimeFromStation, stayableMinutes, visitable, stationLatitude, stationLongitude, leaveTime, images,
-                  phoneNumber, restDate, useTime);
+                  phoneNumber, restDate, useTime, googleWeekdayDescriptions, isOpened, googleOpeningStatus);
             this.openDate = openDate;
             this.useSeason = useSeason;
             this.expAgeRange = expAgeRange;
@@ -296,7 +315,8 @@ public abstract class PlaceResponseDtoV2 {
         @Schema(description = "개업일", example = "2015-03-01")
         private final String openDateFood;
 
-        public RestaurantDetail(final String placeId,
+        public RestaurantDetail(final String placeType,
+                                final String placeId,
                                 final String name,
                                 final String category,
                                 final String address,
@@ -313,6 +333,9 @@ public abstract class PlaceResponseDtoV2 {
                                 final String phoneNumber,
                                 final String restDate,
                                 final String useTime,
+                                final String[] googleWeekdayDescriptions,
+                                final Boolean isOpened,
+                                final String googleOpeningStatus,
                                 final String firstMenu,
                                 final String treatMenu,
                                 final String seat,
@@ -320,9 +343,9 @@ public abstract class PlaceResponseDtoV2 {
                                 final String packing,
                                 final String kidsFacility,
                                 final String openDateFood) {
-            super("RESTAURANT", placeId, name, category, address, latitude, longitude, distanceFromStation,
+            super(placeType, placeId, name, category, address, latitude, longitude, distanceFromStation,
                   walkTimeFromStation, stayableMinutes, visitable, stationLatitude, stationLongitude, leaveTime, images,
-                  phoneNumber, restDate, useTime);
+                  phoneNumber, restDate, useTime, googleWeekdayDescriptions, isOpened, googleOpeningStatus);
             this.firstMenu = firstMenu;
             this.treatMenu = treatMenu;
             this.seat = seat;
@@ -356,7 +379,8 @@ public abstract class PlaceResponseDtoV2 {
         @Schema(description = "주차시설", example = "가능 (최초 2 시간 무료)")
         private final String parkingCulture;
 
-        public CulturePlaceDetail(final String placeId,
+        public CulturePlaceDetail(final String placeType,
+                                  final String placeId,
                                   final String name,
                                   final String category,
                                   final String address,
@@ -373,14 +397,17 @@ public abstract class PlaceResponseDtoV2 {
                                   final String phoneNumber,
                                   final String restDate,
                                   final String useTime,
+                                  final String[] googleWeekdayDescriptions,
+                                  final Boolean isOpened,
+                                  final String googleOpeningStatus,
                                   final String spendTime,
                                   final String useFee,
                                   final String discountInfo,
                                   final String accomCountCulture,
                                   final String parkingCulture) {
-            super("CULTURE", placeId, name, category, address, latitude, longitude, distanceFromStation,
+            super(placeType, placeId, name, category, address, latitude, longitude, distanceFromStation,
                   walkTimeFromStation, stayableMinutes, visitable, stationLatitude, stationLongitude, leaveTime, images,
-                  phoneNumber, restDate, useTime);
+                  phoneNumber, restDate, useTime, googleWeekdayDescriptions, isOpened, googleOpeningStatus);
             this.spendTime = spendTime;
             this.useFee = useFee;
             this.discountInfo = discountInfo;
@@ -412,7 +439,8 @@ public abstract class PlaceResponseDtoV2 {
         @Schema(description = "체험가능연령", example = "12 세 이상")
         private final String expAgeRangeLeports;
 
-        public SportsPlaceDetail(final String placeId,
+        public SportsPlaceDetail(final String placeType,
+                                 final String placeId,
                                  final String name,
                                  final String category,
                                  final String address,
@@ -429,14 +457,17 @@ public abstract class PlaceResponseDtoV2 {
                                  final String phoneNumber,
                                  final String restDate,
                                  final String useTime,
+                                 final String[] googleWeekdayDescriptions,
+                                 final Boolean isOpened,
+                                 final String googleOpeningStatus,
                                  final String openPeriod,
                                  final String useFeeLeports,
                                  final String reservation,
                                  final String scaleLeports,
                                  final String expAgeRangeLeports) {
-            super("SPORTS", placeId, name, category, address, latitude, longitude, distanceFromStation,
+            super(placeType, placeId, name, category, address, latitude, longitude, distanceFromStation,
                   walkTimeFromStation, stayableMinutes, visitable, stationLatitude, stationLongitude, leaveTime, images,
-                  phoneNumber, restDate, useTime);
+                  phoneNumber, restDate, useTime, googleWeekdayDescriptions, isOpened, googleOpeningStatus);
             this.openPeriod = openPeriod;
             this.useFeeLeports = useFeeLeports;
             this.reservation = reservation;
@@ -468,7 +499,8 @@ public abstract class PlaceResponseDtoV2 {
         @Schema(description = "장서는날", example = "매월 둘째주 월요일")
         private final String fairDay;
 
-        public ShoppingPlaceDetail(final String placeId,
+        public ShoppingPlaceDetail(final String placeType,
+                                   final String placeId,
                                    final String name,
                                    final String category,
                                    final String address,
@@ -485,14 +517,17 @@ public abstract class PlaceResponseDtoV2 {
                                    final String phoneNumber,
                                    final String restDate,
                                    final String useTime,
+                                   final String[] googleWeekdayDescriptions,
+                                   final Boolean isOpened,
+                                   final String googleOpeningStatus,
                                    final String openTime,
                                    final String saleItem,
                                    final String shopGuide,
                                    final String scaleShopping,
                                    final String fairDay) {
-            super("SHOPPING", placeId, name, category, address, latitude, longitude, distanceFromStation,
+            super(placeType, placeId, name, category, address, latitude, longitude, distanceFromStation,
                   walkTimeFromStation, stayableMinutes, visitable, stationLatitude, stationLongitude, leaveTime, images,
-                  phoneNumber, restDate, useTime);
+                  phoneNumber, restDate, useTime, googleWeekdayDescriptions, isOpened, googleOpeningStatus);
             this.openTime = openTime;
             this.saleItem = saleItem;
             this.shopGuide = shopGuide;
