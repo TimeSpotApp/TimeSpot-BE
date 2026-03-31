@@ -48,8 +48,8 @@ public class GooglePlacesApiClient {
         this.restClient = builder.requestFactory(factory)
                                  .baseUrl(properties.getBaseUrl())
                                  .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                                 .defaultHeader("X-Goog-FieldMask",
-                                                "places.currentOpeningStatus,places.openingHours")
+                                 .defaultHeader("X-Goog-FieldMask", "places.currentOpeningHours")
+                                 .defaultHeader("X-Goog-Api-Key", properties.getApiKey())
                                  .build();
         this.properties = properties;
         this.objectMapper = objectMapper;

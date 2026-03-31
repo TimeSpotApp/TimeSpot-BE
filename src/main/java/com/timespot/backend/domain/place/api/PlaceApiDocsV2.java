@@ -384,9 +384,8 @@ public interface PlaceApiDocsV2 {
                             - **시간 기반 visitable** && **영업 중** → `true`
                             - 그 외 → `false`
                           - **Google Places 정보**:
-                            - `googleOpeningStatus`: 현재 영업 상태 ("영업 중", "영업 종료", null)
-                            - `googleNextClosingTime`: 다음 닫는 시간 (한국 시간)
                             - `googleWeekdayDescriptions`: 요일별 운영 시간
+                            - `isOpened`: 현재 영업 중 여부
                           - **이미지 목록**: 무제한 (대표 이미지 + VisitKorea API 전체 이미지)
                           - **휴무일**: `restDate`
                           - **이용시간**: `useTime` (타입별로 필드명 상이)

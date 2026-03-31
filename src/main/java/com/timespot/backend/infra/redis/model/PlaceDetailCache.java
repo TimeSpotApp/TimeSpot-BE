@@ -73,9 +73,7 @@ public class PlaceDetailCache {
     private final String scaleShopping;  // 규모
     private final String fairDay;        // 장서는날
 
-    private final String        googleOpeningStatus;        // 현재 영업 상태 ("영업 중", "영업 종료")
-    private final LocalDateTime googleNextClosingTime;      // 다음 닫는 시간
-    private final String[]      googleWeekdayDescriptions;  // 요일별 운영 시간 설명
+    private final String[]      googleWeekdayDescriptions;  // 요일별 운영 시간 설명 (캐싱됨)
 
     @Builder
     @JsonCreator
@@ -117,8 +115,6 @@ public class PlaceDetailCache {
             @JsonProperty("shopGuide") final String shopGuide,
             @JsonProperty("scaleShopping") final String scaleShopping,
             @JsonProperty("fairDay") final String fairDay,
-            @JsonProperty("googleOpeningStatus") final String googleOpeningStatus,
-            @JsonProperty("googleNextClosingTime") final LocalDateTime googleNextClosingTime,
             @JsonProperty("googleWeekdayDescriptions") final String[] googleWeekdayDescriptions
     ) {
         this.placeId = placeId;
@@ -158,8 +154,6 @@ public class PlaceDetailCache {
         this.shopGuide = shopGuide;
         this.scaleShopping = scaleShopping;
         this.fairDay = fairDay;
-        this.googleOpeningStatus = googleOpeningStatus;
-        this.googleNextClosingTime = googleNextClosingTime;
         this.googleWeekdayDescriptions = googleWeekdayDescriptions;
     }
 
