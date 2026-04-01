@@ -23,6 +23,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.Point;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -89,6 +90,9 @@ public class VisitingHistoryTestService {
         LocalDateTime now                = LocalDateTime.now();
         LocalDateTime trainDepartureTime = now.plusMinutes(remainingMinutes);
 
+        Point placeLocation = geometryFactory.createPoint(new Coordinate(randomStation.getLongitude(), randomStation.getLatitude()));
+        placeLocation.setSRID(4326);
+
         VisitingHistory testHistory = VisitingHistory.of(
                 user,
                 randomStation,
@@ -96,7 +100,7 @@ public class VisitingHistoryTestService {
                 "알림 테스트 장소 이름",
                 "알림 테스트 장소 카테고리",
                 "알림 테스트 장소 주소",
-                geometryFactory.createPoint(new Coordinate(randomStation.getLongitude(), randomStation.getLatitude())),
+                placeLocation,
                 now,
                 trainDepartureTime
         );
