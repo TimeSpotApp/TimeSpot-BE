@@ -4,6 +4,7 @@ import static com.timespot.backend.common.response.ErrorCode.HISTORY_NOT_FOUND;
 import static com.timespot.backend.common.response.ErrorCode.PLACE_NOT_FOUND;
 import static com.timespot.backend.common.response.ErrorCode.STATION_NOT_FOUND;
 import static com.timespot.backend.common.response.ErrorCode.USER_NOT_FOUND;
+import static com.timespot.backend.domain.place.constant.PlaceConst.WALK_SPEED_PER_MINUTE;
 
 import com.timespot.backend.common.error.GlobalException;
 import com.timespot.backend.domain.favorite.dao.FavoriteRepository;
@@ -21,6 +22,7 @@ import com.timespot.backend.domain.station.dao.StationRepository;
 import com.timespot.backend.domain.station.model.Station;
 import com.timespot.backend.domain.user.dao.UserRepository;
 import com.timespot.backend.domain.user.model.User;
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -29,7 +31,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.time.Clock;
 
 /**
  * PackageName : com.timespot.backend.domain.history.service
@@ -40,22 +41,23 @@ import java.time.Clock;
  * =====================================================================================================================
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------
- * 26. 3. 25.    loadingKKamo21               Initial creation
- * 26. 3. 26.    loadingKKamo21               이미 종료된 이력 접근 차단 및 즐겨찾기 방문 통계 업데이트 추가
+ * 26. 3. 25.    loadingKKamo21       Initial creation
+ * 26. 3. 26.    loadingKKamo21       이미 종료된 이력 접근 차단 및 즐겨찾기 방문 통계 업데이트 추가
+ * 26. 4. 1.     loadingKKamo21       walkTimeFromPlace 계산 로직 추가
  */
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class VisitingHistoryServiceImpl implements VisitingHistoryService {
 
-    private final VisitingHistoryRepository visitingHistoryRepository;
-    private final UserRepository            userRepository;
-    private final StationRepository         stationRepository;
-    private final PlaceRepository           placeRepository;
-    private final FavoriteRepository        favoriteRepository;
-    private final ApplicationEventPublisher eventPublisher;
+    private final VisitingHistoryRepository    visitingHistoryRepository;
+    private final UserRepository               userRepository;
+    private final StationRepository            stationRepository;
+    private final PlaceRepository              placeRepository;
+    private final FavoriteRepository           favoriteRepository;
+    private final ApplicationEventPublisher    eventPublisher;
     private final JourneyNotificationScheduler journeyNotificationScheduler;
-    private final Clock clock;
+    private final Clock                        clock;
 
     @Override
     @Transactional
@@ -75,10 +77,19 @@ public class VisitingHistoryServiceImpl implements VisitingHistoryService {
         response.setStartLat(dto.getLat());
         response.setStartLng(dto.getLng());
 
+        double distance = calculateDistance(
+                place.getLocation().getY(),
+                place.getLocation().getX(),
+                station.getLatitude(),
+                station.getLongitude()
+        );
+        int walkTimeFromPlace = (int) Math.ceil(distance / WALK_SPEED_PER_MINUTE);
+
         eventPublisher.publishEvent(new JourneyStartedEvent(
                 userId,
                 historyId,
-                dto.getTrainDepartureTime()
+                dto.getTrainDepartureTime(),
+                walkTimeFromPlace
         ));
 
         return response;
@@ -195,6 +206,23 @@ public class VisitingHistoryServiceImpl implements VisitingHistoryService {
      */
     private Place getPlaceById(final Long placeId) {
         return placeRepository.findById(placeId).orElseThrow(() -> new GlobalException(PLACE_NOT_FOUND));
+    }
+
+    /**
+     * 두 지점 간의 거리 계산 (Haversine 공식, 단위: 미터)
+     */
+    private double calculateDistance(final double lat1, final double lon1,
+                                     final double lat2, final double lon2) {
+        final int    EARTH_RADIUS = 6371000; // 지구 반경 (미터)
+        final double dLat         = Math.toRadians(lat2 - lat1);
+        final double dLon         = Math.toRadians(lon2 - lon1);
+
+        final double a = Math.sin(dLat / 2) * Math.sin(dLat / 2)
+                         + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
+                           * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+
+        final double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return EARTH_RADIUS * c;
     }
 
 }
