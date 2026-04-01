@@ -97,6 +97,27 @@ public class VisitKoreaApiClient {
     }
 
     /**
+     * 단일 장소 정보 조회 (contentId 기반)
+     * 캐시 미스 시 개별 장소 정보 조회용
+     *
+     * @param contentId 콘텐츠 ID
+     * @return 위치 기반 리스트 응답 (단일 항목)
+     */
+    public LocationBasedListResponse locationBasedListForSinglePlace(final String contentId) {
+        URI uri = buildLocationBasedUriForSinglePlace(contentId);
+        log.info("VisitKorea 단일 장소 조회 요청: uri={}", uri);
+
+        return executeWithFallback(
+                () -> restClient.get()
+                                .uri(uri)
+                                .retrieve()
+                                .body(LocationBasedListResponse.class),
+                "/locationBasedList2",
+                "단일 장소 정보 조회"
+        );
+    }
+
+    /**
      * 검색어 기반 관광명소 조회
      * keyword 사용하여 검색
      *
@@ -199,6 +220,24 @@ public class VisitKoreaApiClient {
                                    .queryParam(MAP_Y, mapY)
                                    .queryParam(RADIUS, radius)
                                    .queryParam(CONTENT_TYPE_ID, contentType.getContentTypeId())
+                                   .encode(UTF_8)
+                                   .build()
+                                   .toUri();
+    }
+
+    /**
+     * 단일 장소 조회용 URI 빌드 (contentId 기반)
+     */
+    private URI buildLocationBasedUriForSinglePlace(final String contentId) {
+        return UriComponentsBuilder.fromHttpUrl(properties.getBaseUrl())
+                                   .path("/locationBasedList2")
+                                   .queryParam(NUM_OF_ROWS, 1)
+                                   .queryParam(PAGE_NO, 1)
+                                   .queryParam(MOBILE_OS, "ETC")
+                                   .queryParam(MOBILE_APP, "TimeSpot")
+                                   .queryParam(SERVICE_KEY, properties.getServiceKey())
+                                   .queryParam(RESPONSE_TYPE, "json")
+                                   .queryParam(CONTENT_ID, contentId)
                                    .encode(UTF_8)
                                    .build()
                                    .toUri();
