@@ -36,10 +36,11 @@ public class VisitingHistoryTestController implements VisitingHistoryTestApiDocs
     @Override
     public ResponseEntity<BaseResponse<TestNotificationResponse>> testJourneyNotification(
             @AuthenticationPrincipal final CustomUserDetails userDetails,
-            @RequestParam(value = "remainingMinutes", defaultValue = "5") final int remainingMinutes
+            @RequestParam(value = "remainingMinutes", defaultValue = "30") final int remainingMinutes,
+            @RequestParam(value = "walkTimeFromPlace", defaultValue = "10") final int walkTimeFromPlace
     ) {
         TestNotificationResponse responseData = visitingHistoryTestService.testJourneyNotification(
-                userDetails.getId(), remainingMinutes
+                userDetails.getId(), remainingMinutes, walkTimeFromPlace
         );
         return ResponseEntity.status(HttpStatus.CREATED)
                              .body(BaseResponse.success(HISTORY_CREATE_SUCCESS, responseData));
