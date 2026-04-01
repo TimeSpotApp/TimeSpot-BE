@@ -21,6 +21,8 @@ import java.util.Set;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.GeometryFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,6 +43,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class VisitingHistoryTestService {
+
+    private final GeometryFactory geometryFactory = new GeometryFactory();
 
     private final UserRepository            userRepository;
     private final StationRepository         stationRepository;
@@ -92,7 +96,7 @@ public class VisitingHistoryTestService {
                 "알림 테스트 장소 이름",
                 "알림 테스트 장소 카테고리",
                 "알림 테스트 장소 주소",
-                null,
+                geometryFactory.createPoint(new Coordinate(randomStation.getLongitude(), randomStation.getLatitude())),
                 now,
                 trainDepartureTime
         );
