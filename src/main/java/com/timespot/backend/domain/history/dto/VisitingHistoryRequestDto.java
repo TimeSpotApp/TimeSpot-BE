@@ -44,8 +44,8 @@ public abstract class VisitingHistoryRequestDto {
         private Long stationId;
 
         @NotNull(message = "장소 ID 는 필수입니다.")
-        @Schema(description = "[필수] 방문 장소 ID", example = "10", requiredMode = REQUIRED)
-        private Long placeId;
+        @Schema(description = "[필수] 방문 장소 ID", example = "126644", requiredMode = REQUIRED)
+        private String placeId;
 
         @NotNull(message = "열차 출발 시간은 필수입니다.")
         @JsonFormat(shape = STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")

@@ -43,8 +43,8 @@ public abstract class VisitingHistoryResponseDto {
         @Schema(description = "역 이름", example = "서울역", accessMode = READ_ONLY)
         private final String stationName;
 
-        @Schema(description = "방문 장소 ID", example = "10", accessMode = READ_ONLY)
-        private final Long placeId;
+        @Schema(description = "방문 장소 ID", example = "126644", accessMode = READ_ONLY)
+        private final String placeId;
 
         @Schema(description = "방문 장소 이름", example = "스타벅스 서울역점", accessMode = READ_ONLY)
         private final String placeName;
@@ -79,7 +79,7 @@ public abstract class VisitingHistoryResponseDto {
         public VisitingHistoryListResponse(final Long visitingHistoryId,
                                            final Long stationId,
                                            final String stationName,
-                                           final Long placeId,
+                                           final String placeId,
                                            final String placeName,
                                            final String placeCategory,
                                            final LocalDateTime startTime,
@@ -122,8 +122,8 @@ public abstract class VisitingHistoryResponseDto {
 
         @Schema(description = "역 주소", example = "서울특별시 용산구 청암로 92", accessMode = READ_ONLY)
         private final String        stationAddress;
-        @Schema(description = "방문 장소 ID", example = "10", accessMode = READ_ONLY)
-        private final Long          placeId;
+        @Schema(description = "방문 장소 ID", example = "126644", accessMode = READ_ONLY)
+        private final String        placeId;
         @Schema(description = "방문 장소 이름", example = "스타벅스 서울역점", accessMode = READ_ONLY)
         private final String        placeName;
         @Schema(description = "방문 장소 카테고리", example = "카페", accessMode = READ_ONLY)
@@ -162,7 +162,7 @@ public abstract class VisitingHistoryResponseDto {
                                              final Long stationId,
                                              final String stationName,
                                              final String stationAddress,
-                                             final Long placeId,
+                                             final String placeId,
                                              final String placeName,
                                              final String placeCategory,
                                              final String placeAddress,
