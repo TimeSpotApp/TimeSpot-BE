@@ -49,7 +49,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class StationController implements StationApiDocs {
 
     private static final double DEFAULT_RADIUS_METERS = 2000.0;  // 기본 검색 반경: 2km
-    private static final double MAX_RADIUS_METERS     = 10000.0; // 최대 검색 반경: 10km
+    private static final double MAX_RADIUS_METERS     = 20000.0; // 최대 검색 반경: 20km
 
     private final StationService  stationService;
     private final FavoriteService favoriteService;

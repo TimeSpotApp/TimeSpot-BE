@@ -39,22 +39,22 @@ import org.springframework.http.ResponseEntity;
         name = "Station API",
         description = """
                       ## 역 (Station) API
-                      
+
                       ### 주요 기능
                       - **역 목록 조회**: 사용자의 위치 기반 열차/기차 역 목록 통합 조회 (즐겨찾기 + 근처 + 전체)
                       - **즐겨찾기 관리**: 열차/기차 역 즐겨찾기 추가/삭제/목록 조회
-                      
+
                       ### API 경로
                       - `GET /api/v1/stations` - 역 목록 통합 조회
                       - `POST /api/v1/stations/favorites/{stationId}` - 즐겨찾기 역 추가
                       - `GET /api/v1/stations/favorites` - 즐겨찾기 역 목록 조회
                       - `DELETE /api/v1/stations/favorites/{stationId}` - 즐겨찾기 역 삭제
-                      
+
                       ### 인증 방식
                       - **역 목록 조회**: 인증 없이 이용 가능 (인증 시 즐겨찾기 정보 포함)
                       - **즐겨찾기 관리**: `Bearer Token` 인증 필요
                       - 요청 헤더에 `Authorization: Bearer {accessToken}` 를 포함해야 합니다.
-                      
+
                       ### 대상 역 정보
                       - **지하철이 아닌 열차/기차 역**을 대상으로 합니다
                       - 서울역, 용산역, 부산역 등 KTX/일반열차 역 정보 제공
@@ -66,14 +66,14 @@ public interface StationApiDocs {
             summary = "역 목록 통합 조회",
             description = """
                           ### 사용자의 위치를 기반으로 역 목록을 통합 조회합니다.
-                          
+
                           #### 요청 헤더
                           - `Authorization: Bearer {accessToken}` - 선택 (인증 시 즐겨찾기 여부 포함)
-                          
+
                           #### 쿼리 파라미터
                           - `userLat`: 사용자 위도 - 필수
                           - `userLon`: 사용자 경도 - 필수
-                          - `radius`: 검색 반경 (미터 단위, 기본값: 2000, 최대: 10000) - 선택
+                          - `radius`: 검색 반경 (미터 단위, 기본값: 2000, 최대: 20000) - 선택
                           - `keyword`: 검색어 (역 이름 또는 주소, 부분 일치) - 선택
                           - `page`: 페이지 번호 (1 부터 시작, 기본값: 1) - 선택
                           - `size`: 페이지 크기 (한 페이지당 요소 개수, 최소 10, 기본값: 10) - 선택
@@ -82,12 +82,12 @@ public interface StationApiDocs {
                             - **방향**: `ASC`, `DESC` (대소문자 구분 없음)
                             - **단일 정렬 예시**: `stationName,ASC`
                             - **다중 정렬 예시**: `stationName,DESC,stationName,ASC`
-                          
+
                           #### 응답 데이터
                           - `favoriteStations`: 사용자가 즐겨찾기한 역 목록 (인증 시에만 populated, 아니면 빈 배열)
                           - `nearbyStations`: 사용자 위치와 가까운 역 목록 (거리 기준 오름차순, 최대 5 개)
                           - `stations`: 전체 역 목록 (페이징 적용, 정렬 가능)
-                          
+
                           #### 주의사항
                           - 인증하지 않은 사용자는 `favoriteStations` 가 빈 배열로 반환됩니다.
                           - `nearbyStations` 는 거리 기준 오름차순 정렬됩니다 (최대 5 개).
@@ -225,11 +225,11 @@ public interface StationApiDocs {
                     example = "126.9780"
             ) double userLon,
             @Parameter(
-                    description = "검색 반경 (미터 단위, 기본값: 2000, 범위: 1~10000)",
+                    description = "검색 반경 (미터 단위, 기본값: 2000, 범위: 1~20000)",
                     example = "2000",
                     required = false
             ) @Min(value = 1, message = "검색 반경은 1m 이상이어야 합니다.")
-            @Max(value = 10000, message = "검색 반경은 최대 10000m 입니다.") double radius,
+            @Max(value = 20000, message = "검색 반경은 최대 20000m 입니다.") double radius,
             @Parameter(
                     description = "검색어 (역 이름 또는 주소, 부분 일치)",
                     example = "서울",
@@ -265,22 +265,22 @@ public interface StationApiDocs {
             summary = "즐겨찾기 역 추가",
             description = """
                           ### 사용자가 특정 역을 즐겨찾기에 추가합니다.
-                          
+
                           #### 요청 헤더
                           - `Authorization: Bearer {accessToken}` - 필수
-                          
+
                           #### 요청 본문
                           - `stationId`: 추가할 역 ID - 필수
-                          
+
                           #### 요청 URL
                           - `POST /api/v1/stations/favorites/{stationId}`
-                          
+
                           #### 처리 과정
                           1. 사용자 존재 여부 확인
                           2. 역 존재 여부 확인
                           3. 중복 즐겨찾기 검증
                           4. 즐겨찾기 생성 및 저장
-                          
+
                           #### 주의사항
                           - 이미 즐겨찾기에 등록된 역은 중복 추가할 수 없습니다.
                           - 중복 시도 시 `409 CONFLICT` 에러가 반환됩니다.
@@ -388,21 +388,21 @@ public interface StationApiDocs {
             summary = "즐겨찾기 역 삭제",
             description = """
                           ### 역 ID 를 사용하여 특정 즐겨찾기를 삭제합니다.
-                          
+
                           #### 요청 헤더
                           - `Authorization: Bearer {accessToken}` - 필수
-                          
+
                           #### 경로 변수
                           - `stationId`: 삭제할 즐겨찾기 역 ID - 필수
-                          
+
                           #### 요청 URL
                           - `DELETE /api/v1/stations/favorites/{stationId}`
-                          
+
                           #### 처리 과정
                           1. 즐겨찾기 존재 여부 확인
                           2. 본인 소유 검증 (보안)
                           3. 즐겨찾기 삭제
-                          
+
                           #### 중요
                           - 본인의 즐겨찾기가 아닌 경우 `404` 에러가 반환됩니다 (보안).
                           """
@@ -466,10 +466,10 @@ public interface StationApiDocs {
             summary = "즐겨찾기 역 목록 조회",
             description = """
                           ### 사용자의 즐겨찾기 역 목록을 조회합니다.
-                          
+
                           #### 요청 헤더
                           - `Authorization: Bearer {accessToken}` - 필수
-                          
+
                           #### 쿼리 파라미터
                           - `keyword`: 검색어 (역 이름, 부분 일치, 대소문자 구분 없음) - 선택
                           - `page`: 페이지 번호 (1 부터 시작, 기본값: 1) - 선택
@@ -479,10 +479,10 @@ public interface StationApiDocs {
                             - **방향**: `ASC`, `DESC` (대소문자 구분 없음)
                             - **단일 정렬 예시**: `createdAt,DESC`
                             - **다중 정렬 예시**: `visitCount,DESC,stationName,ASC`
-                          
+
                           #### 요청 URL
                           - `GET /api/v1/stations/favorites`
-                          
+
                           #### 응답 데이터
                           - `favoriteId`: 즐겨찾기 ID
                           - `stationId`: 역 ID
@@ -490,7 +490,7 @@ public interface StationApiDocs {
                           - `visitCount`: 방문 횟수 (정상 완료된 여정만 카운트)
                           - `totalVisitMinutes`: 총 방문 시간 (분) (정상 완료된 여정의 소요 시간 합계)
                           - `createdAt`: 즐겨찾기 추가 일시
-                          
+
                           #### 페이징 정보
                           - `content`: 즐겨찾기 목록
                           - `totalElements`: 전체 요소 개수
