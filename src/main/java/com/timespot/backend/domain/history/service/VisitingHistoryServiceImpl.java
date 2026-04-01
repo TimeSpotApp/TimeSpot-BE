@@ -1,7 +1,6 @@
 package com.timespot.backend.domain.history.service;
 
 import static com.timespot.backend.common.response.ErrorCode.HISTORY_NOT_FOUND;
-import static com.timespot.backend.common.response.ErrorCode.PLACE_NOT_FOUND;
 import static com.timespot.backend.common.response.ErrorCode.STATION_NOT_FOUND;
 import static com.timespot.backend.common.response.ErrorCode.USER_NOT_FOUND;
 import static com.timespot.backend.domain.place.constant.PlaceConst.WALK_SPEED_PER_MINUTE;
@@ -16,16 +15,20 @@ import com.timespot.backend.domain.history.dto.VisitingHistoryResponseDto.Visiti
 import com.timespot.backend.domain.history.event.JourneyStartedEvent;
 import com.timespot.backend.domain.history.model.VisitingHistory;
 import com.timespot.backend.domain.history.notification.JourneyNotificationScheduler;
-import com.timespot.backend.domain.place.dao.PlaceRepository;
-import com.timespot.backend.domain.place.model.Place;
 import com.timespot.backend.domain.station.dao.StationRepository;
 import com.timespot.backend.domain.station.model.Station;
 import com.timespot.backend.domain.user.dao.UserRepository;
 import com.timespot.backend.domain.user.model.User;
+import com.timespot.backend.infra.redis.model.PlaceCardCache;
+import com.timespot.backend.infra.visitkorea.service.VisitKoreaPlaceService;
 import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.Point;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -43,18 +46,21 @@ import org.springframework.transaction.annotation.Transactional;
  * ---------------------------------------------------------------------------------------------------------------------
  * 26. 3. 25.    loadingKKamo21       Initial creation
  * 26. 3. 26.    loadingKKamo21       이미 종료된 이력 접근 차단 및 즐겨찾기 방문 통계 업데이트 추가
- * 26. 4. 1.     loadingKKamo21       walkTimeFromPlace 계산 로직 추가
+ * 26. 4. 1.     loadingKKamo21       WalkTimeFromPlace 계산 로직 추가, VisitKoreaPlaceService 의존성 추가
  */
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
+@Slf4j
 public class VisitingHistoryServiceImpl implements VisitingHistoryService {
+
+    private final GeometryFactory geometryFactory = new GeometryFactory();
 
     private final VisitingHistoryRepository    visitingHistoryRepository;
     private final UserRepository               userRepository;
     private final StationRepository            stationRepository;
-    private final PlaceRepository              placeRepository;
     private final FavoriteRepository           favoriteRepository;
+    private final VisitKoreaPlaceService       visitKoreaPlaceService;
     private final ApplicationEventPublisher    eventPublisher;
     private final JourneyNotificationScheduler journeyNotificationScheduler;
     private final Clock                        clock;
@@ -64,10 +70,25 @@ public class VisitingHistoryServiceImpl implements VisitingHistoryService {
     public VisitingHistoryDetailResponse createNewJourney(final UUID userId, final JourneyStartRequest dto) {
         User    user    = getUserById(userId);
         Station station = getStationById(dto.getStationId());
-        Place   place   = getPlaceById(dto.getPlaceId());
+
+        PlaceCardCache placeCard = visitKoreaPlaceService.getPlaceCardWithFallback(dto.getPlaceId());
+
+        Point placeLocation = geometryFactory.createPoint(new Coordinate(placeCard.getLongitude(),
+                                                                         placeCard.getLatitude()));
+        placeLocation.setSRID(4326);
 
         Long historyId = visitingHistoryRepository.save(
-                VisitingHistory.of(user, station, place, LocalDateTime.now(clock), dto.getTrainDepartureTime())
+                VisitingHistory.of(
+                        user,
+                        station,
+                        dto.getPlaceId(),           // placeContentId (VisitKorea contentId)
+                        placeCard.getName(),        // placeName
+                        placeCard.getCategory(),    // placeCategory
+                        placeCard.getAddress(),     // placeAddress
+                        placeLocation,              // placeLocation (POINT)
+                        LocalDateTime.now(clock),   // startTime
+                        dto.getTrainDepartureTime() // trainDepartureTime
+                )
         ).getId();
 
         VisitingHistoryDetailResponse response = visitingHistoryRepository.findVisitingHistoryDetail(userId, historyId)
@@ -78,8 +99,8 @@ public class VisitingHistoryServiceImpl implements VisitingHistoryService {
         response.setStartLng(dto.getLng());
 
         double distance = calculateDistance(
-                place.getLocation().getY(),
-                place.getLocation().getX(),
+                placeCard.getLatitude(),
+                placeCard.getLongitude(),
                 station.getLatitude(),
                 station.getLongitude()
         );
@@ -195,17 +216,6 @@ public class VisitingHistoryServiceImpl implements VisitingHistoryService {
      */
     private Station getStationById(final Long stationId) {
         return stationRepository.findById(stationId).orElseThrow(() -> new GlobalException(STATION_NOT_FOUND));
-    }
-
-    /**
-     * 장소 ID 로 장소 조회
-     *
-     * @param placeId 장소 ID
-     * @return 장소 엔티티
-     * @throws GlobalException 장소를 찾을 수 없는 경우
-     */
-    private Place getPlaceById(final Long placeId) {
-        return placeRepository.findById(placeId).orElseThrow(() -> new GlobalException(PLACE_NOT_FOUND));
     }
 
     /**
