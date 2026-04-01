@@ -25,6 +25,7 @@ import java.util.Locale;
 import java.util.Random;
 import lombok.NoArgsConstructor;
 import net.datafaker.Faker;
+import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.PrecisionModel;
 
@@ -138,21 +139,6 @@ public final class TestUtils {
                              .sampleList(size);
     }
 
-    public static Place createPlace() {
-        return createPlaces(1).get(0);
-    }
-
-    public static Place createPlace(final String name) {
-        return FIXTURE_MONKEY.giveMeBuilder(Place.class)
-                             .instantiate(Instantiator.constructor().field())
-                             .setNull("id")
-                             .set("name", name)
-                             .setLazy("googlePlaceId", () -> FAKER.internet().uuidv4())
-                             .setLazy("address", () -> FAKER.address().fullAddress())
-                             .setLazy("category", () -> FAKER.commerce().department())
-                             .sample();
-    }
-
     public static List<Favorite> createFavorites(final User user, final List<Station> stations) {
         return stations.stream()
                        .map(station -> Favorite.of(user, station))
@@ -171,7 +157,20 @@ public final class TestUtils {
         return stations.stream()
                        .map(station -> VisitingHistory.of(user,
                                                           station,
-                                                          place,
+                                                          FAKER.internet().uuid(),
+                                                          FAKER.location().publicSpace(),
+                                                          FAKER.address().stateAbbr(),
+                                                          FAKER.address().fullAddress(),
+                                                          GEOMETRY_FACTORY.createPoint(
+                                                                  new Coordinate(
+                                                                          Double.parseDouble(
+                                                                                  FAKER.address().latitude()
+                                                                          ),
+                                                                          Double.parseDouble(
+                                                                                  FAKER.address().longitude()
+                                                                          )
+                                                                  )
+                                                          ),
                                                           startTime,
                                                           null,
                                                           trainDepartureTime))

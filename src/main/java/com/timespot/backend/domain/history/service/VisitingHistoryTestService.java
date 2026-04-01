@@ -54,13 +54,17 @@ public class VisitingHistoryTestService {
      * 기존 비즈니스 로직을 전혀 수정하지 않고, 기존 이벤트 발행 로직을 활용합니다.
      * </p>
      *
-     * @param userId           사용자 ID
-     * @param remainingMinutes 열차 출발까지 남은 시간 (분)
+     * @param userId            사용자 ID
+     * @param remainingMinutes  열차 출발까지 남은 시간 (분)
+     * @param walkTimeFromPlace 장소에서 역까지 도보 소요 시간 (분) - 알림 예약에 사용됨
      * @return 테스트 결과 응답
      */
     @Transactional
-    public TestNotificationResponse testJourneyNotification(final UUID userId, final int remainingMinutes) {
-        log.info("[NOTIFICATION TEST] 시작: userId={}, remainingMinutes={}", userId, remainingMinutes);
+    public TestNotificationResponse testJourneyNotification(final UUID userId,
+                                                            final int remainingMinutes,
+                                                            final int walkTimeFromPlace) {
+        log.info("[NOTIFICATION TEST] 시작: userId={}, remainingMinutes={}, walkTimeFromPlace={}", userId,
+                 remainingMinutes, walkTimeFromPlace);
 
         User user = userRepository.findById(userId)
                                   .orElseThrow(() -> new GlobalException(USER_NOT_FOUND));
@@ -78,16 +82,17 @@ public class VisitingHistoryTestService {
         List<Place> allPlaces = placeRepository.findAll();
         if (allPlaces.isEmpty()) throw new GlobalException(STATION_NOT_FOUND);
 
-        Place randomPlace = allPlaces.get((int) (Math.random() * allPlaces.size()));
-        log.info("[NOTIFICATION TEST] 선택된 장소: placeId={}, name={}", randomPlace.getId(), randomPlace.getName());
-
         LocalDateTime now                = LocalDateTime.now();
         LocalDateTime trainDepartureTime = now.plusMinutes(remainingMinutes);
 
         VisitingHistory testHistory = VisitingHistory.of(
                 user,
                 randomStation,
-                randomPlace,
+                "12345",
+                "알림 테스트 장소 이름",
+                "알림 테스트 장소 카테고리",
+                "알림 테스트 장소 주소",
+                null,
                 now,
                 trainDepartureTime
         );
@@ -98,7 +103,8 @@ public class VisitingHistoryTestService {
         eventPublisher.publishEvent(new JourneyStartedEvent(
                 userId,
                 savedHistory.getId(),
-                trainDepartureTime
+                trainDepartureTime,
+                walkTimeFromPlace
         ));
 
         log.info("[NOTIFICATION TEST] 완료: historyId={}, notificationScheduled=true", savedHistory.getId());
@@ -106,9 +112,10 @@ public class VisitingHistoryTestService {
         return new TestNotificationResponse(
                 savedHistory.getId(),
                 randomStation.getName(),
-                randomPlace.getName(),
+                "알림 테스트 장소 이름",
                 trainDepartureTime,
                 remainingMinutes,
+                walkTimeFromPlace,
                 true,
                 notificationTimings
         );

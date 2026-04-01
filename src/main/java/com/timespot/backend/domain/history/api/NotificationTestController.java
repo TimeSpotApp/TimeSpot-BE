@@ -35,11 +35,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class NotificationTestController implements NotificationTestApiDocs {
 
-    private static final String TITLE = "테스트 알림";
+    private static final String TITLE                                  = "테스트 알림";
     private static final String CUSTOM_PAYLOAD_KEY_NOTIFICATION_SCHEMA = "notificationSchema";
 
     private final ApnsTokenRepository apnsTokenRepository;
-    private final ApnsService apnsService;
+    private final ApnsService         apnsService;
 
     @Override
     @PostMapping("/departure-time")
@@ -77,7 +77,17 @@ public class NotificationTestController implements NotificationTestApiDocs {
         return ResponseEntity.ok(BaseResponse.success(REQUEST_SUCCESS, responseData));
     }
 
-    private NotificationTestResponse sendTestNotification(final java.util.UUID userId, final NotificationTiming timing) {
+    @Override
+    @PostMapping("/end-journey")
+    public ResponseEntity<BaseResponse<NotificationTestResponse>> testEndJourney(
+            @AuthenticationPrincipal final CustomUserDetails userDetails
+    ) {
+        NotificationTestResponse responseData = sendTestNotification(userDetails.getId(), NotificationTiming.END_JOURNEY);
+        return ResponseEntity.ok(BaseResponse.success(REQUEST_SUCCESS, responseData));
+    }
+
+    private NotificationTestResponse sendTestNotification(final java.util.UUID userId,
+                                                          final NotificationTiming timing) {
         List<String> deviceTokens = apnsTokenRepository.findActiveApnsTokensByUserId(userId);
 
         ApnsRequestDto requestDto = new ApnsRequestDto(
@@ -94,14 +104,14 @@ public class NotificationTestController implements NotificationTestApiDocs {
         deviceTokens.forEach(deviceToken -> apnsService.sendNotification(deviceToken, requestDto));
 
         return NotificationTestResponse.builder()
-                .notificationType(timing.name())
-                .notificationSchema(timing.toSchema())
-                .sentDeviceCount(deviceTokens.size())
-                .title(requestDto.title())
-                .body(requestDto.body())
-                .badge(requestDto.badge())
-                .customPayload(requestDto.customPayload())
-                .build();
+                                       .notificationType(timing.name())
+                                       .notificationSchema(timing.toSchema())
+                                       .sentDeviceCount(deviceTokens.size())
+                                       .title(requestDto.title())
+                                       .body(requestDto.body())
+                                       .badge(requestDto.badge())
+                                       .customPayload(requestDto.customPayload())
+                                       .build();
     }
 
     @Builder

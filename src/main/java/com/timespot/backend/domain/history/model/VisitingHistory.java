@@ -13,7 +13,6 @@ import static lombok.AccessLevel.PROTECTED;
 
 import com.timespot.backend.common.error.GlobalException;
 import com.timespot.backend.common.model.BaseAuditingEntity;
-import com.timespot.backend.domain.place.model.Place;
 import com.timespot.backend.domain.station.model.Station;
 import com.timespot.backend.domain.user.model.User;
 import jakarta.persistence.Column;
@@ -29,6 +28,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.locationtech.jts.geom.Point;
 
 /**
  * PackageName : com.timespot.backend.domain.history.model
@@ -36,15 +36,15 @@ import lombok.NoArgsConstructor;
  * Author      : loadingKKamo21
  * Date        : 26. 3. 24.
  * Description : 방문 이력 엔티티 (사용자-역 여정 기록)
- *
+ * <p>
  * ## 여정 상태 흐름
- * 1. **여정 시작**: `of(user, station, place, startTime, trainDepartureTime)` - 진행 중 상태
+ * 1. **여정 시작**: `of(user, station, placeContentId, ...)` - 진행 중 상태
  * 2. **여정 종료**:
- *    - 정상 완료: `endJourney(endTime)` - `isSuccess = true` (열차 출발 전 도착)
- *    - 시간 초과: `endJourney(endTime)` - `isSuccess = false` (열차 출발 후 도착)
- *    - 중도 포기: `abandonJourney()` - `isSuccess = false`, `endTime = null`
+ * - 정상 완료: `endJourney(endTime)` - `isSuccess = true` (열차 출발 전 도착)
+ * - 시간 초과: `endJourney(endTime)` - `isSuccess = false` (열차 출발 후 도착)
+ * - 중도 포기: `abandonJourney()` - `isSuccess = false`, `endTime = null`
  * 3. **접근 차단**: `validateEndable()` - 이미 종료된 이력에 대한 재접근 차단
- *
+ * <p>
  * ## 통계 업데이트
  * - 여정이 **정상 완료**된 경우 (`isSuccess == true`) 에만 사용자 통계 및 즐겨찾기 업데이트
  * - 포기 또는 시간 초과한 경우 통계 미반영
@@ -53,6 +53,7 @@ import lombok.NoArgsConstructor;
  * ---------------------------------------------------------------------------------------------------------------------
  * 26. 3. 24.    loadingKKamo21       Initial creation
  * 26. 3. 26.    loadingKKamo21       이미 종료된 이력 접근 차단 로직 추가, 통계 업데이트 로직 강화
+ * 26. 4. 1.     loadingKKamo21       Place 엔티티 참조 제거, 직접 컬럼 저장 (place_content_id 등)
  */
 @Entity
 @Table(name = "visiting_histories")
@@ -74,9 +75,20 @@ public class VisitingHistory extends BaseAuditingEntity {
     @JoinColumn(name = "station_id", nullable = false)
     private Station station;
 
-    @ManyToOne(fetch = LAZY)
-    @JoinColumn(name = "place_id", nullable = false)
-    private Place place;
+    @Column(name = "place_content_id", nullable = false)
+    private String placeContentId;
+
+    @Column(name = "place_name", nullable = false)
+    private String placeName;
+
+    @Column(name = "place_category", nullable = false)
+    private String placeCategory;
+
+    @Column(name = "place_address", nullable = false)
+    private String placeAddress;
+
+    @Column(name = "place_location", columnDefinition = "POINT SRID 4326", nullable = false)
+    private Point placeLocation;
 
     @Column(name = "start_time", nullable = false)
     private LocalDateTime startTime;
@@ -96,20 +108,29 @@ public class VisitingHistory extends BaseAuditingEntity {
     @Builder(access = PRIVATE)
     private VisitingHistory(final User user,
                             final Station station,
-                            final Place place,
+                            final String placeContentId,
+                            final String placeName,
+                            final String placeCategory,
+                            final String placeAddress,
+                            final Point placeLocation,
                             final LocalDateTime startTime,
                             final LocalDateTime trainDepartureTime,
                             final LocalDateTime endTime,
                             final Boolean isSuccess) {
         validateUser(user);
         validateStation(station);
-        validatePlace(place);
+        validatePlaceContentId(placeContentId);
+        validatePlaceName(placeName);
         validateStartTime(startTime);
         validateTrainDepartureTime(trainDepartureTime);
         validateEndTime(startTime, endTime);
         this.user = user;
         this.station = station;
-        this.place = place;
+        this.placeContentId = placeContentId;
+        this.placeName = placeName;
+        this.placeCategory = placeCategory;
+        this.placeAddress = placeAddress;
+        this.placeLocation = placeLocation;
         this.startTime = startTime;
         this.trainDepartureTime = trainDepartureTime;
         this.endTime = endTime;
@@ -124,20 +145,32 @@ public class VisitingHistory extends BaseAuditingEntity {
      *
      * @param user               사용자
      * @param station            역
-     * @param place              장소
+     * @param placeContentId     한국관광공사 contentId
+     * @param placeName          장소 이름
+     * @param placeCategory      장소 카테고리
+     * @param placeAddress       장소 주소
+     * @param placeLocation      장소 위치 (POINT)
      * @param startTime          탐색 시작 시간 (현재 시간)
      * @param trainDepartureTime 열차 출발 시간
      * @return VisitingHistory 엔티티
      */
     public static VisitingHistory of(final User user,
                                      final Station station,
-                                     final Place place,
+                                     final String placeContentId,
+                                     final String placeName,
+                                     final String placeCategory,
+                                     final String placeAddress,
+                                     final Point placeLocation,
                                      final LocalDateTime startTime,
                                      final LocalDateTime trainDepartureTime) {
         return VisitingHistory.builder()
                               .user(user)
                               .station(station)
-                              .place(place)
+                              .placeContentId(placeContentId)
+                              .placeName(placeName)
+                              .placeCategory(placeCategory)
+                              .placeAddress(placeAddress)
+                              .placeLocation(placeLocation)
                               .startTime(startTime)
                               .trainDepartureTime(trainDepartureTime)
                               .endTime(null)
@@ -150,7 +183,11 @@ public class VisitingHistory extends BaseAuditingEntity {
      *
      * @param user               사용자
      * @param station            역
-     * @param place              장소
+     * @param placeContentId     한국관광공사 contentId
+     * @param placeName          장소 이름
+     * @param placeCategory      장소 카테고리
+     * @param placeAddress       장소 주소
+     * @param placeLocation      장소 위치 (POINT)
      * @param startTime          탐색 시작 시간
      * @param endTime            탐색 종료 시간
      * @param trainDepartureTime 열차 출발 시간
@@ -158,14 +195,22 @@ public class VisitingHistory extends BaseAuditingEntity {
      */
     public static VisitingHistory of(final User user,
                                      final Station station,
-                                     final Place place,
+                                     final String placeContentId,
+                                     final String placeName,
+                                     final String placeCategory,
+                                     final String placeAddress,
+                                     final Point placeLocation,
                                      final LocalDateTime startTime,
                                      final LocalDateTime endTime,
                                      final LocalDateTime trainDepartureTime) {
         return VisitingHistory.builder()
                               .user(user)
                               .station(station)
-                              .place(place)
+                              .placeContentId(placeContentId)
+                              .placeName(placeName)
+                              .placeCategory(placeCategory)
+                              .placeAddress(placeAddress)
+                              .placeLocation(placeLocation)
                               .startTime(startTime)
                               .trainDepartureTime(trainDepartureTime)
                               .endTime(endTime)
@@ -198,11 +243,19 @@ public class VisitingHistory extends BaseAuditingEntity {
     /**
      * 장소 검증
      *
-     * @param place 장소
+     * @param placeContentId 한국관광공사 장소 고유 식별자
      */
-    private void validatePlace(final Place place) {
-        if (place == null || place.getId() == null)
-            throw new GlobalException(HISTORY_INVALID_PLACE);
+    private void validatePlaceContentId(final String placeContentId) {
+        if (placeContentId == null || placeContentId.isBlank()) throw new GlobalException(HISTORY_INVALID_PLACE);
+    }
+
+    /**
+     * 장소 이름 검증
+     *
+     * @param placeName 장소 이름
+     */
+    private void validatePlaceName(final String placeName) {
+        if (placeName == null || placeName.isBlank()) throw new GlobalException(HISTORY_INVALID_PLACE);
     }
 
     /**
@@ -297,10 +350,6 @@ public class VisitingHistory extends BaseAuditingEntity {
 
     /**
      * 여정 종료 검증 (이미 종료된 이력에 대한 재접근 차단)
-     * <p>
-     * - 진행 중이 아닌 경우 (isInProgress() == false) 예외 발생
-     * - 즉, endTime 이 있거나 isSuccess 가 명시적으로 false 로 설정된 경우 차단
-     * </p>
      *
      * @throws GlobalException HISTORY_ALREADY_ENDED
      */

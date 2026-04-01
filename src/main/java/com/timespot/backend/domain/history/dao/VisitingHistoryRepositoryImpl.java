@@ -13,7 +13,6 @@ import com.timespot.backend.domain.history.dto.QVisitingHistoryResponseDto_Visit
 import com.timespot.backend.domain.history.dto.VisitingHistoryResponseDto.VisitingHistoryDetailResponse;
 import com.timespot.backend.domain.history.dto.VisitingHistoryResponseDto.VisitingHistoryListResponse;
 import com.timespot.backend.domain.history.model.QVisitingHistory;
-import com.timespot.backend.domain.place.model.QPlace;
 import com.timespot.backend.domain.station.model.QStation;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,6 +35,7 @@ import org.springframework.util.StringUtils;
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------
  * 26. 3. 24.    loadingKKamo21       Initial creation
+ * 26. 4. 1.     loadingKKamo21       Place 엔티티 조인 제거, 직접 컬럼 사용
  */
 @Repository
 @RequiredArgsConstructor
@@ -43,7 +43,6 @@ public class VisitingHistoryRepositoryImpl implements VisitingHistoryRepositoryC
 
     private static final QVisitingHistory VISITING_HISTORY = QVisitingHistory.visitingHistory;
     private static final QStation         STATION          = QStation.station;
-    private static final QPlace           PLACE            = QPlace.place;
 
     private final JPAQueryFactory queryFactory;
 
@@ -55,11 +54,11 @@ public class VisitingHistoryRepositoryImpl implements VisitingHistoryRepositoryC
                                                                STATION.id,
                                                                STATION.name,
                                                                STATION.address,
-                                                               PLACE.id,
-                                                               PLACE.name,
-                                                               PLACE.category,
-                                                               PLACE.address,
-                                                               PLACE.location,
+                                                               VISITING_HISTORY.placeContentId,
+                                                               VISITING_HISTORY.placeName,
+                                                               VISITING_HISTORY.placeCategory,
+                                                               VISITING_HISTORY.placeAddress,
+                                                               VISITING_HISTORY.placeLocation,
                                                                VISITING_HISTORY.startTime,
                                                                VISITING_HISTORY.endTime,
                                                                VISITING_HISTORY.trainDepartureTime,
@@ -71,7 +70,6 @@ public class VisitingHistoryRepositoryImpl implements VisitingHistoryRepositoryC
                                                )
                                                .from(VISITING_HISTORY)
                                                .join(STATION).on(VISITING_HISTORY.station.id.eq(STATION.id))
-                                               .join(PLACE).on(VISITING_HISTORY.place.id.eq(PLACE.id))
                                                .where(VISITING_HISTORY.user.id.eq(userId),
                                                       VISITING_HISTORY.id.eq(historyId))
                                                .fetchOne());
@@ -90,9 +88,9 @@ public class VisitingHistoryRepositoryImpl implements VisitingHistoryRepositoryC
                                                                                       VISITING_HISTORY.id,
                                                                                       STATION.id,
                                                                                       STATION.name,
-                                                                                      PLACE.id,
-                                                                                      PLACE.name,
-                                                                                      PLACE.category,
+                                                                                      VISITING_HISTORY.placeContentId,
+                                                                                      VISITING_HISTORY.placeName,
+                                                                                      VISITING_HISTORY.placeCategory,
                                                                                       VISITING_HISTORY.startTime,
                                                                                       VISITING_HISTORY.endTime,
                                                                                       VISITING_HISTORY.trainDepartureTime,
@@ -105,8 +103,6 @@ public class VisitingHistoryRepositoryImpl implements VisitingHistoryRepositoryC
                                                                       .from(VISITING_HISTORY)
                                                                       .join(STATION)
                                                                       .on(VISITING_HISTORY.station.id.eq(STATION.id))
-                                                                      .join(PLACE)
-                                                                      .on(VISITING_HISTORY.place.id.eq(PLACE.id))
                                                                       .where(VISITING_HISTORY.id.in(historyIds),
                                                                              stationOrPlaceContains(keyword))
                                                                       .orderBy(getSortCondition(pageable))
@@ -142,8 +138,8 @@ public class VisitingHistoryRepositoryImpl implements VisitingHistoryRepositoryC
         if (!StringUtils.hasText(keyword)) return null;
         return STATION.name.containsIgnoreCase(keyword.trim())
                            .or(STATION.address.containsIgnoreCase(keyword.trim()))
-                           .or(PLACE.name.containsIgnoreCase(keyword.trim()))
-                           .or(PLACE.address.containsIgnoreCase(keyword.trim()));
+                           .or(VISITING_HISTORY.placeName.containsIgnoreCase(keyword.trim()))
+                           .or(VISITING_HISTORY.placeAddress.containsIgnoreCase(keyword.trim()));
     }
 
     private OrderSpecifier<?>[] getSortCondition(final Pageable pageable) {
