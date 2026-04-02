@@ -2,10 +2,8 @@ package com.timespot.backend.domain.user.model;
 
 import static com.timespot.backend.common.response.ErrorCode.USER_EMAIL_REQUIRED;
 import static com.timespot.backend.common.response.ErrorCode.USER_INVALID_EMAIL_FORMAT;
-import static com.timespot.backend.common.response.ErrorCode.USER_INVALID_NICKNAME_FORMAT;
 import static com.timespot.backend.common.response.ErrorCode.USER_NICKNAME_REQUIRED;
 import static com.timespot.backend.domain.user.constant.UserConst.EMAIL_PATTERN;
-import static com.timespot.backend.domain.user.constant.UserConst.NICKNAME_PATTERN;
 import static com.timespot.backend.domain.user.model.MapApi.APPLE;
 import static com.timespot.backend.domain.user.model.UserRole.USER;
 import static jakarta.persistence.EnumType.STRING;
@@ -16,8 +14,6 @@ import static org.hibernate.type.SqlTypes.BINARY;
 import com.github.f4b6a3.ulid.UlidCreator;
 import com.timespot.backend.common.error.GlobalException;
 import com.timespot.backend.common.model.BaseAuditingEntity;
-import com.timespot.backend.common.response.ErrorCode;
-import com.timespot.backend.domain.user.constant.UserConst;
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
@@ -28,13 +24,11 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
-
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
-
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -166,8 +160,8 @@ public class User extends BaseAuditingEntity implements Persistable<UUID> {
     private void validateNickname(final String nickname) {
         if (nickname == null || nickname.isBlank())
             throw new GlobalException(USER_NICKNAME_REQUIRED);
-        if (!NICKNAME_PATTERN.matcher(nickname).matches())
-            throw new GlobalException(USER_INVALID_NICKNAME_FORMAT);
+//        if (!NICKNAME_PATTERN.matcher(nickname).matches())
+//            throw new GlobalException(USER_INVALID_NICKNAME_FORMAT);
     }
 
     // ========================= 비즈니스 메서드 =========================
