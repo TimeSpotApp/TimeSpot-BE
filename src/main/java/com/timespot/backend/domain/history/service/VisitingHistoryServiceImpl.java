@@ -121,7 +121,7 @@ public class VisitingHistoryServiceImpl implements VisitingHistoryService {
     public VisitingHistoryDetailResponse endJourney(final UUID userId,
                                                     final Long historyId,
                                                     final JourneyEndRequest dto) {
-        VisitingHistory visitingHistory = visitingHistoryRepository.findByIdAndIsSuccessFalse(historyId)
+        VisitingHistory visitingHistory = visitingHistoryRepository.findById(historyId)
                                                                    .orElseThrow(
                                                                            () -> new GlobalException(HISTORY_NOT_FOUND)
                                                                    );
@@ -130,18 +130,15 @@ public class VisitingHistoryServiceImpl implements VisitingHistoryService {
 
         visitingHistory.validateEndable();
 
-        if (dto.getIsCompleted()) {
-            visitingHistory.endJourney(LocalDateTime.now(clock));
+        if (Boolean.TRUE.equals(dto.getIsCompleted())) {
+            visitingHistory.endJourney(LocalDateTime.now(clock), true);
 
-            if (visitingHistory.isSuccess()) {
-                User    user            = visitingHistory.getUser();
-                Station station         = visitingHistory.getStation();
-                int     durationMinutes = visitingHistory.getTotalDurationMinutes();
+            User    user            = visitingHistory.getUser();
+            Station station         = visitingHistory.getStation();
+            int     durationMinutes = visitingHistory.getTotalDurationMinutes();
 
-                user.addVisitHistory(durationMinutes, true);
-
-                updateFavoriteVisitCount(user, station, durationMinutes);
-            }
+            user.addVisitHistory(durationMinutes, true);
+            updateFavoriteVisitCount(user, station, durationMinutes);
         } else
             visitingHistory.abandonJourney();
 

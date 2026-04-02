@@ -14,9 +14,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
  * DATE          AUTHOR               DESCRIPTION
  * ---------------------------------------------------------------------------------------------------------------------
  * 26. 3. 24.    loadingKKamo21       Initial creation
+ * 26. 4. 2.     loadingKKamo21       findByIdAndIsSuccessFalse 제거, findById 로 통합
  */
 public interface VisitingHistoryRepository extends JpaRepository<VisitingHistory, Long>, VisitingHistoryRepositoryCustom {
-
-    Optional<VisitingHistory> findByIdAndIsSuccessFalse(Long id);
-
 }

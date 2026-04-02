@@ -291,6 +291,7 @@ public class VisitingHistory extends BaseAuditingEntity {
 
     /**
      * 탐색 종료 (종료 시간 설정 및 성공/실패 자동 판별)
+     * 시스템이 자동으로 성공/실패를 판정 (열차 출발 전 도착 여부)
      *
      * @param endTime 탐색 종료 시간
      */
@@ -299,6 +300,20 @@ public class VisitingHistory extends BaseAuditingEntity {
         this.endTime = endTime;
         this.totalDurationMinutes = calculateDurationMinutes(this.startTime, endTime);
         this.isSuccess = !endTime.isAfter(this.trainDepartureTime);
+    }
+
+    /**
+     * 여정 종료 (사용자 선언 기반 성공/실패)
+     * 사용자의 isCompleted 선언에 따라 무조건 성공/실패로 처리
+     *
+     * @param endTime 탐색 종료 시간
+     * @param success 사용자 선언 성공 여부 (true = 성공, false = 실패)
+     */
+    public void endJourney(final LocalDateTime endTime, final boolean success) {
+        validateEndTime(this.startTime, endTime);
+        this.endTime = endTime;
+        this.totalDurationMinutes = calculateDurationMinutes(this.startTime, endTime);
+        this.isSuccess = success;
     }
 
     /**
