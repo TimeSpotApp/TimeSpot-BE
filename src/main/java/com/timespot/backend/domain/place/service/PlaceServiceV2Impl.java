@@ -1,5 +1,6 @@
 package com.timespot.backend.domain.place.service;
 
+import static com.timespot.backend.common.response.ErrorCode.PLACE_NOT_FOUND;
 import static com.timespot.backend.common.response.ErrorCode.STATION_NOT_FOUND;
 import static com.timespot.backend.domain.place.constant.PlaceConst.MINIMUM_STAY_TIME;
 import static com.timespot.backend.domain.place.constant.PlaceConst.PLATFORM_WAIT_TIME;
@@ -26,6 +27,8 @@ import java.time.LocalTime;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -55,6 +58,8 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
 
     private final StationRepository      stationRepository;
     private final VisitKoreaPlaceService visitKoreaPlaceService;
+
+    private final ConcurrentHashMap<Long, AtomicBoolean> refreshInProgress = new ConcurrentHashMap<>();
 
     @Override
     public Page<AvailablePlace> findAvailablePlaces(
@@ -110,7 +115,9 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
 
         log.info("GEO 장소 정렬 완료: sortedCount={}", sorted.size());
 
-        Page<AvailablePlace> result = buildAvailablePlacePage(sorted, pageable, userLat, userLon, remainingMinutes);
+        Page<AvailablePlace> result = buildAvailablePlacePage(
+                sorted, pageable, userLat, userLon, remainingMinutes, stationId
+        );
 
         log.info("방문 가능 장소 조회 완료: totalElements={}, page={}, size={}, totalPages={}",
                  result.getTotalElements(), result.getNumber(), result.getSize(), result.getTotalPages());
@@ -129,7 +136,22 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
         log.info("장소 상세 정보 조회: placeId={}, stationId={}, remainingMinutes={}",
                  placeId, stationId, remainingMinutes);
 
-        PlaceCardCache   cardInfo   = visitKoreaPlaceService.getPlaceCardWithFallback(placeId);
+        PlaceCardCache cardInfo = visitKoreaPlaceService.getPlaceCardCache(placeId)
+                                                        .orElse(null);
+        if (cardInfo == null) {
+            log.warn("PlaceCardCache 없음, 배치 갱신 트리거: placeId={}", placeId);
+            Station station = validateStation(stationId);
+            visitKoreaPlaceService.syncPlaceCardsInBatch(
+                    stationId,
+                    station.getLongitude(),
+                    station.getLatitude()
+            );
+            cardInfo = visitKoreaPlaceService.getPlaceCardCache(placeId)
+                                             .orElse(null);
+
+            if (cardInfo == null) throw new GlobalException(PLACE_NOT_FOUND);
+        }
+
         PlaceDetailCache detailInfo = visitKoreaPlaceService.getPlaceDetailWithFallback(placeId);
 
         Station station = validateStation(stationId);
@@ -299,7 +321,8 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
             final Pageable pageable,
             final double userLat,
             final double userLon,
-            final int remainingMinutes
+            final int remainingMinutes,
+            final Long stationId
     ) {
         int start = (int) pageable.getOffset();
 
@@ -309,7 +332,7 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
                                              .map(place -> {
                                                  try {
                                                      return buildAvailablePlace(
-                                                             place, userLat, userLon, remainingMinutes
+                                                             place, userLat, userLon, remainingMinutes, stationId
                                                      );
                                                  } catch (Exception e) {
                                                      log.warn("AvailablePlace 빌드 실패: placeId={}, error={}",
@@ -330,11 +353,19 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
             final GeoPlace geoPlace,
             final double userLat,
             final double userLon,
-            final int remainingMinutes
+            final int remainingMinutes,
+            final Long stationId
     ) {
         log.debug("AvailablePlace 빌드 시작: placeId={}", geoPlace.getPlaceId());
 
-        PlaceCardCache cardInfo = visitKoreaPlaceService.getPlaceCardWithFallback(geoPlace.getPlaceId());
+        PlaceCardCache cardInfo = visitKoreaPlaceService.getPlaceCardCache(geoPlace.getPlaceId())
+                                                        .orElse(null);
+
+        if (cardInfo == null) {
+            log.warn("PlaceCardCache 없음, 배치 갱신 트리거: placeId={}", geoPlace.getPlaceId());
+            triggerPlaceCardBatchRefresh(stationId);
+            return null;
+        }
 
         log.debug("PlaceCardCache 조회 성공: placeId={}, name={}", geoPlace.getPlaceId(), cardInfo.getName());
 
@@ -854,6 +885,41 @@ public class PlaceServiceV2Impl implements PlaceServiceV2 {
      */
     private int calculateWalkTime(final double distance) {
         return (int) Math.ceil(distance / WALK_SPEED_PER_MINUTE);
+    }
+
+    /**
+     * PlaceCard 캐시 배치 갱신 트리거 (중복 실행 방지)
+     */
+    private void triggerPlaceCardBatchRefresh(final Long stationId) {
+        AtomicBoolean flag = refreshInProgress.computeIfAbsent(stationId, k -> new AtomicBoolean(false));
+
+        if (!flag.compareAndSet(false, true)) {
+            log.debug("이미 배치 갱신 진행 중, 스킵: stationId={}", stationId);
+            return;
+        }
+
+        try {
+            log.info("PlaceCard 배치 갱신 시작 (트리거): stationId={}", stationId);
+            Station station = stationRepository.findById(stationId)
+                                               .orElse(null);
+            if (station == null) {
+                log.warn("역을 찾을 수 없어 배치 갱신 불가: stationId={}", stationId);
+                return;
+            }
+
+            int refreshed = visitKoreaPlaceService.syncPlaceCardsInBatch(
+                    stationId,
+                    station.getLongitude(),
+                    station.getLatitude()
+            );
+
+            log.info("PlaceCard 배치 갱신 완료 (트리거): stationId={}, refreshed={}", stationId, refreshed);
+        } catch (Exception e) {
+            log.error("PlaceCard 배치 갱신 실패 (트리거): stationId={}, error={}",
+                      stationId, e.getMessage(), e);
+        } finally {
+            flag.set(false);
+        }
     }
 
 }

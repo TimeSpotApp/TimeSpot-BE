@@ -122,4 +122,33 @@ public interface VisitKoreaPlaceService {
      */
     PlaceCardCache getPlaceCardWithFallback(String placeId);
 
+    /**
+     * VisitKorea API 에서 장소 데이터를 강제 동기화 (GEO 캐시 유무 무시)
+     * <p>
+     * 스케줄러에 의한 주기적 갱신용. 기존 GEO 캐시가 있어도 무시하고
+     * API 에서 전체 데이터를 다시 가져와 캐시를 갱신합니다.
+     * </p>
+     *
+     * @param stationId    역 ID
+     * @param longitude    기준 경도
+     * @param latitude     기준 위도
+     * @param searchRadius 검색 반경 (미터)
+     * @return 동기화된 장소 목록
+     */
+    List<GeoPlace> forceSyncPlacesFromVisitKorea(Long stationId, double longitude, double latitude, int searchRadius);
+
+    /**
+     * 특정 역의 PlaceCard 캐시를 배치로 갱신
+     * <p>
+     * GEO 캐시에 존재하는 장소 ID 목록을 기반으로
+     * PlaceCard 캐시가 없는 장소들을 일괄 API 조회하여 캐싱합니다.
+     * </p>
+     *
+     * @param stationId 역 ID
+     * @param longitude 기준 경도
+     * @param latitude  기준 위도
+     * @return 갱신된 PlaceCard 캐시 수
+     */
+    int syncPlaceCardsInBatch(Long stationId, double longitude, double latitude);
+
 }
