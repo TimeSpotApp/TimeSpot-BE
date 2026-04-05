@@ -11,6 +11,8 @@ import static com.timespot.backend.infra.visitkorea.constant.VisitKoreaConst.map
 import static com.timespot.backend.infra.visitkorea.model.ContentType.getAllContentTypes;
 
 import com.timespot.backend.common.error.GlobalException;
+import com.timespot.backend.infra.google.places.client.GooglePlacesApiClient;
+import com.timespot.backend.infra.google.places.dto.GooglePlacesResponse;
 import com.timespot.backend.infra.redis.dao.RedisGeoRepository;
 import com.timespot.backend.infra.redis.dao.RedisRepository;
 import com.timespot.backend.infra.redis.model.GeoPlace;
@@ -51,10 +53,11 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 public class VisitKoreaPlaceServiceImpl implements VisitKoreaPlaceService {
 
-    private final RedisRepository      redisRepository;
-    private final RedisGeoRepository   redisGeoRepository;
-    private final VisitKoreaApiClient  visitKoreaApiClient;
-    private final VisitKoreaProperties visitKoreaProperties;
+    private final RedisRepository       redisRepository;
+    private final RedisGeoRepository    redisGeoRepository;
+    private final VisitKoreaApiClient   visitKoreaApiClient;
+    private final GooglePlacesApiClient googlePlacesApiClient;
+    private final VisitKoreaProperties  visitKoreaProperties;
 
     @Override
     public Optional<PlaceCardCache> getPlaceCardCache(final String placeId) {
@@ -119,7 +122,127 @@ public class VisitKoreaPlaceServiceImpl implements VisitKoreaPlaceService {
             return existingPlaces;
         }
 
-        log.info("GEO 캐시 없음, VisitKorea API 동기화 시작: stationId={}, radius={}", stationId, searchRadius);
+        return doSyncPlaces(stationId, longitude, latitude, searchRadius);
+    }
+
+    @Override
+    @Transactional
+    public List<GeoPlace> forceSyncPlacesFromVisitKorea(final Long stationId,
+                                                        final double longitude,
+                                                        final double latitude,
+                                                        final int searchRadius) {
+        String geoKey = GEO_KEY_PREFIX + stationId;
+
+        log.info("GEO 캐시 강제 삭제 후 전체 동기화 시작: stationId={}", stationId);
+        redisGeoRepository.deleteGeoKey(geoKey);
+
+        return doSyncPlaces(stationId, longitude, latitude, searchRadius);
+    }
+
+    @Override
+    @Transactional
+    public int syncPlaceCardsInBatch(final Long stationId,
+                                     final double longitude,
+                                     final double latitude) {
+        String geoKey = GEO_KEY_PREFIX + stationId;
+
+        List<GeoPlace> geoPlaces = findPlacesWithinRadius(geoKey, longitude, latitude,
+                                                          visitKoreaProperties.getMaxRadiusMeters());
+        if (geoPlaces.isEmpty()) {
+            log.warn("GEO 캐시가 비어 있어 PlaceCard 배치 갱신 불가: stationId={}", stationId);
+            return 0;
+        }
+
+        log.info("PlaceCard 배치 갱신 시작: stationId={}, totalGeoPlaces={}", stationId, geoPlaces.size());
+
+        List<GeoPlace>       uncachedPlaces = new ArrayList<>();
+        List<PlaceCardCache> cardBatch      = new ArrayList<>();
+        int                  cachedCount    = 0;
+
+        for (GeoPlace place : geoPlaces) {
+            if (getPlaceCardCache(place.getPlaceId()).isPresent()) {
+                cachedCount++;
+                continue;
+            }
+            uncachedPlaces.add(place);
+        }
+
+        log.info("PlaceCard 배치 갱신 대상: stationId={}, uncached={}, alreadyCached={}",
+                 stationId, uncachedPlaces.size(), cachedCount);
+
+        if (uncachedPlaces.isEmpty()) {
+            log.info("모든 PlaceCard 캐시가 존재, 배치 갱신 스킵: stationId={}", stationId);
+            return cachedCount;
+        }
+
+        Set<String> placeIdSet      = new HashSet<>();
+        Set<String> validCategories = Set.of("관광지", "음식점", "문화시설", "레포츠", "쇼핑");
+        int         syncedCount     = 0;
+
+        for (ContentType contentType : getAllContentTypes()) {
+            for (int page = 1; page <= visitKoreaProperties.getSyncPages(); page++) {
+                LocationBasedListResponse response = visitKoreaApiClient.locationBasedList(
+                        longitude,
+                        latitude,
+                        visitKoreaProperties.getMaxRadiusMeters(),
+                        contentType,
+                        page,
+                        visitKoreaProperties.getPageSize()
+                );
+
+                if (!response.isSuccess()) {
+                    log.error("PlaceCard 배치 갱신 API 실패: stationId={}, contentType={}, page={}",
+                              stationId, contentType, page);
+                    break;
+                }
+
+                if (response.getBody().getItems().getItem() == null) break;
+
+                List<LocationBasedListItem> items = response.getBody().getItems().getItem();
+
+                for (LocationBasedListItem item : items) {
+                    if (item.getMapX() == null || item.getMapY() == null) continue;
+
+                    String placeId = item.getContentId();
+                    if (!placeIdSet.add(placeId)) continue;
+
+                    String category = mapContentTypeIdToCategory(item.getContentTypeId());
+                    if (!validCategories.contains(category)) continue;
+
+                    PlaceCardCache cardCache = new PlaceCardCache(
+                            placeId,
+                            item.getName(),
+                            category,
+                            item.getFullAddress(),
+                            item.getMapY(),
+                            item.getMapX(),
+                            item.getDist() != null ? item.getDist() : 0.0,
+                            item.getFirstImage()
+                    );
+
+                    cardBatch.add(cardCache);
+                    syncedCount++;
+                }
+
+                if (items.size() < visitKoreaProperties.getPageSize()) break;
+            }
+        }
+
+        log.info("PlaceCard 배치 저장: stationId={}, count={}", stationId, cardBatch.size());
+        for (PlaceCardCache cache : cardBatch)
+            savePlaceCardCache(cache.getPlaceId(), cache);
+
+        log.info("PlaceCard 배치 갱신 완료: stationId={}, synced={}", stationId, syncedCount);
+        return syncedCount;
+    }
+
+    private List<GeoPlace> doSyncPlaces(final Long stationId,
+                                        final double longitude,
+                                        final double latitude,
+                                        final int searchRadius) {
+        String geoKey = GEO_KEY_PREFIX + stationId;
+
+        log.info("VisitKorea API 동기화 시작: stationId={}, radius={}", stationId, searchRadius);
 
         List<GeoPlace>       allPlaces       = new ArrayList<>();
         Set<String>          placeIdSet      = new HashSet<>();
@@ -304,7 +427,10 @@ public class VisitKoreaPlaceServiceImpl implements VisitKoreaPlaceService {
 
         List<String> images = fetchPlaceImages(placeId);
 
-        PlaceDetailCache detailCache = buildPlaceDetailCache(cardCache, detailResponse, images);
+        String[] googleWeekdayDescriptions = fetchGoogleWeekdayDescriptions(cardCache);
+
+        PlaceDetailCache detailCache = buildPlaceDetailCache(
+                cardCache, detailResponse, images, googleWeekdayDescriptions);
 
         savePlaceDetailCache(placeId, detailCache);
 
@@ -334,16 +460,51 @@ public class VisitKoreaPlaceServiceImpl implements VisitKoreaPlaceService {
     }
 
     /**
+     * Google Places API 에서 요일별 영업 시간 조회
+     *
+     * @param cardCache 장소 카드 캐시 (장소명, 좌표 포함)
+     * @return 요일별 영업 시간 설명 (없으면 null)
+     */
+    private String[] fetchGoogleWeekdayDescriptions(final PlaceCardCache cardCache) {
+        try {
+            List<GooglePlacesResponse> results = googlePlacesApiClient.searchByPlaceNameAndLocation(
+                    cardCache.getName(),
+                    cardCache.getLatitude(),
+                    cardCache.getLongitude()
+            );
+
+            if (results == null || results.isEmpty()) {
+                log.debug("Google Places 검색 결과 없음: placeId={}", cardCache.getPlaceId());
+                return null;
+            }
+
+            String[] weekdayDescriptions = results.get(0).getWeekdayDescriptions();
+            if (weekdayDescriptions != null && weekdayDescriptions.length > 0) {
+                log.info("Google Places 요일별 영업 시간 조회 성공: placeId={}", cardCache.getPlaceId());
+                return weekdayDescriptions;
+            }
+
+            log.debug("Google Places 요일별 영업 시간 없음: placeId={}", cardCache.getPlaceId());
+            return null;
+        } catch (Exception e) {
+            log.warn("Google Places API 호출 실패: placeId={}, error={}", cardCache.getPlaceId(), e.getMessage());
+            return null;
+        }
+    }
+
+    /**
      * PlaceDetailCache 빌드
      *
-     * @param cardCache      장소 카드 캐시
-     * @param detailResponse 상세 정보 API 응답
-     * @param images         이미지 URL 목록
+     * @param cardCache                 장소 카드 캐시
+     * @param detailResponse            상세 정보 API 응답
+     * @param images                    이미지 URL 목록
+     * @param googleWeekdayDescriptions Google Places 요일별 영업 시간
      * @return 장소 상세 캐시
      */
     private PlaceDetailCache buildPlaceDetailCache(final PlaceCardCache cardCache,
                                                    final DetailInfoResponse detailResponse,
-                                                   final List<String> images) {
+                                                   final List<String> images,
+                                                   final String[] googleWeekdayDescriptions) {
         if (!detailResponse.isSuccess() || detailResponse.getBody().getItems() == null) {
             log.warn("상세 정보 API 응답 없음: placeId={}", cardCache.getPlaceId());
             return PlaceDetailCache.empty();
@@ -394,6 +555,7 @@ public class VisitKoreaPlaceServiceImpl implements VisitKoreaPlaceService {
                                .shopGuide(item.getShopGuide())
                                .scaleShopping(item.getScaleShopping())
                                .fairDay(item.getFairDay())
+                               .googleWeekdayDescriptions(googleWeekdayDescriptions)
                                .build();
     }
 
